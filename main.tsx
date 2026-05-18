@@ -13,6 +13,8 @@ import { useMediaSession } from "./src/hooks/useMediaSession";
 import { usePlayerKeyboard } from "./src/hooks/usePlayerKeyboard";
 import { useToasts } from "./src/hooks/useToasts";
 import { formatPlaybackError } from "./src/lib/playbackErrors";
+import { pickAdjacentId, shuffleIds, type RepeatMode } from "./src/lib/queue";
+import { useWakeLock } from "./src/hooks/useWakeLock";
 import { registerAppSW } from "./src/pwa/register";
 import "./styles.css";
 import { API_ROOT, PUBLIC_KEY, STORAGE_KEY } from "./src/config";
@@ -40,6 +42,9 @@ type UserState = {
   lastTrackId: string | null;
   volume: number;
   playbackRate: number;
+  shuffle: boolean;
+  repeatMode: RepeatMode;
+  wakeLock: boolean;
 };
 const fallbackCatalog: Catalog = {
   sourceTitle: "СКАЗКИ АУДИО",
@@ -97,6 +102,9 @@ const defaultUserState = (): UserState => ({
   lastTrackId: null,
   volume: 1,
   playbackRate: 1,
+  shuffle: false,
+  repeatMode: "off",
+  wakeLock: true,
 });
 const loadUserState = (): UserState => {
   try {
@@ -261,6 +269,7 @@ function App() {
   const [installPrompt, setInstallPrompt] =
     useState<BeforeInstallPromptEvent | null>(null);
   const [iosHintDismissed, setIosHintDismissed] = useState(false);
+  const [navOpen, setNavOpen] = useState(false);
   const [playlistName, setPlaylistName] = useState("");
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
   const [queue, setQueue] = useState<string[]>([]);
@@ -354,9 +363,23 @@ function App() {
     user.progress,
     view,
   ]);
+  const trackIds = useMemo(() => tracks.map((t) => t.id), [tracks]);
   useEffect(() => {
-    setQueue(tracks.map((t) => t.id));
-  }, [tracks]);
+    setQueue(user.shuffle ? shuffleIds(trackIds) : trackIds);
+  }, [trackIds, user.shuffle]);
+  useEffect(() => {
+    if (!navOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setNavOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [navOpen]);
+  useWakeLock(isPlaying && user.wakeLock);
   useEffect(() => {
     if (!currentTrackId && user.lastTrackId && trackMap.has(user.lastTrackId))
       setCurrentTrackId(user.lastTrackId);
@@ -479,16 +502,65 @@ function App() {
     } else audio.pause();
   }, [catalog.tracks, currentTrackId, playTrack, pushToast, trackMap, tracks]);
 
+  const playbackSource = useCallback(
+    () => (queue.length ? queue : trackIds),
+    [queue, trackIds],
+  );
+
   const nextTrack = useCallback(
     (step: number) => {
-      const source = queue.length ? queue : tracks.map((t) => t.id);
-      const idx = source.indexOf(currentTrackId || "");
-      const nextId = source[idx + step];
+      const source = playbackSource();
+      const nextId = pickAdjacentId(
+        source,
+        currentTrackId,
+        step,
+        user.repeatMode,
+      );
       const next = nextId ? trackMap.get(nextId) : null;
       if (next) void playTrack(next);
     },
-    [currentTrackId, playTrack, queue, trackMap, tracks],
+    [
+      currentTrackId,
+      playTrack,
+      playbackSource,
+      trackMap,
+      user.repeatMode,
+    ],
   );
+
+  const onTrackEnded = useCallback(() => {
+    if (user.repeatMode === "one" && currentTrackId) {
+      const audio = audioRef.current;
+      if (audio) {
+        audio.currentTime = 0;
+        void audio.play().catch(() => {});
+      }
+      return;
+    }
+    const source = playbackSource();
+    const nextId = pickAdjacentId(source, currentTrackId, 1, user.repeatMode);
+    const next = nextId ? trackMap.get(nextId) : null;
+    if (next) void playTrack(next);
+  }, [
+    currentTrackId,
+    playTrack,
+    playbackSource,
+    trackMap,
+    user.repeatMode,
+  ]);
+
+  const cycleRepeat = () =>
+    setUser((prev) => ({
+      ...prev,
+      repeatMode:
+        prev.repeatMode === "off"
+          ? "all"
+          : prev.repeatMode === "all"
+            ? "one"
+            : "off",
+    }));
+
+  const closeNav = () => setNavOpen(false);
 
   const seekBy = useCallback((deltaSec: number) => {
     const audio = audioRef.current;
@@ -502,12 +574,14 @@ function App() {
   const playerActionsRef = useRef({
     togglePlay: async () => {},
     nextTrack: (_step: number) => {},
+    onTrackEnded: () => {},
     seekBy: (_delta: number) => {},
     play: async () => {},
     pause: () => {},
   });
   playerActionsRef.current.togglePlay = togglePlay;
   playerActionsRef.current.nextTrack = nextTrack;
+  playerActionsRef.current.onTrackEnded = onTrackEnded;
   playerActionsRef.current.seekBy = seekBy;
   playerActionsRef.current.play = async () => {
     const audio = audioRef.current;
@@ -598,7 +672,7 @@ function App() {
         return next;
       });
     };
-    const handleEnded = () => playerActionsRef.current.nextTrack(1);
+    const handleEnded = () => playerActionsRef.current.onTrackEnded();
     audio.addEventListener("loadedmetadata", handleLoaded);
     audio.addEventListener("timeupdate", handleTime);
     audio.addEventListener("ended", handleEnded);
@@ -662,6 +736,12 @@ function App() {
       setLoadingCatalog(false);
     }
   };
+  const repeatLabel =
+    user.repeatMode === "one"
+      ? "Повтор трека"
+      : user.repeatMode === "all"
+        ? "Повтор списка"
+        : "Повтор выключен";
   const audioBusy = isLoadingTrack || isBuffering;
   const playButtonLabel = audioBusy
     ? "Загрузка"
@@ -685,13 +765,28 @@ function App() {
     <>
       <ToastStack toasts={toasts} onDismiss={dismissToast} />
       <div className="app-shell">
-        <aside className="sidebar">
+        <button
+          type="button"
+          className={navOpen ? "nav-backdrop is-open" : "nav-backdrop"}
+          aria-hidden={!navOpen}
+          tabIndex={navOpen ? 0 : -1}
+          onClick={closeNav}
+        />
+        <aside className={navOpen ? "sidebar is-open" : "sidebar"}>
           <div className="brand">
             <div className="logo-box">♪</div>
             <div>
               <h1>Gayduk</h1>
               <p>аудиосказки · React player</p>
             </div>
+            <button
+              type="button"
+              className="ghost round sidebar-close"
+              onClick={closeNav}
+              aria-label="Закрыть меню"
+            >
+              ×
+            </button>
           </div>
           <section className="side-section">
             <h2>Разделы</h2>
@@ -711,6 +806,7 @@ function App() {
                   setView(id as any);
                   setSelectedFolder(null);
                   setSelectedPlaylist(null);
+                  closeNav();
                 }}
               >
                 {label}
@@ -728,6 +824,7 @@ function App() {
                     setView("all");
                     setSelectedFolder(folder);
                     setSelectedPlaylist(null);
+                    closeNav();
                   }}
                 >
                   {folder}
@@ -763,6 +860,7 @@ function App() {
                       setView("playlist");
                       setSelectedPlaylist(pl.id);
                       setSelectedFolder(null);
+                      closeNav();
                     }}
                   >
                     {pl.name} <span>{pl.trackIds.length}</span>
@@ -792,6 +890,14 @@ function App() {
             </div>
           ) : null}
           <header className="topbar">
+            <button
+              type="button"
+              className="ghost menu-toggle"
+              onClick={() => setNavOpen(true)}
+              aria-label="Открыть меню"
+            >
+              ☰
+            </button>
             <div>
               <div className="eyebrow">Публичная коллекция Дмитрия Гайдука</div>
               <div className="source">Источник: {PUBLIC_KEY}</div>
@@ -995,7 +1101,35 @@ function App() {
         </div>
         <div className="center-box">
           <div className="player-controls">
-            <button className="ghost round" onClick={() => nextTrack(-1)}>
+            <button
+              type="button"
+              className={`ghost round${user.shuffle ? " active" : ""}`}
+              onClick={() =>
+                setUser((prev) => ({ ...prev, shuffle: !prev.shuffle }))
+              }
+              aria-label="Случайный порядок"
+              aria-pressed={user.shuffle}
+            >
+              🔀
+            </button>
+            <button
+              type="button"
+              className={`ghost round${user.repeatMode !== "off" ? " active" : ""}`}
+              onClick={cycleRepeat}
+              aria-label={repeatLabel}
+            >
+              {user.repeatMode === "one"
+                ? "🔂"
+                : user.repeatMode === "all"
+                  ? "🔁"
+                  : "↻"}
+            </button>
+            <button
+              type="button"
+              className="ghost round"
+              onClick={() => nextTrack(-1)}
+              aria-label="Предыдущий трек"
+            >
               ⏮
             </button>
             <button
@@ -1007,7 +1141,12 @@ function App() {
             >
               {audioBusy ? "◌" : isPlaying ? "⏸" : "▶"}
             </button>
-            <button className="ghost round" onClick={() => nextTrack(1)}>
+            <button
+              type="button"
+              className="ghost round"
+              onClick={() => nextTrack(1)}
+              aria-label="Следующий трек"
+            >
               ⏭
             </button>
           </div>
@@ -1018,13 +1157,29 @@ function App() {
         </div>
         <div className="right-box">
           <button
-            className="ghost round"
+            type="button"
+            className={`ghost round btn-wake${user.wakeLock ? " active" : ""}`}
+            onClick={() =>
+              setUser((prev) => ({ ...prev, wakeLock: !prev.wakeLock }))
+            }
+            aria-label={
+              user.wakeLock ? "Не гасить экран: вкл" : "Не гасить экран: выкл"
+            }
+            aria-pressed={user.wakeLock}
+            title="Не гасить экран"
+          >
+            ◉
+          </button>
+          <button
+            type="button"
+            className="ghost round btn-like"
             onClick={() => currentTrackId && toggleMap("likes", currentTrackId)}
           >
             {currentTrackId && isLiked(currentTrackId) ? "♥" : "♡"}
           </button>
           <button
-            className="ghost round"
+            type="button"
+            className="ghost round btn-favorite"
             onClick={() =>
               currentTrackId && toggleMap("favorites", currentTrackId)
             }
