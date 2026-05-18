@@ -11,5 +11,11 @@
     "isolatedModules": true,
     "resolveJsonModule": true
   },
-  "include": ["main.tsx", "src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts", "vite.config.ts"]
+  "include": [
+    "main.tsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.d.ts",
+    "vite.config.ts"
+  ]
 }

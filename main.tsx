@@ -1,11 +1,24 @@
 /// <reference types="vite/client" />
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { createRoot } from "react-dom/client";
 import CatalogWorkerCtor from "./src/workers/catalog.worker?worker";
+import { ToastStack } from "./src/components/ToastStack";
+import { useMediaSession } from "./src/hooks/useMediaSession";
+import { usePlayerKeyboard } from "./src/hooks/usePlayerKeyboard";
+import { useToasts } from "./src/hooks/useToasts";
+import { formatPlaybackError } from "./src/lib/playbackErrors";
 import { registerAppSW } from "./src/pwa/register";
 import "./styles.css";
 import { API_ROOT, PUBLIC_KEY, STORAGE_KEY } from "./src/config";
 import type { Catalog, Track } from "./src/types/catalog";
+
+const PLAYBACK_RATES = [0.75, 1, 1.25, 1.5] as const;
 
 type Playlist = {
   id: string;
@@ -26,6 +39,7 @@ type UserState = {
   progress: Record<string, Progress>;
   lastTrackId: string | null;
   volume: number;
+  playbackRate: number;
 };
 const fallbackCatalog: Catalog = {
   sourceTitle: "СКАЗКИ АУДИО",
@@ -82,6 +96,7 @@ const defaultUserState = (): UserState => ({
   progress: {},
   lastTrackId: null,
   volume: 1,
+  playbackRate: 1,
 });
 const loadUserState = (): UserState => {
   try {
@@ -250,6 +265,9 @@ function App() {
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
   const [queue, setQueue] = useState<string[]>([]);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isLoadingTrack, setIsLoadingTrack] = useState(false);
+  const [isBuffering, setIsBuffering] = useState(false);
+  const { toasts, push: pushToast, dismiss: dismissToast } = useToasts();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const lastPlaybackUrlRef = useRef<string>("");
   const lastSavedSecond = useRef<number>(-1);
@@ -368,17 +386,168 @@ function App() {
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
-    const sync = () => setIsPlaying(!audio.paused && !audio.ended);
-    sync();
-    audio.addEventListener("play", sync);
-    audio.addEventListener("pause", sync);
-    audio.addEventListener("ended", sync);
+    const syncPlaying = () => setIsPlaying(!audio.paused && !audio.ended);
+    const onWaiting = () => setIsBuffering(true);
+    const onPlaying = () => setIsBuffering(false);
+    syncPlaying();
+    audio.addEventListener("play", syncPlaying);
+    audio.addEventListener("pause", syncPlaying);
+    audio.addEventListener("ended", syncPlaying);
+    audio.addEventListener("waiting", onWaiting);
+    audio.addEventListener("playing", onPlaying);
+    audio.addEventListener("canplay", onPlaying);
     return () => {
-      audio.removeEventListener("play", sync);
-      audio.removeEventListener("pause", sync);
-      audio.removeEventListener("ended", sync);
+      audio.removeEventListener("play", syncPlaying);
+      audio.removeEventListener("pause", syncPlaying);
+      audio.removeEventListener("ended", syncPlaying);
+      audio.removeEventListener("waiting", onWaiting);
+      audio.removeEventListener("playing", onPlaying);
+      audio.removeEventListener("canplay", onPlaying);
     };
   }, [currentTrackId, currentTrack?.url]);
+
+  const resumeCount = catalog.tracks.filter((t) => {
+    const p = progressOf(t.id);
+    return p.position > 15 && !p.completed;
+  }).length;
+  const sectionTitle = selectedFolder
+    ? selectedFolder
+    : view === "resume"
+      ? "Продолжить прослушивание"
+      : view === "favorites"
+        ? "Избранное"
+        : view === "liked"
+          ? "Лайки"
+          : view === "playlist"
+            ? `Плейлист: ${user.playlists.find((p) => p.id === selectedPlaylist)?.name ?? ""}`
+            : "Каталог";
+  const sectionSub = selectedFolder
+    ? "Все треки выбранной серии."
+    : catalog.loaded
+      ? "Живой индекс публичной папки Яндекс.Диска."
+      : "Идет fallback-режим до полной индексации каталога.";
+  const playTrack = useCallback(
+    async (track: Track) => {
+      setCurrentTrackId(track.id);
+      setUser((prev) => ({ ...prev, lastTrackId: track.id }));
+      const audio = audioRef.current;
+      if (!audio || isStubTrack(track)) return;
+      setIsLoadingTrack(true);
+      let url = track.url;
+      try {
+        if (!url) {
+          url = await fetchDiskDownloadHref(track.path);
+          if (!url) throw new Error("empty href");
+          setCatalog((prev) => ({
+            ...prev,
+            tracks: prev.tracks.map((t) =>
+              t.id === track.id ? { ...t, url } : t,
+            ),
+          }));
+        }
+        const pu = playbackSrc(url);
+        lastPlaybackUrlRef.current = pu;
+        audio.src = pu;
+        await audio.play();
+      } catch (err) {
+        const message = formatPlaybackError(err);
+        pushToast(message, {
+          label: "Повторить",
+          onClick: () => void playTrack(track),
+        });
+      } finally {
+        setIsLoadingTrack(false);
+      }
+    },
+    [pushToast],
+  );
+
+  const togglePlay = useCallback(async () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (!currentTrackId || !trackMap.get(currentTrackId)) {
+      const first = tracks[0] ?? catalog.tracks[0];
+      if (first) await playTrack(first);
+      return;
+    }
+    if (audio.paused) {
+      try {
+        await audio.play();
+      } catch (err) {
+        pushToast(formatPlaybackError(err));
+      }
+    } else audio.pause();
+  }, [catalog.tracks, currentTrackId, playTrack, pushToast, trackMap, tracks]);
+
+  const nextTrack = useCallback(
+    (step: number) => {
+      const source = queue.length ? queue : tracks.map((t) => t.id);
+      const idx = source.indexOf(currentTrackId || "");
+      const nextId = source[idx + step];
+      const next = nextId ? trackMap.get(nextId) : null;
+      if (next) void playTrack(next);
+    },
+    [currentTrackId, playTrack, queue, trackMap, tracks],
+  );
+
+  const seekBy = useCallback((deltaSec: number) => {
+    const audio = audioRef.current;
+    if (!audio || !Number.isFinite(audio.duration)) return;
+    audio.currentTime = Math.max(
+      0,
+      Math.min(audio.duration, audio.currentTime + deltaSec),
+    );
+  }, []);
+
+  const playerActionsRef = useRef({
+    togglePlay: async () => {},
+    nextTrack: (_step: number) => {},
+    seekBy: (_delta: number) => {},
+    play: async () => {},
+    pause: () => {},
+  });
+  playerActionsRef.current.togglePlay = togglePlay;
+  playerActionsRef.current.nextTrack = nextTrack;
+  playerActionsRef.current.seekBy = seekBy;
+  playerActionsRef.current.play = async () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    try {
+      await audio.play();
+    } catch (err) {
+      pushToast(formatPlaybackError(err));
+    }
+  };
+  playerActionsRef.current.pause = () => audioRef.current?.pause();
+
+  const mediaSessionRef = useRef({
+    onPlay: () => void playerActionsRef.current.play(),
+    onPause: () => playerActionsRef.current.pause(),
+    onNext: () => playerActionsRef.current.nextTrack(1),
+    onPrev: () => playerActionsRef.current.nextTrack(-1),
+    onSeekBackward: () => playerActionsRef.current.seekBy(-10),
+    onSeekForward: () => playerActionsRef.current.seekBy(10),
+  });
+  mediaSessionRef.current = {
+    onPlay: () => void playerActionsRef.current.play(),
+    onPause: () => playerActionsRef.current.pause(),
+    onNext: () => playerActionsRef.current.nextTrack(1),
+    onPrev: () => playerActionsRef.current.nextTrack(-1),
+    onSeekBackward: () => playerActionsRef.current.seekBy(-10),
+    onSeekForward: () => playerActionsRef.current.seekBy(10),
+  };
+
+  useMediaSession(
+    currentTrack
+      ? {
+          id: currentTrack.id,
+          title: currentTrack.title,
+          folder: currentTrack.folder,
+        }
+      : null,
+    audioRef,
+    mediaSessionRef,
+  );
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -389,6 +558,7 @@ function App() {
       audio.src = pu;
     }
     audio.volume = user.volume;
+    audio.playbackRate = user.playbackRate;
     const handleLoaded = () => {
       const p = progressOf(currentTrack.id);
       if (p.position > 0 && p.position < (audio.duration || Infinity) - 5)
@@ -428,7 +598,7 @@ function App() {
         return next;
       });
     };
-    const handleEnded = () => nextTrack(1);
+    const handleEnded = () => playerActionsRef.current.nextTrack(1);
     audio.addEventListener("loadedmetadata", handleLoaded);
     audio.addEventListener("timeupdate", handleTime);
     audio.addEventListener("ended", handleEnded);
@@ -437,70 +607,21 @@ function App() {
       audio.removeEventListener("timeupdate", handleTime);
       audio.removeEventListener("ended", handleEnded);
     };
-  }, [currentTrack, user.volume]);
-  const resumeCount = catalog.tracks.filter((t) => {
-    const p = progressOf(t.id);
-    return p.position > 15 && !p.completed;
-  }).length;
-  const sectionTitle = selectedFolder
-    ? selectedFolder
-    : view === "resume"
-      ? "Продолжить прослушивание"
-      : view === "favorites"
-        ? "Избранное"
-        : view === "liked"
-          ? "Лайки"
-          : view === "playlist"
-            ? `Плейлист: ${user.playlists.find((p) => p.id === selectedPlaylist)?.name ?? ""}`
-            : "Каталог";
-  const sectionSub = selectedFolder
-    ? "Все треки выбранной серии."
-    : catalog.loaded
-      ? "Живой индекс публичной папки Яндекс.Диска."
-      : "Идет fallback-режим до полной индексации каталога.";
-  const playTrack = async (track: Track) => {
-    setCurrentTrackId(track.id);
-    setUser((prev) => ({ ...prev, lastTrackId: track.id }));
-    const audio = audioRef.current;
-    if (!audio || isStubTrack(track)) return;
-    let url = track.url;
-    if (!url) {
-      try {
-        url = await fetchDiskDownloadHref(track.path);
-      } catch {
-        return;
-      }
-      if (!url) return;
-      setCatalog((prev) => ({
-        ...prev,
-        tracks: prev.tracks.map((t) => (t.id === track.id ? { ...t, url } : t)),
-      }));
-    }
-    const pu = playbackSrc(url);
-    lastPlaybackUrlRef.current = pu;
-    audio.src = pu;
-    try {
-      await audio.play();
-    } catch {}
+  }, [currentTrack, user.volume, user.playbackRate]);
+
+  const keyboardRef = useRef({
+    onTogglePlay: () => void playerActionsRef.current.togglePlay(),
+    onSeek: (d: number) => playerActionsRef.current.seekBy(d),
+    onNext: () => playerActionsRef.current.nextTrack(1),
+    onPrev: () => playerActionsRef.current.nextTrack(-1),
+  });
+  keyboardRef.current = {
+    onTogglePlay: () => void playerActionsRef.current.togglePlay(),
+    onSeek: (d) => playerActionsRef.current.seekBy(d),
+    onNext: () => playerActionsRef.current.nextTrack(1),
+    onPrev: () => playerActionsRef.current.nextTrack(-1),
   };
-  const togglePlay = async () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    if (!currentTrack) {
-      const first = tracks[0] ?? catalog.tracks[0];
-      if (first) await playTrack(first);
-      return;
-    }
-    if (audio.paused) await audio.play().catch(() => {});
-    else audio.pause();
-  };
-  const nextTrack = (step: number) => {
-    const source = queue.length ? queue : tracks.map((t) => t.id);
-    const idx = source.indexOf(currentTrackId || "");
-    const nextId = source[idx + step];
-    const next = nextId ? trackMap.get(nextId) : null;
-    if (next) playTrack(next);
-  };
+  usePlayerKeyboard(keyboardRef);
   const toggleMap = (type: "likes" | "favorites", id: string) => {
     setUser((prev) => {
       const nextMap = { ...prev[type] };
@@ -536,10 +657,17 @@ function App() {
     try {
       const cat = await runCatalogWorker();
       if (cat) setCatalog(cat);
+      else pushToast("Не удалось обновить каталог. Проверьте сеть.");
     } finally {
       setLoadingCatalog(false);
     }
   };
+  const audioBusy = isLoadingTrack || isBuffering;
+  const playButtonLabel = audioBusy
+    ? "Загрузка"
+    : isPlaying
+      ? "Пауза"
+      : "Воспроизведение";
   const showIosInstallHint =
     !iosHintDismissed &&
     typeof navigator !== "undefined" &&
@@ -555,6 +683,7 @@ function App() {
   };
   return (
     <>
+      <ToastStack toasts={toasts} onDismiss={dismissToast} />
       <div className="app-shell">
         <aside className="sidebar">
           <div className="brand">
@@ -871,17 +1000,21 @@ function App() {
             </button>
             <button
               type="button"
-              className="primary round big"
+              className={`primary round big${audioBusy ? " is-busy" : ""}`}
               onClick={togglePlay}
-              aria-label={isPlaying ? "Пауза" : "Воспроизведение"}
+              disabled={audioBusy && !isPlaying}
+              aria-label={playButtonLabel}
             >
-              {isPlaying ? "⏸" : "▶"}
+              {audioBusy ? "◌" : isPlaying ? "⏸" : "▶"}
             </button>
             <button className="ghost round" onClick={() => nextTrack(1)}>
               ⏭
             </button>
           </div>
           <PlayerTimeline audioRef={audioRef} onSeek={seek} />
+          <p className="player-hints mini-text">
+            Пробел · воспроизведение · ←→ перемотка · N/P треки
+          </p>
         </div>
         <div className="right-box">
           <button
@@ -898,6 +1031,23 @@ function App() {
           >
             {currentTrackId && isFavorite(currentTrackId) ? "★" : "☆"}
           </button>
+          <label className="speed">
+            <span>Скорость</span>
+            <select
+              value={user.playbackRate}
+              onChange={(e) => {
+                const rate = Number(e.target.value);
+                if (audioRef.current) audioRef.current.playbackRate = rate;
+                setUser((prev) => ({ ...prev, playbackRate: rate }));
+              }}
+            >
+              {PLAYBACK_RATES.map((r) => (
+                <option key={r} value={r}>
+                  {r}×
+                </option>
+              ))}
+            </select>
+          </label>
           <label className="volume">
             <span>Громкость</span>
             <input
