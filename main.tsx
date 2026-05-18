@@ -14,6 +14,10 @@ import { usePlayerKeyboard } from "./src/hooks/usePlayerKeyboard";
 import { useToasts } from "./src/hooks/useToasts";
 import { formatPlaybackError } from "./src/lib/playbackErrors";
 import { pickAdjacentId, shuffleIds, type RepeatMode } from "./src/lib/queue";
+import {
+  configureBackgroundAudioElement,
+  useBackgroundPlayback,
+} from "./src/hooks/useBackgroundPlayback";
 import { useWakeLock } from "./src/hooks/useWakeLock";
 import { registerAppSW } from "./src/pwa/register";
 import "./styles.css";
@@ -276,8 +280,10 @@ function App() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoadingTrack, setIsLoadingTrack] = useState(false);
   const [isBuffering, setIsBuffering] = useState(false);
+  const [audioEl, setAudioEl] = useState<HTMLAudioElement | null>(null);
   const { toasts, push: pushToast, dismiss: dismissToast } = useToasts();
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const playbackIntentRef = useRef(false);
   const lastPlaybackUrlRef = useRef<string>("");
   const lastSavedSecond = useRef<number>(-1);
   useEffect(() => {
@@ -380,6 +386,7 @@ function App() {
     };
   }, [navOpen]);
   useWakeLock(isPlaying && user.wakeLock);
+  useBackgroundPlayback(audioEl, playbackIntentRef);
   useEffect(() => {
     if (!currentTrackId && user.lastTrackId && trackMap.has(user.lastTrackId))
       setCurrentTrackId(user.lastTrackId);
@@ -471,8 +478,10 @@ function App() {
         const pu = playbackSrc(url);
         lastPlaybackUrlRef.current = pu;
         audio.src = pu;
+        playbackIntentRef.current = true;
         await audio.play();
       } catch (err) {
+        playbackIntentRef.current = false;
         const message = formatPlaybackError(err);
         pushToast(message, {
           label: "Повторить",
@@ -494,12 +503,17 @@ function App() {
       return;
     }
     if (audio.paused) {
+      playbackIntentRef.current = true;
       try {
         await audio.play();
       } catch (err) {
+        playbackIntentRef.current = false;
         pushToast(formatPlaybackError(err));
       }
-    } else audio.pause();
+    } else {
+      playbackIntentRef.current = false;
+      audio.pause();
+    }
   }, [catalog.tracks, currentTrackId, playTrack, pushToast, trackMap, tracks]);
 
   const playbackSource = useCallback(
@@ -532,6 +546,7 @@ function App() {
     if (user.repeatMode === "one" && currentTrackId) {
       const audio = audioRef.current;
       if (audio) {
+        playbackIntentRef.current = true;
         audio.currentTime = 0;
         void audio.play().catch(() => {});
       }
@@ -586,13 +601,18 @@ function App() {
   playerActionsRef.current.play = async () => {
     const audio = audioRef.current;
     if (!audio) return;
+    playbackIntentRef.current = true;
     try {
       await audio.play();
     } catch (err) {
+      playbackIntentRef.current = false;
       pushToast(formatPlaybackError(err));
     }
   };
-  playerActionsRef.current.pause = () => audioRef.current?.pause();
+  playerActionsRef.current.pause = () => {
+    playbackIntentRef.current = false;
+    audioRef.current?.pause();
+  };
 
   const mediaSessionRef = useRef({
     onPlay: () => void playerActionsRef.current.play(),
@@ -1163,10 +1183,12 @@ function App() {
               setUser((prev) => ({ ...prev, wakeLock: !prev.wakeLock }))
             }
             aria-label={
-              user.wakeLock ? "Не гасить экран: вкл" : "Не гасить экран: выкл"
+              user.wakeLock
+                ? "Экран не гасить: вкл"
+                : "Экран не гасить: выкл"
             }
             aria-pressed={user.wakeLock}
-            title="Не гасить экран"
+            title="Не давать экрану погаснуть (не то же самое, что блокировка)"
           >
             ◉
           </button>
@@ -1222,9 +1244,11 @@ function App() {
         <audio
           ref={(el) => {
             audioRef.current = el;
-            if (el) el.setAttribute("referrerpolicy", "no-referrer");
+            setAudioEl(el);
+            if (el) configureBackgroundAudioElement(el);
           }}
-          preload="metadata"
+          preload="auto"
+          playsInline
           crossOrigin="anonymous"
         />
       </footer>

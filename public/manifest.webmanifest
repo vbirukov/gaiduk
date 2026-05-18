@@ -5,6 +5,7 @@
   "theme_color": "#171614",
   "background_color": "#171614",
   "display": "standalone",
+  "categories": ["music", "entertainment"],
   "orientation": "any",
   "scope": "./",
   "start_url": "./",
