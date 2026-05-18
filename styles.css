@@ -109,8 +109,13 @@ input {
 }
 .sidebar-close,
 .menu-toggle,
-.nav-backdrop {
+.nav-backdrop,
+.sidebar-source {
   display: none;
+}
+.sidebar-source {
+  margin-top: var(--space-4);
+  word-break: break-all;
 }
 .ghost.round.active {
   background: color-mix(in oklab, var(--primary) 16%, var(--surface));
@@ -315,6 +320,23 @@ input {
 .cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
+  gap: var(--space-4);
+}
+.cards--virtual {
+  display: block;
+}
+.cards-virtual-spacer {
+  position: relative;
+  width: 100%;
+}
+.cards-virtual-row {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+.cards-row {
+  display: grid;
   gap: var(--space-4);
 }
 .card {
@@ -546,6 +568,12 @@ input[type="range"]::-webkit-slider-thumb {
     display: grid;
     margin-left: auto;
     flex-shrink: 0;
+  }
+  .sidebar-source {
+    display: block;
+  }
+  .desktop-source {
+    display: none;
   }
   .topbar {
     align-items: flex-start;
