@@ -50,5 +50,5 @@ export function playbackSrc(diskHref: string): string {
   const raw = import.meta.env.VITE_AUDIO_PROXY_BASE;
   const base = typeof raw === "string" ? raw.trim().replace(/\/$/, "") : "";
   if (!base) return diskHref;
-  return `${base}?url=${encodeURIComponent(diskHref)}`;
+  return `${base.replace(/\/$/, "")}/?url=${encodeURIComponent(diskHref)}`;
 }
