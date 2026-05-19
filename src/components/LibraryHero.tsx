@@ -1,4 +1,5 @@
 import { AuthorPhotoSlideshow } from "./AuthorPhotoSlideshow";
+import { AUTHOR_CONCERTS_URL, AUTHOR_VK_URL } from "../config";
 import type { Catalog } from "../types/catalog";
 import type { UserState } from "../types/user";
 
@@ -56,14 +57,24 @@ export function LibraryHero({
         <div className="hero-author-block">
           <p className="hero-catalog-label">Каталог аудиосказок</p>
           <AuthorPhotoSlideshow />
-          <a
-            className="hero-author-link"
-            href="https://vk.com/haidux"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Дмитрий Гайдук
-          </a>
+          <div className="hero-author-actions">
+            <a
+              className="hero-author-link"
+              href={AUTHOR_VK_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Дмитрий Гайдук
+            </a>
+            <a
+              className="chip hero-author-cta"
+              href={AUTHOR_CONCERTS_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Концерты
+            </a>
+          </div>
         </div>
         {!collapsed ? (
           <div className="stats-grid">
