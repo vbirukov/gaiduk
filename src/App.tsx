@@ -6,7 +6,6 @@ import { PlayerBar } from "./components/PlayerBar";
 import { Sidebar } from "./components/Sidebar";
 import { TrackList } from "./components/TrackList";
 import { SplashScreen } from "./components/SplashScreen";
-import { HookahSmoke } from "./components/HookahSmoke";
 import { ScrollToTop } from "./components/ScrollToTop";
 import { ToastStack } from "./components/ToastStack";
 import { useAudioPlayer } from "./hooks/useAudioPlayer";
@@ -177,7 +176,6 @@ export function App() {
           onOpenPlaylistModal={() => setShowPlaylistModal(true)}
         />
         <main className="main">
-          <HookahSmoke active={player.isPlaying} />
           {swNeedRefresh ? (
             <div className="pwa-toast" role="status">
               <span>Доступна новая версия приложения.</span>

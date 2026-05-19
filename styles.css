@@ -46,6 +46,16 @@
   --sidebar-width: 300px;
   --player-bar-offset: 108px;
 }
+[data-theme="light"] .hookah-smoke__plume {
+  mix-blend-mode: multiply;
+  background: radial-gradient(
+    ellipse 70% 50% at 50% 100%,
+    rgba(60, 80, 72, 0.35),
+    rgba(31, 163, 155, 0.22) 38%,
+    rgba(120, 60, 140, 0.12) 55%,
+    transparent 72%
+  );
+}
 [data-theme="dark"] {
   --bg: #0c1115;
   --surface: #18251d;
@@ -374,74 +384,64 @@ input {
   align-content: start;
   position: relative;
 }
-.main > :not(.hookah-smoke) {
-  position: relative;
-  z-index: 1;
-}
 .hookah-smoke {
   position: fixed;
-  z-index: 0;
+  z-index: 1;
   right: 0;
   bottom: var(--player-bar-offset);
   left: var(--sidebar-width);
-  height: min(78vh, 640px);
+  height: min(82vh, 680px);
   pointer-events: none;
-  overflow: hidden;
+  overflow: visible;
   opacity: 0;
   visibility: hidden;
   transition:
-    opacity 1.4s ease,
-    visibility 1.4s ease;
-  -webkit-mask-image: linear-gradient(
-    to top,
-    #000 6%,
-    #000 38%,
-    transparent 94%
-  );
-  mask-image: linear-gradient(to top, #000 6%, #000 38%, transparent 94%);
+    opacity 1.2s ease,
+    visibility 1.2s ease;
 }
 .hookah-smoke::before {
   content: "";
   position: absolute;
   bottom: 0;
   left: 50%;
-  width: min(72%, 420px);
-  height: 22%;
+  width: min(80%, 480px);
+  height: 28%;
   transform: translateX(-50%);
   border-radius: 50%;
   background: radial-gradient(
-    ellipse 85% 100% at 50% 100%,
-    color-mix(in oklab, var(--primary) 32%, transparent),
-    color-mix(in oklab, var(--accent-teal) 14%, transparent) 45%,
+    ellipse 90% 100% at 50% 100%,
+    rgba(255, 154, 60, 0.35),
+    rgba(31, 163, 155, 0.2) 42%,
     transparent 72%
   );
-  filter: blur(18px);
+  filter: blur(22px);
   opacity: 0;
-  transition: opacity 1.4s ease;
+  transition: opacity 1.2s ease;
 }
 .hookah-smoke.is-active {
   opacity: 1;
   visibility: visible;
 }
 .hookah-smoke.is-active::before {
-  opacity: 0.85;
+  opacity: 1;
 }
 .hookah-smoke__plume {
   position: absolute;
-  bottom: -8%;
+  bottom: 0;
   left: calc(var(--smoke-x) - var(--smoke-w) / 2);
   width: var(--smoke-w);
-  height: 42%;
+  height: min(52%, 320px);
   border-radius: 50%;
-  filter: blur(34px);
+  filter: blur(40px);
   opacity: 0;
   background: radial-gradient(
-    ellipse 75% 55% at 50% 100%,
-    color-mix(in oklab, var(--text) 22%, transparent),
-    color-mix(in oklab, var(--accent-teal) 28%, transparent) 42%,
-    color-mix(in oklab, #c868f5 12%, transparent) 58%,
-    transparent 78%
+    ellipse 70% 50% at 50% 100%,
+    rgba(235, 245, 240, 0.55),
+    rgba(31, 163, 155, 0.35) 38%,
+    rgba(200, 104, 245, 0.18) 55%,
+    transparent 72%
   );
+  mix-blend-mode: screen;
   animation: hookah-smoke-rise var(--smoke-dur, 14s) ease-in-out infinite;
   animation-delay: var(--smoke-delay, 0s);
   animation-play-state: paused;
@@ -452,19 +452,19 @@ input {
 }
 @keyframes hookah-smoke-rise {
   0% {
-    transform: translate3d(0, 12%, 0) scale(0.6);
+    transform: translate3d(0, 8%, 0) scale(0.55);
     opacity: 0;
   }
-  14% {
-    opacity: 0.38;
+  10% {
+    opacity: 0.7;
   }
-  48% {
-    transform: translate3d(var(--smoke-drift, 0), -48%, 0) scale(1);
-    opacity: 0.26;
+  45% {
+    transform: translate3d(var(--smoke-drift, 0), -45%, 0) scale(1.05);
+    opacity: 0.5;
   }
   100% {
-    transform: translate3d(calc(var(--smoke-drift, 0) * -0.6), -108%, 0)
-      scale(1.28);
+    transform: translate3d(calc(var(--smoke-drift, 0) * -0.5), -100%, 0)
+      scale(1.35);
     opacity: 0;
   }
 }
@@ -478,7 +478,7 @@ input {
 }
 .library-feed-content {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   display: grid;
   gap: var(--space-6);
   padding-inline: var(--space-6);
