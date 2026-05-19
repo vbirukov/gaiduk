@@ -1582,6 +1582,20 @@ input[type="range"]::-webkit-slider-thumb {
   .card-main h4 {
     margin-top: 0.35rem;
   }
+  .card-pills {
+    max-width: 100%;
+    min-width: 0;
+  }
+  .card-pills .pill {
+    font-size: 0.6875rem;
+    line-height: 1.2;
+    padding: 0.28rem 0.5rem;
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
   .card-main .card-now-playing {
     margin-bottom: var(--space-1);
   }
