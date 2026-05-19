@@ -4,6 +4,7 @@ export const ASSETS = {
   brandLogo: "/brand/logo.webp",
   hero: "/images/hero.webp",
   splash: "/images/splash.webp",
+  feedBg: "/images/bg.webp",
 } as const;
 
 export function assetUrl(path: string): string {

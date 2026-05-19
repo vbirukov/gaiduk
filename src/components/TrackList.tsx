@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useHeroCollapsed } from "../hooks/useHeroCollapsed";
 import { emptyStateCopy } from "../lib/emptyState";
 import type { Catalog, Track } from "../types/catalog";
@@ -6,6 +6,7 @@ import type { LibraryView, Progress, UserState } from "../types/user";
 import type { LivePlayback } from "../lib/trackProgress";
 import type { TrackCardProps } from "./TrackCard";
 import { ContinueBanner } from "./ContinueBanner";
+import { FeedParallaxBg } from "./FeedParallaxBg";
 import { LibraryHero } from "./LibraryHero";
 import { VirtualTrackGrid } from "./VirtualTrackGrid";
 
@@ -62,7 +63,17 @@ export function TrackList({
   onAddToPlaylist,
   onQuickView,
 }: Props) {
+  const feedRef = useRef<HTMLElement>(null);
   const { collapsed, collapse, expand } = useHeroCollapsed();
+  const [scrollToTrackId, setScrollToTrackId] = useState<string | null>(null);
+  const clearScrollToTrack = useCallback(() => setScrollToTrackId(null), []);
+  const handleContinue = useCallback(
+    (track: Track) => {
+      onPlayTrack(track);
+      setScrollToTrackId(track.id);
+    },
+    [onPlayTrack],
+  );
   const playlistButtons = useMemo(
     () => user.playlists.filter((pl) => !pl.system).slice(0, 3),
     [user.playlists],
@@ -86,7 +97,9 @@ export function TrackList({
     !query.trim();
 
   return (
-    <>
+    <section className="library-feed">
+      <FeedParallaxBg feedRef={feedRef} />
+      <div className="library-feed-content" ref={feedRef}>
       <LibraryHero
         catalog={catalog}
         user={user}
@@ -97,12 +110,15 @@ export function TrackList({
         onCollapse={collapse}
         onExpand={expand}
         onQuickView={onQuickView}
+        onResumeContinue={
+          resumeTrack ? () => handleContinue(resumeTrack) : undefined
+        }
       />
       {showContinueBanner && resumeTrack ? (
         <ContinueBanner
           track={resumeTrack}
           progress={progressOf(resumeTrack.id)}
-          onContinue={onPlayTrack}
+          onContinue={handleContinue}
         />
       ) : null}
       <section className="section-head">
@@ -129,6 +145,8 @@ export function TrackList({
           onToggleLike={onToggleLike}
           onToggleFavorite={onToggleFavorite}
           onAddToPlaylist={onAddToPlaylist}
+          scrollToTrackId={scrollToTrackId}
+          onScrolledToTrack={clearScrollToTrack}
         />
       ) : tracks.length === 0 ? (
         <section className="cards">
@@ -152,8 +170,11 @@ export function TrackList({
           onToggleLike={onToggleLike}
           onToggleFavorite={onToggleFavorite}
           onAddToPlaylist={onAddToPlaylist}
+          scrollToTrackId={scrollToTrackId}
+          onScrolledToTrack={clearScrollToTrack}
         />
       )}
-    </>
+      </div>
+    </section>
   );
 }

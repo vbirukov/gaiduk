@@ -34,6 +34,8 @@ type Props = {
   onToggleLike: TrackCardProps["onToggleLike"];
   onToggleFavorite: TrackCardProps["onToggleFavorite"];
   onAddToPlaylist: TrackCardProps["onAddToPlaylist"];
+  scrollToTrackId?: string | null;
+  onScrolledToTrack?: () => void;
 };
 
 function useColumnCount(containerRef: RefObject<HTMLElement | null>) {
@@ -99,6 +101,8 @@ export function VirtualTrackGrid({
   onToggleLike,
   onToggleFavorite,
   onAddToPlaylist,
+  scrollToTrackId = null,
+  onScrolledToTrack,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const cols = useColumnCount(containerRef);
@@ -114,6 +118,43 @@ export function VirtualTrackGrid({
     scrollMargin,
     enabled: useVirtual,
   });
+
+  useLayoutEffect(() => {
+    if (!scrollToTrackId) return;
+    const idx = tracks.findIndex((t) => t.id === scrollToTrackId);
+    if (idx < 0) {
+      onScrolledToTrack?.();
+      return;
+    }
+
+    const scroll = () => {
+      if (useVirtual) {
+        virtualizer.scrollToIndex(Math.floor(idx / cols), {
+          align: "center",
+          behavior: "smooth",
+        });
+        return;
+      }
+      containerRef.current
+        ?.querySelector(`[data-track-id="${CSS.escape(scrollToTrackId)}"]`)
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    };
+
+    scroll();
+    const raf = requestAnimationFrame(scroll);
+    const done = window.setTimeout(() => onScrolledToTrack?.(), 400);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout(done);
+    };
+  }, [
+    scrollToTrackId,
+    tracks,
+    cols,
+    useVirtual,
+    virtualizer,
+    onScrolledToTrack,
+  ]);
 
   const renderCard = (track: Track) => {
     const isActive = track.id === activeTrackId;

@@ -2,6 +2,8 @@ import { AuthorPhotoSlideshow } from "./AuthorPhotoSlideshow";
 import type { Catalog } from "../types/catalog";
 import type { UserState } from "../types/user";
 
+type QuickView = "resume" | "favorites" | "liked";
+
 type Props = {
   catalog: Catalog;
   user: UserState;
@@ -11,7 +13,8 @@ type Props = {
   onQueryChange: (q: string) => void;
   onCollapse: () => void;
   onExpand: () => void;
-  onQuickView: (view: "resume" | "favorites" | "liked") => void;
+  onQuickView: (view: QuickView) => void;
+  onResumeContinue?: () => void;
 };
 
 export function LibraryHero({
@@ -24,6 +27,7 @@ export function LibraryHero({
   onCollapse,
   onExpand,
   onQuickView,
+  onResumeContinue,
 }: Props) {
   const playlistCount = user.playlists.filter((p) => !p.system).length;
 
@@ -33,12 +37,16 @@ export function LibraryHero({
         <div className="hero-head">
           {!collapsed ? (
             <>
-              <div className="eyebrow">Библиотека вместо архива</div>
-              <h2>Удобное прослушивание с прогрессом, избранным и плейлистами.</h2>
-              <p>
-                Приложение подгружает каталог из публичной папки Яндекс.Диска и
-                превращает его в аккуратную медиатеку с сохранением места
-                остановки.
+              <div className="eyebrow">Об авторе</div>
+              <h2>Дмитрий Гайдук</h2>
+              <p className="hero-author-bio">
+                Дмитрий Гайдук — автор и рассказчик, который умеет превращать
+                сказку в живое, душевное и очень человеческое пространство. В его
+                историях чувствуется любовь к свободе, юмору, странствиям и
+                мудрости народной речи. Он пишет так, будто ведёт неспешный,
+                доверительный разговор у костра: легко, ярко, с иронией и теплом.
+                Его сказки запоминаются особой интонацией — немного озорной,
+                немного волшебной, но всегда искренней и близкой читателю.
               </p>
             </>
           ) : null}
@@ -47,7 +55,7 @@ export function LibraryHero({
             className="ghost hero-toggle"
             onClick={collapsed ? onExpand : onCollapse}
           >
-            {collapsed ? "О приложении" : "Свернуть"}
+            {collapsed ? "Об авторе" : "Свернуть"}
           </button>
         </div>
         <div className="hero-actions">
@@ -58,7 +66,13 @@ export function LibraryHero({
               placeholder="Поиск по названию, серии или имени файла"
             />
           </div>
-          <button type="button" className="chip" onClick={() => onQuickView("resume")}>
+          <button
+            type="button"
+            className="chip"
+            onClick={() =>
+              onResumeContinue ? onResumeContinue() : onQuickView("resume")
+            }
+          >
             Продолжить
           </button>
           <button type="button" className="chip" onClick={() => onQuickView("favorites")}>
