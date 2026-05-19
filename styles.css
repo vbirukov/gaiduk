@@ -865,21 +865,23 @@ input {
   pointer-events: none;
   border-radius: inherit;
   overflow: hidden;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
   background:
     radial-gradient(
       ellipse 90% 70% at 100% 0%,
-      color-mix(in oklab, var(--primary) 18%, transparent),
+      color-mix(in oklab, var(--primary) 22%, transparent),
       transparent 58%
     ),
     radial-gradient(
       ellipse 80% 60% at 0% 100%,
-      color-mix(in oklab, var(--accent-teal) 14%, transparent),
+      color-mix(in oklab, var(--accent-teal) 18%, transparent),
       transparent 52%
     ),
     linear-gradient(
       165deg,
-      var(--surface),
-      color-mix(in oklab, var(--surface-2) 88%, var(--bg))
+      color-mix(in oklab, var(--surface) 58%, transparent),
+      color-mix(in oklab, var(--surface-2) 52%, transparent)
     );
 }
 .card-bg__shade {
@@ -888,7 +890,7 @@ input {
   background: linear-gradient(
     165deg,
     transparent 0%,
-    color-mix(in oklab, var(--bg) 12%, transparent) 100%
+    color-mix(in oklab, var(--bg) 18%, transparent) 100%
   );
 }
 .card > :not(.card-bg) {
@@ -898,14 +900,32 @@ input {
 .card.is-active {
   border-color: transparent;
   box-shadow: var(--shadow-md);
-  background: color-mix(in oklab, var(--primary) 6%, transparent);
+  background: color-mix(in oklab, var(--primary) 8%, transparent);
+}
+.card.is-active .card-bg {
+  background:
+    radial-gradient(
+      ellipse 90% 70% at 100% 0%,
+      color-mix(in oklab, var(--primary) 28%, transparent),
+      transparent 58%
+    ),
+    radial-gradient(
+      ellipse 80% 60% at 0% 100%,
+      color-mix(in oklab, var(--accent-teal) 22%, transparent),
+      transparent 52%
+    ),
+    linear-gradient(
+      165deg,
+      color-mix(in oklab, var(--surface) 62%, transparent),
+      color-mix(in oklab, var(--primary) 12%, transparent)
+    );
 }
 .card.is-active .card-bg__shade {
   background: linear-gradient(
     165deg,
-    color-mix(in oklab, var(--primary) 10%, transparent),
-    color-mix(in oklab, var(--accent-mystic) 6%, transparent) 55%,
-    color-mix(in oklab, var(--bg) 18%, transparent)
+    color-mix(in oklab, var(--primary) 14%, transparent),
+    color-mix(in oklab, var(--accent-mystic) 10%, transparent) 55%,
+    color-mix(in oklab, var(--bg) 22%, transparent)
   );
 }
 .card-bg__shade::after {
