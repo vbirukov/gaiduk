@@ -59,5 +59,4 @@ export function configureBackgroundAudioElement(audio: HTMLAudioElement) {
   audio.setAttribute("webkit-playsinline", "");
   audio.setAttribute("x-webkit-airplay", "allow");
   audio.setAttribute("referrerpolicy", "no-referrer");
-  audio.preload = "auto";
 }
