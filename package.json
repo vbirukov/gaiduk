@@ -12,7 +12,9 @@
     "proxy:audio": "node audio-proxy-server.mjs",
     "deploy": "node scripts/deploy.mjs",
     "deploy:web": "node scripts/deploy.mjs --web-only",
-    "deploy:proxy": "node scripts/deploy.mjs --proxy-only"
+    "deploy:proxy": "node scripts/deploy.mjs --proxy-only",
+    "sync:media": "node scripts/sync-disk-media.mjs",
+    "sync:media:dry": "node scripts/sync-disk-media.mjs --dry-run"
   },
   "dependencies": {
     "@tanstack/react-virtual": "^3.13.24",
@@ -23,6 +25,7 @@
     "node": ">=16.0.0"
   },
   "devDependencies": {
+    "@types/node": "^22.19.19",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^4.3.4",

@@ -4,6 +4,9 @@ node_modules/
 # build
 dist/
 
+# локальные mp3 после sync:media (до ~20 GB)
+data/media/
+
 # редирект для старого бакета YC (заливается вручную)
 bucket-redirect/
 

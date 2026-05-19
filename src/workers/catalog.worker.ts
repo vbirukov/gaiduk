@@ -1,4 +1,6 @@
 import { buildDiskCatalog } from "../lib/diskCatalog";
+import { loadLocalCatalog } from "../lib/localCatalog";
+import { useLocalMedia } from "../lib/mediaUrl";
 
 type WorkerIn = { type: "build" };
 type WorkerOut =
@@ -8,7 +10,9 @@ type WorkerOut =
 self.onmessage = async (ev: MessageEvent<WorkerIn>) => {
   if (ev.data?.type !== "build") return;
   try {
-    const catalog = await buildDiskCatalog();
+    const catalog = useLocalMedia()
+      ? await loadLocalCatalog()
+      : await buildDiskCatalog();
     const out: WorkerOut = { type: "done", catalog };
     self.postMessage(out);
   } catch (e) {

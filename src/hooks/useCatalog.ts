@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { fallbackCatalog } from "../data/fallbackCatalog";
+import { useLocalMedia } from "../lib/mediaUrl";
 import { runCatalogWorker } from "../lib/catalogWorker";
 import { shuffleIds } from "../lib/queue";
 import type { Catalog, Track } from "../types/catalog";
@@ -153,9 +154,11 @@ export function useCatalog(user: UserState, filters: Filters) {
 
   const sectionSub = filters.selectedFolder
     ? "Все треки выбранной серии."
-    : catalog.loaded
-      ? "Живой индекс публичной папки Яндекс.Диска."
-      : "Идет fallback-режим до полной индексации каталога.";
+    : useLocalMedia()
+      ? "Каталог и аудио с вашего сервера."
+      : catalog.loaded
+        ? "Живой индекс публичной папки Яндекс.Диска."
+        : "Идет fallback-режим до полной индексации каталога.";
 
   return {
     catalog,

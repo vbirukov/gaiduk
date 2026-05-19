@@ -17,6 +17,7 @@ import {
   streamPlaybackUrl,
 } from "../lib/audioCache";
 import { fetchDiskDownloadHref, isStubTrack } from "../lib/diskDownload";
+import { isYandexDiskDownloadUrl, useLocalMedia } from "../lib/mediaUrl";
 import { formatPlaybackError } from "../lib/playbackErrors";
 import { pickAdjacentId } from "../lib/queue";
 import type { LivePlayback } from "../lib/trackProgress";
@@ -94,6 +95,7 @@ export function useAudioPlayer({
 
   const schedulePrefetchNext = useCallback(
     (fromTrackId: string) => {
+      if (useLocalMedia()) return;
       clearTimeout(prefetchTimerRef.current);
       prefetchTimerRef.current = setTimeout(() => {
         const source = playbackSource();
@@ -164,9 +166,12 @@ export function useAudioPlayer({
   }, [currentTrackId, currentTrack?.url]);
 
   const assignPlaybackSource = useCallback(
-    (audio: HTMLAudioElement, trackId: string, diskHref: string) => {
+    (audio: HTMLAudioElement, trackId: string, href: string) => {
       activePlaybackTrackRef.current = trackId;
-      const url = peekCachedPlaybackUrl(trackId) ?? streamPlaybackUrl(diskHref);
+      const url =
+        href && !isYandexDiskDownloadUrl(href)
+          ? href
+          : (peekCachedPlaybackUrl(trackId) ?? streamPlaybackUrl(href));
       audio.preload = "auto";
       if (lastPlaybackUrlRef.current !== url) {
         lastPlaybackUrlRef.current = url;
