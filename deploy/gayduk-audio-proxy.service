@@ -1,5 +1,5 @@
 [Unit]
-Description=Gayduk Yandex Disk audio proxy
+Description=Haiduk Yandex Disk audio proxy
 After=network.target
 
 [Service]

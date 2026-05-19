@@ -46,7 +46,7 @@ export function Sidebar({
         <div className="brand">
           <BrandLogo className="logo-box" />
           <div>
-            <h1>Gayduk</h1>
+            <h1>Haiduk</h1>
             <p>аудиосказки · React player</p>
           </div>
           <button

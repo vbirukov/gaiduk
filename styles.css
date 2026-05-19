@@ -1125,7 +1125,7 @@ input {
 .scroll-top {
   position: fixed;
   right: max(var(--space-4), env(safe-area-inset-right, 0px));
-  bottom: calc(7.5rem + env(safe-area-inset-bottom, 0px));
+  bottom: calc(5.25rem + env(safe-area-inset-bottom, 0px));
   z-index: 34;
   display: grid;
   place-items: center;
@@ -1477,7 +1477,7 @@ input[type="range"]::-webkit-slider-thumb {
     right: max(var(--space-4), env(safe-area-inset-right, 0px));
   }
   .scroll-top {
-    bottom: calc(min(42vh, 280px) + 4.75rem + env(safe-area-inset-bottom, 0px));
+    bottom: calc(min(42vh, 280px) + 1.25rem + env(safe-area-inset-bottom, 0px));
   }
   .stats-grid {
     grid-template-columns: 1fr 1fr;

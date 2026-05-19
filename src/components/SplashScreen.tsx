@@ -42,7 +42,7 @@ export function SplashScreen() {
     <div
       className={phase === "hide" ? "splash-screen splash-screen--hide" : "splash-screen"}
       role="img"
-      aria-label="Gayduk"
+      aria-label="Haiduk"
     >
       <img src={ASSETS.splash} alt="" />
     </div>

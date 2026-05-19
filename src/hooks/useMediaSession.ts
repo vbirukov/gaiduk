@@ -27,7 +27,7 @@ export function useMediaSession(
     navigator.mediaSession.metadata = new MediaMetadata({
       title: track.title,
       artist: track.folder,
-      album: "Gayduk — аудиосказки",
+      album: "Haiduk — аудиосказки",
       artwork: [
         { src: artworkUrlForTrack(track), sizes: "512x512", type: "image/webp" },
         { src: assetUrl(ASSETS.brandLogo), sizes: "512x512", type: "image/webp" },
