@@ -14,22 +14,29 @@ concurrency:
   group: deploy-production
   cancel-in-progress: true
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-
-      - uses: dorny/paths-filter@v3
-        id: changes
         with:
-          filters: |
-            proxy:
-              - audio-proxy-server.mjs
-              - deploy/gayduk-audio-proxy.service
+          fetch-depth: 2
+
+      - name: Detect proxy changes
+        id: changes
+        run: |
+          proxy=false
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.deploy_proxy }}" = "true" ]; then
+            proxy=true
+          elif [ "${{ github.event_name }}" = "push" ]; then
+            before="${{ github.event.before }}"
+            if [ -n "$before" ] && [ "$before" != "0000000000000000000000000000000000000000" ]; then
+              if git diff --name-only "$before" "${{ github.sha }}" | grep -qE '^(audio-proxy-server\.mjs|deploy/gayduk-audio-proxy\.service)$'; then
+                proxy=true
+              fi
+            fi
+          fi
+          echo "proxy=$proxy" >> "$GITHUB_OUTPUT"
 
       - uses: actions/setup-node@v5
         with:
@@ -54,15 +61,26 @@ jobs:
             echo "::error::Secret SSH_PRIVATE_KEY is empty"
             exit 1
           fi
+          if [ -z "${DEPLOY_HOST:-}" ]; then
+            echo "::error::Secret DEPLOY_HOST is empty (format: deploy@109.73.201.170)"
+            exit 1
+          fi
           install -m 700 -d ~/.ssh
-          printf '%s' "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/deploy_key
+          printf '%s\n' "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           if ! ssh-keygen -y -f ~/.ssh/deploy_key >/dev/null 2>&1; then
-            echo "::error::SSH_PRIVATE_KEY is invalid (bad paste, CRLF, or passphrase-protected key)"
+            echo "::error::SSH_PRIVATE_KEY is invalid"
             exit 1
           fi
           host="${DEPLOY_HOST#*@}"
-          ssh-keyscan -H "$host" >> ~/.ssh/known_hosts 2>/dev/null || true
+          ssh-keyscan -H "$host" >> ~/.ssh/known_hosts
+
+      - name: Test SSH
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+        run: |
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes \
+            "$DEPLOY_HOST" "whoami && test -w '${{ vars.DEPLOY_WEB_ROOT || '/var/www/gayduk' }}' && echo writable ok"
 
       - name: Rsync static
         env:
@@ -71,17 +89,16 @@ jobs:
         run: |
           set -euo pipefail
           root="${DEPLOY_WEB_ROOT:-/var/www/gayduk}"
-          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes "$DEPLOY_HOST" "mkdir -p $root"
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes \
+            "$DEPLOY_HOST" "mkdir -p $root"
           rsync -avz --delete \
             --exclude .gitkeep \
-            -e "ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes" \
+            -e "ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes" \
             dist/ \
             "$DEPLOY_HOST:$root/"
 
       - name: Deploy audio-proxy
-        if: |
-          (github.event_name == 'workflow_dispatch' && inputs.deploy_proxy) ||
-          steps.changes.outputs.proxy == 'true'
+        if: steps.changes.outputs.proxy == 'true'
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_PROXY_DIR: ${{ vars.DEPLOY_PROXY_DIR || '/opt/gayduk-audio-proxy' }}
@@ -90,7 +107,7 @@ jobs:
           set -euo pipefail
           dir="${DEPLOY_PROXY_DIR:-/opt/gayduk-audio-proxy}"
           svc="${DEPLOY_PROXY_SERVICE:-gayduk-audio-proxy}"
-          scp -i ~/.ssh/deploy_key -o IdentitiesOnly=yes \
+          scp -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes \
             audio-proxy-server.mjs "$DEPLOY_HOST:$dir/audio-proxy-server.mjs"
-          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes \
-            "$DEPLOY_HOST" "sudo systemctl restart $svc"
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes \
+            "$DEPLOY_HOST" "sudo -n systemctl restart $svc"
