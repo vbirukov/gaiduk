@@ -12,15 +12,19 @@ import type { LivePlayback } from "../lib/trackProgress";
 import type { Track } from "../types/catalog";
 import type { Playlist, Progress } from "../types/user";
 import { TrackCard, type TrackCardProps } from "./TrackCard";
+import { TrackCardSkeleton } from "./TrackCardSkeleton";
 
 const VIRTUALIZE_MIN = 48;
 const CARD_MIN_WIDTH = 320;
 const GRID_GAP_PX = 16;
-const ROW_ESTIMATE_PX = 248;
+const ROW_ESTIMATE_PX = 272;
+const OVERSCAN_ROWS = 8;
 
 type Props = {
   tracks: Track[];
+  catalogLoading?: boolean;
   activeTrackId: string | null;
+  isPlaying: boolean;
   livePlayback: LivePlayback | null;
   progressOf: (id: string) => Progress;
   isLiked: (id: string) => boolean;
@@ -60,14 +64,17 @@ function useScrollMargin(containerRef: RefObject<HTMLElement | null>) {
     const el = containerRef.current;
     if (!el) return;
     const measure = () => {
-      const rect = el.getBoundingClientRect();
-      setMargin(rect.top + window.scrollY);
+      setMargin(el.getBoundingClientRect().top + window.scrollY);
     };
     measure();
+    window.addEventListener("scroll", measure, { passive: true });
     window.addEventListener("resize", measure);
     const ro = new ResizeObserver(measure);
     ro.observe(el);
+    const main = el.closest(".main");
+    if (main) ro.observe(main);
     return () => {
+      window.removeEventListener("scroll", measure);
       window.removeEventListener("resize", measure);
       ro.disconnect();
     };
@@ -76,9 +83,13 @@ function useScrollMargin(containerRef: RefObject<HTMLElement | null>) {
   return margin;
 }
 
+const SKELETON_COUNT = 6;
+
 export function VirtualTrackGrid({
   tracks,
+  catalogLoading = false,
   activeTrackId,
+  isPlaying,
   livePlayback,
   progressOf,
   isLiked,
@@ -98,15 +109,20 @@ export function VirtualTrackGrid({
   const virtualizer = useWindowVirtualizer({
     count: useVirtual ? rows.length : 0,
     estimateSize: () => ROW_ESTIMATE_PX,
-    overscan: 2,
+    gap: GRID_GAP_PX,
+    overscan: OVERSCAN_ROWS,
     scrollMargin,
     enabled: useVirtual,
   });
 
-  const renderCard = (track: Track) => (
+  const renderCard = (track: Track) => {
+    const isActive = track.id === activeTrackId;
+    return (
     <TrackCard
       key={track.id}
       track={track}
+      isActive={isActive}
+      isPlaying={isActive && isPlaying}
       progress={resolveTrackProgress(
         track.id,
         activeTrackId,
@@ -121,7 +137,8 @@ export function VirtualTrackGrid({
       onToggleFavorite={onToggleFavorite}
       onAddToPlaylist={onAddToPlaylist}
     />
-  );
+    );
+  };
 
   const renderRow = (rowTracks: Track[], className: string) => (
     <div
@@ -133,6 +150,16 @@ export function VirtualTrackGrid({
       {rowTracks.map(renderCard)}
     </div>
   );
+
+  if (catalogLoading) {
+    return (
+      <section className="cards" aria-busy="true" aria-label="Загрузка каталога">
+        {Array.from({ length: SKELETON_COUNT }, (_, i) => (
+          <TrackCardSkeleton key={i} />
+        ))}
+      </section>
+    );
+  }
 
   if (!useVirtual) {
     return (

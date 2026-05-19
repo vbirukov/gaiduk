@@ -1,4 +1,5 @@
 import { PUBLIC_KEY } from "../config";
+import { Icon } from "./icons/Icon";
 
 type Props = {
   onOpenNav: () => void;
@@ -31,7 +32,7 @@ export function MainHeader({
         onClick={onOpenNav}
         aria-label="Открыть меню"
       >
-        ☰
+        <Icon name="menu" size={22} />
       </button>
       <div>
         <div className="eyebrow">Публичная коллекция Дмитрия Гайдука</div>
@@ -57,7 +58,7 @@ export function MainHeader({
           {loadingCatalog ? "Обновляю…" : "Обновить каталог"}
         </button>
         <button type="button" className="ghost" onClick={onToggleTheme}>
-          {theme === "dark" ? "☀" : "☾"}
+          <Icon name={theme === "dark" ? "sun" : "moon"} size={20} />
         </button>
       </div>
     </header>

@@ -5,6 +5,7 @@ import { PlaylistModal } from "./components/PlaylistModal";
 import { PlayerBar } from "./components/PlayerBar";
 import { Sidebar } from "./components/Sidebar";
 import { TrackList } from "./components/TrackList";
+import { SplashScreen } from "./components/SplashScreen";
 import { ToastStack } from "./components/ToastStack";
 import { useAudioPlayer } from "./hooks/useAudioPlayer";
 import { useCatalog } from "./hooks/useCatalog";
@@ -43,8 +44,10 @@ export function App() {
   const {
     catalog,
     setCatalog,
+    catalogLoading,
     loadingCatalog,
     refreshCatalog,
+    resumeTrack,
     patchTrackUrl,
     trackMap,
     tracks,
@@ -140,6 +143,7 @@ export function App() {
 
   return (
     <>
+      <SplashScreen />
       <ToastStack toasts={toasts} onDismiss={dismissToast} />
       <div className="app-shell">
         <Sidebar
@@ -214,12 +218,18 @@ export function App() {
             catalog={catalog}
             user={user}
             tracks={tracks}
+            view={view}
+            selectedFolder={selectedFolder}
+            selectedPlaylist={selectedPlaylist}
             query={query}
             onQueryChange={setQuery}
             resumeCount={resumeCount}
+            resumeTrack={resumeTrack}
+            catalogLoading={catalogLoading}
             sectionTitle={sectionTitle}
             sectionSub={sectionSub}
             activeTrackId={player.currentTrackId}
+            isPlaying={player.isPlaying}
             livePlayback={player.livePlayback}
             progressOf={progressOf}
             isLiked={isLiked}

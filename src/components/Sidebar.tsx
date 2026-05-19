@@ -1,4 +1,6 @@
 import { PUBLIC_KEY } from "../config";
+import { BrandLogo } from "./BrandLogo";
+import { Icon } from "./icons/Icon";
 import type { Catalog } from "../types/catalog";
 import type { LibraryView, UserState } from "../types/user";
 
@@ -42,7 +44,7 @@ export function Sidebar({
       />
       <aside className={navOpen ? "sidebar is-open" : "sidebar"}>
         <div className="brand">
-          <div className="logo-box">♪</div>
+          <BrandLogo className="logo-box" />
           <div>
             <h1>Gayduk</h1>
             <p>аудиосказки · React player</p>
@@ -53,7 +55,7 @@ export function Sidebar({
             onClick={onClose}
             aria-label="Закрыть меню"
           >
-            ×
+            <Icon name="close" size={22} />
           </button>
         </div>
         <section className="side-section">

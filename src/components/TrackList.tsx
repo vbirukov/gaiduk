@@ -1,20 +1,30 @@
 import { useMemo } from "react";
+import { useHeroCollapsed } from "../hooks/useHeroCollapsed";
+import { emptyStateCopy } from "../lib/emptyState";
 import type { Catalog, Track } from "../types/catalog";
-import type { Progress, UserState } from "../types/user";
+import type { LibraryView, Progress, UserState } from "../types/user";
 import type { LivePlayback } from "../lib/trackProgress";
 import type { TrackCardProps } from "./TrackCard";
+import { ContinueBanner } from "./ContinueBanner";
+import { LibraryHero } from "./LibraryHero";
 import { VirtualTrackGrid } from "./VirtualTrackGrid";
 
 type Props = {
   catalog: Catalog;
   user: UserState;
   tracks: Track[];
+  view: LibraryView;
+  selectedFolder: string | null;
+  selectedPlaylist: string | null;
   query: string;
   onQueryChange: (q: string) => void;
   resumeCount: number;
+  resumeTrack: Track | null;
+  catalogLoading: boolean;
   sectionTitle: string;
   sectionSub: string;
   activeTrackId: string | null;
+  isPlaying: boolean;
   livePlayback: LivePlayback | null;
   progressOf: (id: string) => Progress;
   isLiked: (id: string) => boolean;
@@ -30,12 +40,18 @@ export function TrackList({
   catalog,
   user,
   tracks,
+  view,
+  selectedFolder,
+  selectedPlaylist,
   query,
   onQueryChange,
   resumeCount,
+  resumeTrack,
+  catalogLoading,
   sectionTitle,
   sectionSub,
   activeTrackId,
+  isPlaying,
   livePlayback,
   progressOf,
   isLiked,
@@ -46,76 +62,87 @@ export function TrackList({
   onAddToPlaylist,
   onQuickView,
 }: Props) {
+  const { collapsed, collapse, expand } = useHeroCollapsed();
   const playlistButtons = useMemo(
     () => user.playlists.filter((pl) => !pl.system).slice(0, 3),
     [user.playlists],
   );
 
+  const playlistName =
+    user.playlists.find((p) => p.id === selectedPlaylist)?.name ?? "";
+
+  const empty = emptyStateCopy({
+    view,
+    query,
+    selectedFolder,
+    selectedPlaylist,
+    playlistName,
+  });
+
+  const showContinueBanner =
+    Boolean(resumeTrack) &&
+    view === "all" &&
+    !selectedFolder &&
+    !query.trim();
+
   return (
     <>
-      <section className="hero">
-        <div>
-          <div className="eyebrow">Библиотека вместо архива</div>
-          <h2>Удобное прослушивание с прогрессом, избранным и плейлистами.</h2>
-          <p>
-            Приложение подгружает каталог из публичной папки Яндекс.Диска и
-            превращает его в аккуратную медиатеку с сохранением места остановки.
-          </p>
-          <div className="hero-actions">
-            <div className="search-wrap">
-              <input
-                value={query}
-                onChange={(e) => onQueryChange(e.target.value)}
-                placeholder="Поиск по названию, серии или имени файла"
-              />
-            </div>
-            <button className="chip" onClick={() => onQuickView("resume")}>
-              Продолжить
-            </button>
-            <button className="chip" onClick={() => onQuickView("favorites")}>
-              Избранное
-            </button>
-            <button className="chip" onClick={() => onQuickView("liked")}>
-              Лайки
-            </button>
-          </div>
-        </div>
-        <div className="stats-grid">
-          <div className="stat">
-            <span>Разделов</span>
-            <strong>{catalog.folders.length}</strong>
-          </div>
-          <div className="stat">
-            <span>Треков</span>
-            <strong>{catalog.tracks.length}</strong>
-          </div>
-          <div className="stat">
-            <span>Продолжить</span>
-            <strong>{resumeCount}</strong>
-          </div>
-          <div className="stat">
-            <span>Плейлистов</span>
-            <strong>{user.playlists.filter((p) => !p.system).length}</strong>
-          </div>
-        </div>
-      </section>
+      <LibraryHero
+        catalog={catalog}
+        user={user}
+        resumeCount={resumeCount}
+        query={query}
+        collapsed={collapsed}
+        onQueryChange={onQueryChange}
+        onCollapse={collapse}
+        onExpand={expand}
+        onQuickView={onQuickView}
+      />
+      {showContinueBanner && resumeTrack ? (
+        <ContinueBanner
+          track={resumeTrack}
+          progress={progressOf(resumeTrack.id)}
+          onContinue={onPlayTrack}
+        />
+      ) : null}
       <section className="section-head">
         <div>
           <h3>{sectionTitle}</h3>
           <p>{sectionSub}</p>
         </div>
-        <div className="mini-text">{tracks.length} элементов</div>
+        <div className="mini-text">
+          {catalogLoading ? "Загрузка…" : `${tracks.length} элементов`}
+        </div>
       </section>
-      {tracks.length === 0 ? (
+      {catalogLoading ? (
+        <VirtualTrackGrid
+          tracks={[]}
+          catalogLoading
+          activeTrackId={activeTrackId}
+          isPlaying={isPlaying}
+          livePlayback={livePlayback}
+          progressOf={progressOf}
+          isLiked={isLiked}
+          isFavorite={isFavorite}
+          playlistButtons={playlistButtons}
+          onPlayTrack={onPlayTrack}
+          onToggleLike={onToggleLike}
+          onToggleFavorite={onToggleFavorite}
+          onAddToPlaylist={onAddToPlaylist}
+        />
+      ) : tracks.length === 0 ? (
         <section className="cards">
           <div className="empty">
-            Пока ничего не найдено. Снимите фильтры или обновите каталог.
+            <h4 className="empty-title">{empty.title}</h4>
+            <p>{empty.hint}</p>
           </div>
         </section>
       ) : (
         <VirtualTrackGrid
           tracks={tracks}
+          catalogLoading={false}
           activeTrackId={activeTrackId}
+          isPlaying={isPlaying}
           livePlayback={livePlayback}
           progressOf={progressOf}
           isLiked={isLiked}

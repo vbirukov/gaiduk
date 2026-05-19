@@ -1,4 +1,6 @@
 import { useEffect, type RefObject } from "react";
+import { ASSETS, assetUrl } from "../lib/assets";
+import { artworkUrlForTrack } from "../lib/cover";
 
 type TrackInfo = {
   id: string;
@@ -26,6 +28,12 @@ export function useMediaSession(
       title: track.title,
       artist: track.folder,
       album: "Gayduk — аудиосказки",
+      artwork: [
+        { src: artworkUrlForTrack(track), sizes: "512x512", type: "image/webp" },
+        { src: assetUrl(ASSETS.brandLogo), sizes: "512x512", type: "image/webp" },
+        { src: assetUrl(ASSETS.icon192), sizes: "192x192", type: "image/webp" },
+        { src: assetUrl(ASSETS.iconSvg), sizes: "512x512", type: "image/svg+xml" },
+      ],
     });
   }, [track?.id, track?.title, track?.folder]);
 

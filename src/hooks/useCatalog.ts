@@ -14,6 +14,7 @@ type Filters = {
 
 export function useCatalog(user: UserState, filters: Filters) {
   const [catalog, setCatalog] = useState<Catalog>(fallbackCatalog);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [loadingCatalog, setLoadingCatalog] = useState(false);
   const [queue, setQueue] = useState<string[]>([]);
 
@@ -28,8 +29,12 @@ export function useCatalog(user: UserState, filters: Filters) {
 
   useEffect(() => {
     void (async () => {
-      const cat = await runCatalogWorker();
-      if (cat?.tracks.length) setCatalog(cat);
+      try {
+        const cat = await runCatalogWorker();
+        if (cat?.tracks.length) setCatalog(cat);
+      } finally {
+        setInitialLoading(false);
+      }
     })();
   }, []);
 
@@ -118,6 +123,22 @@ export function useCatalog(user: UserState, filters: Filters) {
     [catalog.tracks, progressOf],
   );
 
+  const resumeTrack = useMemo(() => {
+    const resume = user.playlists.find((p) => p.id === "resume");
+    for (const id of resume?.trackIds ?? []) {
+      const track = trackMap.get(id);
+      if (!track) continue;
+      const p = progressOf(id);
+      if (p.position > 15 && !p.completed) return track;
+    }
+    return (
+      catalog.tracks.find((t) => {
+        const p = progressOf(t.id);
+        return p.position > 15 && !p.completed;
+      }) ?? null
+    );
+  }, [catalog.tracks, progressOf, trackMap, user.playlists]);
+
   const sectionTitle = filters.selectedFolder
     ? filters.selectedFolder
     : filters.view === "resume"
@@ -139,6 +160,7 @@ export function useCatalog(user: UserState, filters: Filters) {
   return {
     catalog,
     setCatalog,
+    catalogLoading: initialLoading || loadingCatalog,
     loadingCatalog,
     refreshCatalog,
     patchTrackUrl,
@@ -147,6 +169,7 @@ export function useCatalog(user: UserState, filters: Filters) {
     trackIds,
     queue,
     resumeCount,
+    resumeTrack,
     sectionTitle,
     sectionSub,
   };
