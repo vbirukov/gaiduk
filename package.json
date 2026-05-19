@@ -9,7 +9,10 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
-    "proxy:audio": "node audio-proxy-server.mjs"
+    "proxy:audio": "node audio-proxy-server.mjs",
+    "deploy": "node scripts/deploy.mjs",
+    "deploy:web": "node scripts/deploy.mjs --web-only",
+    "deploy:proxy": "node scripts/deploy.mjs --proxy-only"
   },
   "dependencies": {
     "@tanstack/react-virtual": "^3.13.24",

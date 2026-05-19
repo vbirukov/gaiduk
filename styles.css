@@ -437,15 +437,45 @@ input {
   line-height: 1.15;
 }
 .hero-author-link {
-  font-size: var(--text-sm);
-  color: var(--text-muted);
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: 0.02em;
+  color: oklch(0.98 0.045 98);
   text-decoration: none;
-  border-bottom: 1px solid oklch(from var(--text) l c h / 0.2);
-  transition: color 0.15s ease, border-color 0.15s ease;
+  text-shadow:
+    0 0 10px oklch(0.95 0.1 95 / 0.9),
+    0 0 22px oklch(0.9 0.12 88 / 0.65),
+    0 1px 3px oklch(0 0 0 / 0.35);
+  animation: author-link-glow 2.8s ease-in-out infinite;
+  transition:
+    color 0.2s ease,
+    text-shadow 0.2s ease,
+    transform 0.2s ease;
 }
 .hero-author-link:hover {
-  color: var(--primary);
-  border-color: oklch(from var(--primary) l c h / 0.45);
+  color: oklch(1 0.06 100);
+  text-shadow:
+    0 0 14px oklch(1 0.12 100 / 0.95),
+    0 0 32px oklch(0.96 0.14 92 / 0.8),
+    0 1px 2px oklch(0 0 0 / 0.2);
+  transform: translateY(-1px);
+}
+@keyframes author-link-glow {
+  0%,
+  100% {
+    text-shadow:
+      0 0 10px oklch(0.95 0.1 95 / 0.75),
+      0 0 20px oklch(0.9 0.11 90 / 0.5),
+      0 1px 3px oklch(0 0 0 / 0.35);
+  }
+  50% {
+    text-shadow:
+      0 0 14px oklch(0.98 0.12 98 / 0.95),
+      0 0 28px oklch(0.93 0.14 90 / 0.72),
+      0 1px 3px oklch(0 0 0 / 0.3);
+  }
 }
 .hero-author-block .hero-art {
   justify-self: center;
@@ -686,10 +716,13 @@ input {
 }
 .card {
   position: relative;
+  isolation: isolate;
   display: grid;
   gap: var(--space-3);
   padding: var(--space-4);
   border-radius: 20px;
+  overflow: visible;
+  scroll-margin: 4.5rem 0.5rem 12rem;
   background: var(--surface);
   border: 1px solid oklch(from var(--text) l c h / 0.1);
   box-shadow: var(--shadow-sm);
@@ -697,11 +730,60 @@ input {
     border-color 0.2s ease,
     box-shadow 0.2s ease;
 }
+.card-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  overflow: hidden;
+}
+.card-bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  transform: scale(1.12);
+  filter: blur(3px);
+}
+.card-bg__shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    165deg,
+    color-mix(in oklab, var(--bg) 72%, transparent),
+    color-mix(in oklab, var(--bg) 88%, transparent) 55%,
+    oklch(0 0 0 / 0.42)
+  );
+}
+.card > :not(.card-bg) {
+  position: relative;
+  z-index: 1;
+}
 .card.is-active {
-  isolation: isolate;
   border-color: transparent;
   box-shadow: var(--shadow-md);
-  background: color-mix(in oklab, var(--primary) 5%, var(--surface));
+  background: color-mix(in oklab, var(--primary) 6%, transparent);
+}
+.card.is-active .card-bg__shade {
+  background: linear-gradient(
+    165deg,
+    color-mix(in oklab, var(--bg) 68%, var(--primary) 8%),
+    color-mix(in oklab, var(--bg) 86%, transparent) 55%,
+    oklch(0 0 0 / 0.48)
+  );
+}
+.card-bg__shade::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: color-mix(in oklab, var(--primary) 55%, transparent);
+  opacity: 0;
+  pointer-events: none;
+}
+.card.is-active.is-playing .card-bg__shade::after {
+  animation: card-shade-pulse 2.8s ease-in-out infinite;
 }
 .card.is-active::before,
 .card.is-active::after {
@@ -715,11 +797,11 @@ input {
   padding: 2px;
   background: conic-gradient(
     from var(--card-glow-angle),
-    var(--primary),
-    color-mix(in oklab, var(--primary-hi) 70%, var(--primary)) 28%,
-    color-mix(in oklab, var(--primary) 35%, transparent) 52%,
-    var(--primary-hi) 72%,
-    var(--primary) 100%
+    var(--primary) 0deg,
+    color-mix(in oklab, var(--primary-hi) 70%, var(--primary)) 90deg,
+    var(--primary) 180deg,
+    color-mix(in oklab, var(--primary-hi) 70%, var(--primary)) 270deg,
+    var(--primary) 360deg
   );
   -webkit-mask:
     linear-gradient(#fff 0 0) content-box,
@@ -729,48 +811,41 @@ input {
     linear-gradient(#fff 0 0) content-box,
     linear-gradient(#fff 0 0);
   mask-composite: exclude;
-  z-index: 0;
-  animation: card-glow-spin 5.5s linear infinite;
+  z-index: 3;
+  animation: card-border-spin 10s linear infinite;
 }
 .card.is-active::after {
-  inset: -5px;
+  inset: -6px;
   z-index: -1;
-  opacity: 0.42;
-  filter: blur(11px);
-  background: conic-gradient(
-    from calc(var(--card-glow-angle) + 120deg),
-    transparent 0deg,
-    color-mix(in oklab, var(--primary) 55%, transparent) 55deg,
-    transparent 110deg,
-    color-mix(in oklab, var(--primary-hi) 65%, transparent) 200deg,
-    transparent 280deg
-  );
-  animation:
-    card-glow-spin 5.5s linear infinite,
-    card-glow-breathe 3.2s ease-in-out infinite;
-}
-.card.is-active > * {
-  position: relative;
-  z-index: 1;
+  opacity: 0.32;
+  filter: blur(14px);
+  background: color-mix(in oklab, var(--primary) 35%, transparent);
+  animation: none;
 }
 .card.is-active:not(.is-playing)::before {
-  animation-duration: 14s;
-  opacity: 0.72;
+  animation-duration: 16s;
+  opacity: 0.75;
 }
 .card.is-active:not(.is-playing)::after {
-  animation: card-glow-spin 14s linear infinite;
-  opacity: 0.22;
-  filter: blur(8px);
+  opacity: 0.18;
 }
 .card.is-active.is-playing::before {
-  animation-duration: 4.2s;
+  animation: card-border-spin 5.5s linear infinite;
+  opacity: 1;
 }
 .card.is-active.is-playing::after {
-  animation:
-    card-glow-spin 4.2s linear infinite,
-    card-glow-breathe 2.4s ease-in-out infinite;
+  animation: card-glow-breathe 2.8s ease-in-out infinite;
 }
-@keyframes card-glow-spin {
+@keyframes card-shade-pulse {
+  0%,
+  100% {
+    opacity: 0.14;
+  }
+  50% {
+    opacity: 0.38;
+  }
+}
+@keyframes card-border-spin {
   to {
     --card-glow-angle: 360deg;
   }
@@ -778,12 +853,10 @@ input {
 @keyframes card-glow-breathe {
   0%,
   100% {
-    opacity: 0.3;
-    filter: blur(9px);
+    opacity: 0.28;
   }
   50% {
-    opacity: 0.58;
-    filter: blur(14px);
+    opacity: 0.52;
   }
 }
 .card-now-playing {
@@ -1032,11 +1105,54 @@ input {
     background-position: -100% 0;
   }
 }
+.scroll-top {
+  position: fixed;
+  right: max(var(--space-4), env(safe-area-inset-right, 0px));
+  bottom: calc(7.5rem + env(safe-area-inset-bottom, 0px));
+  z-index: 34;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid oklch(from var(--text) l c h / 0.14);
+  border-radius: var(--radius-full);
+  background: color-mix(in oklab, var(--bg) 88%, var(--surface));
+  color: var(--primary);
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(10px);
+  transition:
+    opacity 0.22s ease,
+    visibility 0.22s ease,
+    transform 0.22s ease,
+    background 0.15s ease,
+    color 0.15s ease;
+}
+.scroll-top--visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+.scroll-top:hover {
+  background: color-mix(in oklab, var(--primary) 14%, var(--surface));
+  color: var(--primary-hover);
+}
+.scroll-top:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
 .player-bar {
   position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
+  isolation: isolate;
   display: grid;
   grid-template-columns: 1.2fr 1fr 0.8fr;
   gap: var(--space-4);
@@ -1047,12 +1163,37 @@ input {
   padding: var(--space-3) var(--space-4);
   padding-left: max(var(--space-4), env(safe-area-inset-left, 0px));
   padding-right: max(var(--space-4), env(safe-area-inset-right, 0px));
-  background: oklch(from var(--bg) l c h / 0.86);
-  backdrop-filter: blur(18px);
   border-top: 1px solid oklch(from var(--text) l c h / 0.12);
-  overflow-x: clip;
+  overflow: hidden;
 }
-.player-bar > * {
+.player-bar-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+.player-bar-bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  transform: scale(1.1);
+  filter: blur(5px);
+}
+.player-bar-bg__shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    oklch(0 0 0 / 0.35),
+    color-mix(in oklab, var(--bg) 84%, transparent) 45%,
+    color-mix(in oklab, var(--bg) 92%, transparent)
+  );
+}
+.player-bar > :not(.player-bar-bg) {
+  position: relative;
+  z-index: 1;
   min-width: 0;
 }
 .now-box,
@@ -1088,9 +1229,40 @@ input {
 .timeline span {
   white-space: nowrap;
 }
-.timeline input[type="range"] {
+.timeline-track {
+  position: relative;
   width: 100%;
   min-width: 0;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--divider);
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+}
+.timeline-track:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 4px;
+}
+.timeline-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0;
+  border-radius: inherit;
+  background: var(--primary);
+  pointer-events: none;
+}
+.timeline-thumb {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--primary);
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--bg) 70%, transparent);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
 }
 input[type="range"] {
   appearance: none;
@@ -1146,13 +1318,30 @@ input[type="range"]::-webkit-slider-thumb {
   .app-shell {
     grid-template-columns: 1fr;
   }
+  .topbar::after {
+    content: "";
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    margin-left: auto;
+    pointer-events: none;
+  }
   .menu-toggle {
     display: grid;
     place-items: center;
+    position: fixed;
+    top: max(var(--space-6), env(safe-area-inset-top, 0px));
+    right: max(var(--space-6), env(safe-area-inset-right, 0px));
+    z-index: 35;
     flex-shrink: 0;
     min-width: 44px;
     min-height: 44px;
     padding: 0;
+    background: color-mix(in oklab, var(--bg) 90%, var(--surface));
+    border: 1px solid oklch(from var(--text) l c h / 0.12);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    backdrop-filter: blur(10px);
   }
   .nav-backdrop {
     display: block;
@@ -1260,6 +1449,13 @@ input[type="range"]::-webkit-slider-thumb {
   }
   .library-feed-content {
     padding-inline: var(--space-4);
+  }
+  .menu-toggle {
+    top: max(var(--space-4), env(safe-area-inset-top, 0px));
+    right: max(var(--space-4), env(safe-area-inset-right, 0px));
+  }
+  .scroll-top {
+    bottom: calc(min(42vh, 280px) + 4.75rem + env(safe-area-inset-bottom, 0px));
   }
   .stats-grid {
     grid-template-columns: 1fr 1fr;
@@ -1373,13 +1569,17 @@ input[type="range"]::-webkit-slider-thumb {
     transform: none !important;
   }
   .card.is-active::before,
-  .card.is-active::after {
+  .card.is-active::after,
+  .card.is-active.is-playing .card-bg__shade::after {
     animation: none;
-    --card-glow-angle: 32deg;
+    --card-glow-angle: 40deg;
   }
   .card.is-active::after {
     opacity: 0.28;
-    filter: blur(8px);
+    filter: blur(10px);
+  }
+  .card.is-active.is-playing .card-bg__shade::after {
+    opacity: 0.22;
   }
 }
 .toast-stack {

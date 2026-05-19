@@ -17,7 +17,7 @@ import { TrackCardSkeleton } from "./TrackCardSkeleton";
 const VIRTUALIZE_MIN = 48;
 const CARD_MIN_WIDTH = 320;
 const GRID_GAP_PX = 16;
-const ROW_ESTIMATE_PX = 272;
+const ROW_ESTIMATE_PX = 340;
 const OVERSCAN_ROWS = 8;
 
 type Props = {
@@ -121,31 +121,50 @@ export function VirtualTrackGrid({
 
   useLayoutEffect(() => {
     if (!scrollToTrackId) return;
-    const idx = tracks.findIndex((t) => t.id === scrollToTrackId);
+    const trackId = scrollToTrackId;
+    const idx = tracks.findIndex((t) => t.id === trackId);
     if (idx < 0) {
       onScrolledToTrack?.();
       return;
     }
 
-    const scroll = () => {
-      if (useVirtual) {
-        virtualizer.scrollToIndex(Math.floor(idx / cols), {
-          align: "center",
-          behavior: "smooth",
-        });
-        return;
-      }
-      containerRef.current
-        ?.querySelector(`[data-track-id="${CSS.escape(scrollToTrackId)}"]`)
-        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    let cancelled = false;
+    const rowIndex = Math.floor(idx / cols);
+    const maxAttempts = 10;
+
+    const scrollToCard = (behavior: ScrollBehavior) => {
+      const el = document.querySelector(
+        `[data-track-id="${CSS.escape(trackId)}"]`,
+      );
+      if (!el) return false;
+      el.scrollIntoView({ behavior, block: "center", inline: "nearest" });
+      return true;
     };
 
-    scroll();
-    const raf = requestAnimationFrame(scroll);
-    const done = window.setTimeout(() => onScrolledToTrack?.(), 400);
+    const run = (attempt: number) => {
+      if (cancelled) return;
+      if (useVirtual) {
+        virtualizer.scrollToIndex(rowIndex, { align: "start", behavior: "auto" });
+      }
+      const behavior: ScrollBehavior = attempt < 2 ? "auto" : "smooth";
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (cancelled) return;
+          const hit = scrollToCard(behavior);
+          if (hit && attempt >= 2) {
+            window.setTimeout(() => onScrolledToTrack?.(), 450);
+          } else if (attempt < maxAttempts) {
+            window.setTimeout(() => run(attempt + 1), 90 + attempt * 35);
+          } else {
+            onScrolledToTrack?.();
+          }
+        });
+      });
+    };
+
+    run(0);
     return () => {
-      cancelAnimationFrame(raf);
-      clearTimeout(done);
+      cancelled = true;
     };
   }, [
     scrollToTrackId,

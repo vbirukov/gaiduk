@@ -3,6 +3,7 @@ import { fmtBytes, fmtTime } from "../lib/format";
 import { isStubTrack } from "../lib/diskDownload";
 import { listenStatus, listenStatusLabel } from "../lib/listenStatus";
 import { Icon } from "./icons/Icon";
+import { ASSETS } from "../lib/assets";
 import { TrackCover } from "./TrackCover";
 import type { Track } from "../types/catalog";
 import type { Playlist, Progress } from "../types/user";
@@ -66,6 +67,10 @@ function TrackCardInner({
       data-track-id={track.id}
       aria-current={isActive ? "true" : undefined}
     >
+      <div className="card-bg" aria-hidden>
+        <img src={ASSETS.trackBg} alt="" decoding="async" />
+        <div className="card-bg__shade" />
+      </div>
       <div className="card-top">
         <TrackCover track={track} size="lg" className="card-thumb" />
         <div className="card-main">

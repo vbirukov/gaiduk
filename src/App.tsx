@@ -6,6 +6,7 @@ import { PlayerBar } from "./components/PlayerBar";
 import { Sidebar } from "./components/Sidebar";
 import { TrackList } from "./components/TrackList";
 import { SplashScreen } from "./components/SplashScreen";
+import { ScrollToTop } from "./components/ScrollToTop";
 import { ToastStack } from "./components/ToastStack";
 import { useAudioPlayer } from "./hooks/useAudioPlayer";
 import { useCatalog } from "./hooks/useCatalog";
@@ -245,6 +246,7 @@ export function App() {
           />
         </main>
       </div>
+      <ScrollToTop />
       <PlayerBar
         currentTrack={player.currentTrack}
         currentTrackId={player.currentTrackId}

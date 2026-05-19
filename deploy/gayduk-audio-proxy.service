@@ -1,0 +1,17 @@
+[Unit]
+Description=Gayduk Yandex Disk audio proxy
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/gayduk-audio-proxy
+Environment=PORT=8787
+Environment=HOST=127.0.0.1
+ExecStart=/usr/bin/node /opt/gayduk-audio-proxy/audio-proxy-server.mjs
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

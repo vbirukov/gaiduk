@@ -20,7 +20,8 @@ export type IconName =
   | "star-outline"
   | "wake"
   | "music"
-  | "check";
+  | "check"
+  | "chevron-up";
 
 type Props = SVGAttributes<SVGSVGElement> & {
   name: IconName;
@@ -81,20 +82,22 @@ const paths: Record<IconName, ReactNode> = {
   "skip-back": (
     <>
       <path d="M6 5v14" />
-      <path d="m12 5-6 7 6 7" />
+      <path d="M16 5 9 12 16 19z" fill="currentColor" stroke="none" />
     </>
   ),
   "skip-forward": (
     <>
+      <path d="M8 5 15 12 8 19z" fill="currentColor" stroke="none" />
       <path d="M18 5v14" />
-      <path d="m12 5 6 7-6 7" />
     </>
   ),
   play: <path d="M8 5v14l11-7-11-7z" fill="currentColor" stroke="none" />,
   pause: (
-    <>
-      <path d="M8 6v12M16 6v12" fill="currentColor" stroke="none" />
-    </>
+    <path
+      d="M7 6h4v12H7zm6 0h4v12h-4z"
+      fill="currentColor"
+      stroke="none"
+    />
   ),
   loader: <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />,
   heart: (
@@ -131,6 +134,7 @@ const paths: Record<IconName, ReactNode> = {
     </>
   ),
   check: <path d="M5 12.5 9.5 17 19 7" />,
+  "chevron-up": <path d="m6 15 6-6 6 6" />,
 };
 
 export function Icon({ name, size = 20, className, ...rest }: Props) {

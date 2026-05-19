@@ -1,0 +1,81 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      deploy_proxy:
+        description: Обновить audio-proxy на сервере
+        type: boolean
+        default: false
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            proxy:
+              - audio-proxy-server.mjs
+              - deploy/gayduk-audio-proxy.service
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Known hosts
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+        run: |
+          host="${DEPLOY_HOST#*@}"
+          mkdir -p ~/.ssh
+          ssh-keyscan -H "$host" >> ~/.ssh/known_hosts
+
+      - name: Rsync static
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_WEB_ROOT: ${{ vars.DEPLOY_WEB_ROOT || '/var/www/gayduk' }}
+        run: |
+          root="${DEPLOY_WEB_ROOT:-/var/www/gayduk}"
+          ssh "$DEPLOY_HOST" "mkdir -p $root"
+          rsync -avz --delete \
+            --exclude .gitkeep \
+            -e ssh \
+            dist/ \
+            "$DEPLOY_HOST:$root/"
+
+      - name: Deploy audio-proxy
+        if: |
+          (github.event_name == 'workflow_dispatch' && inputs.deploy_proxy) ||
+          steps.changes.outputs.proxy == 'true'
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PROXY_DIR: ${{ vars.DEPLOY_PROXY_DIR || '/opt/gayduk-audio-proxy' }}
+          DEPLOY_PROXY_SERVICE: ${{ vars.DEPLOY_PROXY_SERVICE || 'gayduk-audio-proxy' }}
+        run: |
+          dir="${DEPLOY_PROXY_DIR:-/opt/gayduk-audio-proxy}"
+          svc="${DEPLOY_PROXY_SERVICE:-gayduk-audio-proxy}"
+          ssh "$DEPLOY_HOST" "mkdir -p $dir"
+          scp audio-proxy-server.mjs "$DEPLOY_HOST:$dir/audio-proxy-server.mjs"
+          ssh "$DEPLOY_HOST" "sudo systemctl restart $svc"

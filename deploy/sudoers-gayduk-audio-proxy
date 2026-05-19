@@ -1,0 +1,4 @@
+# Позволяет deploy-пользователю рестартить прокси из GitHub Actions без пароля.
+# sudo visudo -f /etc/sudoers.d/gayduk-audio-proxy
+# (замени deploy на своего пользователя)
+deploy ALL=(root) NOPASSWD: /bin/systemctl restart gayduk-audio-proxy

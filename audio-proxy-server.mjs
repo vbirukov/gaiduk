@@ -3,8 +3,8 @@
  * с Referer как у веб-Диска (иначе 403 с чужого сайта).
  *
  * Локально: npm run proxy:audio
- * Прод (Yandex Cloud): собери образ из Dockerfile, задеплой в Serverless Containers,
- * выдай HTTPS URL, затем при сборке фронта: VITE_AUDIO_PROXY_BASE=https://<твой-прокси>
+ * Прод (Timeweb/VPS): systemd + nginx (deploy/gayduk-audio-proxy.service), порт 8787.
+ * При сборке фронта: VITE_AUDIO_PROXY_BASE=https://<твой-прокси> (.env.production)
  * GET/HEAD / и /health без ?url= — 200 ok (health-check; curl -I шлёт HEAD).
  *
  * Внимание: у Yandex Serverless Containers лимит HTTP-ответа ~3,5 МБ — полноценный
