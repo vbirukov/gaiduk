@@ -14,11 +14,14 @@ concurrency:
   group: deploy-production
   cancel-in-progress: true
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: dorny/paths-filter@v3
         id: changes
@@ -28,7 +31,7 @@ jobs:
               - audio-proxy-server.mjs
               - deploy/gayduk-audio-proxy.service
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: "22"
           cache: npm
@@ -37,31 +40,41 @@ jobs:
         run: npm ci
 
       - name: Build
+        env:
+          VITE_AUDIO_PROXY_BASE: ${{ vars.VITE_AUDIO_PROXY_BASE || 'https://xn--80afepl7c.xn--p1ai' }}
         run: npm run build
 
-      - name: SSH agent
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
-      - name: Known hosts
+      - name: Setup SSH key
         env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
         run: |
+          set -euo pipefail
+          if [ -z "${SSH_PRIVATE_KEY:-}" ]; then
+            echo "::error::Secret SSH_PRIVATE_KEY is empty"
+            exit 1
+          fi
+          install -m 700 -d ~/.ssh
+          printf '%s' "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          if ! ssh-keygen -y -f ~/.ssh/deploy_key >/dev/null 2>&1; then
+            echo "::error::SSH_PRIVATE_KEY is invalid (bad paste, CRLF, or passphrase-protected key)"
+            exit 1
+          fi
           host="${DEPLOY_HOST#*@}"
-          mkdir -p ~/.ssh
-          ssh-keyscan -H "$host" >> ~/.ssh/known_hosts
+          ssh-keyscan -H "$host" >> ~/.ssh/known_hosts 2>/dev/null || true
 
       - name: Rsync static
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_WEB_ROOT: ${{ vars.DEPLOY_WEB_ROOT || '/var/www/gayduk' }}
         run: |
+          set -euo pipefail
           root="${DEPLOY_WEB_ROOT:-/var/www/gayduk}"
-          ssh "$DEPLOY_HOST" "mkdir -p $root"
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes "$DEPLOY_HOST" "mkdir -p $root"
           rsync -avz --delete \
             --exclude .gitkeep \
-            -e ssh \
+            -e "ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes" \
             dist/ \
             "$DEPLOY_HOST:$root/"
 
@@ -74,8 +87,10 @@ jobs:
           DEPLOY_PROXY_DIR: ${{ vars.DEPLOY_PROXY_DIR || '/opt/gayduk-audio-proxy' }}
           DEPLOY_PROXY_SERVICE: ${{ vars.DEPLOY_PROXY_SERVICE || 'gayduk-audio-proxy' }}
         run: |
+          set -euo pipefail
           dir="${DEPLOY_PROXY_DIR:-/opt/gayduk-audio-proxy}"
           svc="${DEPLOY_PROXY_SERVICE:-gayduk-audio-proxy}"
-          ssh "$DEPLOY_HOST" "mkdir -p $dir"
-          scp audio-proxy-server.mjs "$DEPLOY_HOST:$dir/audio-proxy-server.mjs"
-          ssh "$DEPLOY_HOST" "sudo systemctl restart $svc"
+          scp -i ~/.ssh/deploy_key -o IdentitiesOnly=yes \
+            audio-proxy-server.mjs "$DEPLOY_HOST:$dir/audio-proxy-server.mjs"
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes \
+            "$DEPLOY_HOST" "sudo systemctl restart $svc"

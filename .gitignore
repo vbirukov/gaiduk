@@ -1,0 +1,26 @@
+# dependencies
+node_modules/
+
+# build
+dist/
+
+# local env & deploy (шаблоны *.example — в репо)
+.env
+.env.*
+!.env.example
+!.env.deploy.example
+!.env.production.example
+
+# logs & OS
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+
+# editor
+.idea/
+*.swp
+*.swo
+
+# vite
+*.local
