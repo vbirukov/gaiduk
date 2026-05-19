@@ -1283,6 +1283,7 @@ input {
 }
 .player-bar {
   position: fixed;
+  z-index: 25;
   left: 0;
   right: 0;
   bottom: 0;
