@@ -1596,6 +1596,10 @@ input[type="range"]::-webkit-slider-thumb {
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+  .card .mini-meta,
+  .card .progress-line {
+    display: none;
+  }
   .card-main .card-now-playing {
     margin-bottom: var(--space-1);
   }
