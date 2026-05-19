@@ -6,7 +6,6 @@ import { Icon } from "./icons/Icon";
 import { NowPlayingSheet } from "./NowPlayingSheet";
 import { PlayerTimeline } from "./PlayerTimeline";
 import { PlayerTransport } from "./PlayerTransport";
-import { ASSETS } from "../lib/assets";
 import { TrackCover } from "./TrackCover";
 
 type Props = {
@@ -67,7 +66,6 @@ export function PlayerBar({
     <>
       <footer className="player-bar">
         <div className="player-bar-bg" aria-hidden>
-          <img src={ASSETS.playerBg} alt="" decoding="async" />
           <div className="player-bar-bg__shade" />
         </div>
         <div className="now-box">

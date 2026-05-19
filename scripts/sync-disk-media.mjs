@@ -5,8 +5,8 @@
  *   MEDIA_ROOT=/var/media node scripts/sync-disk-media.mjs
  *   MEDIA_ROOT=./data/media node scripts/sync-disk-media.mjs --limit 3
  */
-import { mkdir, writeFile, createWriteStream } from "node:fs";
-import { rename, stat as statPromise } from "node:fs/promises";
+import { createWriteStream } from "node:fs";
+import { mkdir, writeFile, rename, stat } from "node:fs/promises";
 import path from "node:path";
 import { pipeline } from "node:stream/promises";
 import { fileURLToPath } from "node:url";
@@ -103,7 +103,7 @@ function localFilePath(diskPath) {
 
 async function fileSizeOk(dest, expected) {
   try {
-    const st = await statPromise(dest);
+    const st = await stat(dest);
     if (!st.isFile()) return false;
     if (expected && st.size !== expected) return false;
     return st.size > 0;
@@ -126,7 +126,7 @@ async function downloadFile(track) {
   if (!res.ok) throw new Error(`GET ${res.status} ${track.path}`);
   const tmp = `${dest}.part`;
   await pipeline(res.body, createWriteStream(tmp));
-  const st = await statPromise(tmp);
+  const st = await stat(tmp);
   if (track.size && st.size !== track.size) {
     console.warn("size mismatch:", track.path, track.size, st.size);
   }

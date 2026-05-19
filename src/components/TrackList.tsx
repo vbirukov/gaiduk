@@ -6,7 +6,6 @@ import type { LibraryView, Progress, UserState } from "../types/user";
 import type { LivePlayback } from "../lib/trackProgress";
 import type { TrackCardProps } from "./TrackCard";
 import { ContinueBanner } from "./ContinueBanner";
-import { FeedParallaxBg } from "./FeedParallaxBg";
 import { LibraryHero } from "./LibraryHero";
 import { VirtualTrackGrid } from "./VirtualTrackGrid";
 
@@ -98,7 +97,7 @@ export function TrackList({
 
   return (
     <section className="library-feed">
-      <FeedParallaxBg feedRef={feedRef} />
+      <div className="library-feed-bg" aria-hidden />
       <div className="library-feed-content" ref={feedRef}>
       <LibraryHero
         catalog={catalog}
