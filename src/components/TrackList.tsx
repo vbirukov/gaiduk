@@ -16,9 +16,6 @@ type Props = {
   view: LibraryView;
   selectedFolder: string | null;
   selectedPlaylist: string | null;
-  query: string;
-  onQueryChange: (q: string) => void;
-  resumeCount: number;
   resumeTrack: Track | null;
   catalogLoading: boolean;
   sectionTitle: string;
@@ -33,7 +30,6 @@ type Props = {
   onToggleLike: TrackCardProps["onToggleLike"];
   onToggleFavorite: TrackCardProps["onToggleFavorite"];
   onAddToPlaylist: TrackCardProps["onAddToPlaylist"];
-  onQuickView: (view: "resume" | "favorites" | "liked") => void;
 };
 
 export function TrackList({
@@ -43,9 +39,6 @@ export function TrackList({
   view,
   selectedFolder,
   selectedPlaylist,
-  query,
-  onQueryChange,
-  resumeCount,
   resumeTrack,
   catalogLoading,
   sectionTitle,
@@ -60,7 +53,6 @@ export function TrackList({
   onToggleLike,
   onToggleFavorite,
   onAddToPlaylist,
-  onQuickView,
 }: Props) {
   const feedRef = useRef<HTMLElement>(null);
   const { collapsed, collapse, expand } = useHeroCollapsed();
@@ -83,17 +75,13 @@ export function TrackList({
 
   const empty = emptyStateCopy({
     view,
-    query,
     selectedFolder,
     selectedPlaylist,
     playlistName,
   });
 
   const showContinueBanner =
-    Boolean(resumeTrack) &&
-    view === "all" &&
-    !selectedFolder &&
-    !query.trim();
+    Boolean(resumeTrack) && view === "all" && !selectedFolder;
 
   return (
     <section className="library-feed">
@@ -102,16 +90,9 @@ export function TrackList({
       <LibraryHero
         catalog={catalog}
         user={user}
-        resumeCount={resumeCount}
-        query={query}
         collapsed={collapsed}
-        onQueryChange={onQueryChange}
         onCollapse={collapse}
         onExpand={expand}
-        onQuickView={onQuickView}
-        onResumeContinue={
-          resumeTrack ? () => handleContinue(resumeTrack) : undefined
-        }
       />
       {showContinueBanner && resumeTrack ? (
         <ContinueBanner

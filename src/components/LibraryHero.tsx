@@ -2,32 +2,20 @@ import { AuthorPhotoSlideshow } from "./AuthorPhotoSlideshow";
 import type { Catalog } from "../types/catalog";
 import type { UserState } from "../types/user";
 
-type QuickView = "resume" | "favorites" | "liked";
-
 type Props = {
   catalog: Catalog;
   user: UserState;
-  resumeCount: number;
-  query: string;
   collapsed: boolean;
-  onQueryChange: (q: string) => void;
   onCollapse: () => void;
   onExpand: () => void;
-  onQuickView: (view: QuickView) => void;
-  onResumeContinue?: () => void;
 };
 
 export function LibraryHero({
   catalog,
   user,
-  resumeCount,
-  query,
   collapsed,
-  onQueryChange,
   onCollapse,
   onExpand,
-  onQuickView,
-  onResumeContinue,
 }: Props) {
   const playlistCount = user.playlists.filter((p) => !p.system).length;
 
@@ -58,36 +46,10 @@ export function LibraryHero({
             {collapsed ? "Об авторе" : "Свернуть"}
           </button>
         </div>
-        <div className="hero-actions">
-          <div className="search-wrap">
-            <input
-              value={query}
-              onChange={(e) => onQueryChange(e.target.value)}
-              placeholder="Поиск по названию, серии или имени файла"
-            />
-          </div>
-          <button
-            type="button"
-            className="chip"
-            onClick={() =>
-              onResumeContinue ? onResumeContinue() : onQuickView("resume")
-            }
-          >
-            Продолжить
-          </button>
-          <button type="button" className="chip" onClick={() => onQuickView("favorites")}>
-            Избранное
-          </button>
-          <button type="button" className="chip" onClick={() => onQuickView("liked")}>
-            Лайки
-          </button>
-        </div>
         {collapsed ? (
-          <div className="hero-compact-stats mini-text">
-            <span>{catalog.tracks.length} треков</span>
-            <span aria-hidden="true">·</span>
-            <span>{resumeCount} продолжить</span>
-          </div>
+          <p className="hero-compact-stats mini-text">
+            {catalog.tracks.length} треков
+          </p>
         ) : null}
       </div>
       <div className="hero-side">
@@ -112,10 +74,6 @@ export function LibraryHero({
             <div className="stat">
               <span>Треков</span>
               <strong>{catalog.tracks.length}</strong>
-            </div>
-            <div className="stat">
-              <span>Продолжить</span>
-              <strong>{resumeCount}</strong>
             </div>
             <div className="stat">
               <span>Плейлистов</span>

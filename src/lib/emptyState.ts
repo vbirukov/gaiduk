@@ -2,7 +2,6 @@ import type { LibraryView } from "../types/user";
 
 type Args = {
   view: LibraryView;
-  query: string;
   selectedFolder: string | null;
   selectedPlaylist: string | null;
   playlistName: string;
@@ -10,18 +9,10 @@ type Args = {
 
 export function emptyStateCopy({
   view,
-  query,
   selectedFolder,
   selectedPlaylist,
   playlistName,
 }: Args): { title: string; hint: string } {
-  const q = query.trim();
-  if (q) {
-    return {
-      title: "Ничего не найдено",
-      hint: `По запросу «${q}» треков нет. Попробуйте другое слово или сбросьте поиск.`,
-    };
-  }
   if (selectedFolder) {
     return {
       title: "В этой серии пусто",

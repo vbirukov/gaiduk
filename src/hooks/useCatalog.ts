@@ -10,7 +10,6 @@ type Filters = {
   view: LibraryView;
   selectedFolder: string | null;
   selectedPlaylist: string | null;
-  query: string;
 };
 
 export function useCatalog(user: UserState, filters: Filters) {
@@ -64,14 +63,6 @@ export function useCatalog(user: UserState, filters: Filters) {
 
   const tracks = useMemo(() => {
     let list: Track[] = [...catalog.tracks];
-    const q = filters.query.toLowerCase().trim();
-    if (q) {
-      list = list.filter((t) =>
-        [t.title, t.folder, t.fileName].some((v) =>
-          v.toLowerCase().includes(q),
-        ),
-      );
-    }
     if (filters.selectedFolder) {
       list = list.filter((t) => t.folder === filters.selectedFolder);
     }
@@ -99,7 +90,6 @@ export function useCatalog(user: UserState, filters: Filters) {
     );
   }, [
     catalog.tracks,
-    filters.query,
     filters.selectedFolder,
     filters.selectedPlaylist,
     filters.view,

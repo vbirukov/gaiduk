@@ -32,7 +32,6 @@ export function App() {
   const [view, setView] = useState<LibraryView>("all");
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [selectedPlaylist, setSelectedPlaylist] = useState<string | null>(null);
-  const [query, setQuery] = useState("");
   const [theme, setTheme] = useState<"light" | "dark">("dark");
   const [swNeedRefresh, setSwNeedRefresh] = useState(false);
   const [installPrompt, setInstallPrompt] =
@@ -57,7 +56,7 @@ export function App() {
     resumeCount,
     sectionTitle,
     sectionSub,
-  } = useCatalog(user, { view, selectedFolder, selectedPlaylist, query });
+  } = useCatalog(user, { view, selectedFolder, selectedPlaylist });
 
   const player = useAudioPlayer({
     catalog,
@@ -222,9 +221,6 @@ export function App() {
             view={view}
             selectedFolder={selectedFolder}
             selectedPlaylist={selectedPlaylist}
-            query={query}
-            onQueryChange={setQuery}
-            resumeCount={resumeCount}
             resumeTrack={resumeTrack}
             catalogLoading={catalogLoading}
             sectionTitle={sectionTitle}
@@ -239,10 +235,6 @@ export function App() {
             onToggleLike={handleToggleLike}
             onToggleFavorite={handleToggleFavorite}
             onAddToPlaylist={addTrackToPlaylist}
-            onQuickView={(v) => {
-              setView(v);
-              setSelectedFolder(null);
-            }}
           />
         </main>
       </div>
