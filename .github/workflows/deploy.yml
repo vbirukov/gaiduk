@@ -107,7 +107,10 @@ jobs:
           set -euo pipefail
           dir="${DEPLOY_PROXY_DIR:-/opt/gayduk-audio-proxy}"
           svc="${DEPLOY_PROXY_SERVICE:-gayduk-audio-proxy}"
-          scp -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes \
-            audio-proxy-server.mjs "$DEPLOY_HOST:$dir/audio-proxy-server.mjs"
+          staging='~/deploy-staging/audio-proxy-server.mjs'
           ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes \
-            "$DEPLOY_HOST" "sudo -n systemctl restart $svc"
+            "$DEPLOY_HOST" "mkdir -p ~/deploy-staging"
+          scp -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes \
+            audio-proxy-server.mjs "$DEPLOY_HOST:$staging"
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes \
+            "$DEPLOY_HOST" "sudo -n install -m 644 -o root -g root $staging $dir/audio-proxy-server.mjs && sudo -n systemctl restart $svc"

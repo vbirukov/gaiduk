@@ -112,11 +112,16 @@ if (!proxyOnly) {
 }
 
 if (!webOnly && proxyDir) {
-  ssh(host, `mkdir -p ${proxyDir}`);
+  const staging = "~/deploy-staging/audio-proxy-server.mjs";
+  ssh(host, "mkdir -p ~/deploy-staging");
   run("scp audio-proxy", "scp", [
     join(root, "audio-proxy-server.mjs"),
-    `${host}:${proxyDir}/audio-proxy-server.mjs`,
+    `${host}:${staging}`,
   ]);
+  ssh(
+    host,
+    `sudo install -m 644 -o root -g root ${staging} ${proxyDir}/audio-proxy-server.mjs`,
+  );
   if (proxyService) {
     ssh(host, `sudo systemctl restart ${proxyService}`);
   }
