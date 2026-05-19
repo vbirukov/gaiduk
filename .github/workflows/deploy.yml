@@ -48,7 +48,7 @@ jobs:
 
       - name: Build
         env:
-          VITE_AUDIO_PROXY_BASE: ${{ vars.VITE_AUDIO_PROXY_BASE || 'https://xn--80afepl7c.xn--p1ai' }}
+          VITE_AUDIO_PROXY_BASE: ${{ vars.VITE_AUDIO_PROXY_BASE || 'https://xn--80afepl7c.xn--p1ai/audio' }}
         run: npm run build
 
       - name: Setup SSH key
