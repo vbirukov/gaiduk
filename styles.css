@@ -43,6 +43,8 @@
   --shadow-lg: 0 12px 32px oklch(0.2 0.01 80 /0.12);
   --font-display: "Boska", Georgia, serif;
   --font-body: "Satoshi", Inter, sans-serif;
+  --sidebar-width: 300px;
+  --player-bar-offset: 108px;
 }
 [data-theme="dark"] {
   --bg: #0c1115;
@@ -371,6 +373,100 @@ input {
   gap: var(--space-6);
   align-content: start;
   position: relative;
+}
+.main > :not(.hookah-smoke) {
+  position: relative;
+  z-index: 1;
+}
+.hookah-smoke {
+  position: fixed;
+  z-index: 0;
+  right: 0;
+  bottom: var(--player-bar-offset);
+  left: var(--sidebar-width);
+  height: min(78vh, 640px);
+  pointer-events: none;
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 1.4s ease,
+    visibility 1.4s ease;
+  -webkit-mask-image: linear-gradient(
+    to top,
+    #000 6%,
+    #000 38%,
+    transparent 94%
+  );
+  mask-image: linear-gradient(to top, #000 6%, #000 38%, transparent 94%);
+}
+.hookah-smoke::before {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: min(72%, 420px);
+  height: 22%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse 85% 100% at 50% 100%,
+    color-mix(in oklab, var(--primary) 32%, transparent),
+    color-mix(in oklab, var(--accent-teal) 14%, transparent) 45%,
+    transparent 72%
+  );
+  filter: blur(18px);
+  opacity: 0;
+  transition: opacity 1.4s ease;
+}
+.hookah-smoke.is-active {
+  opacity: 1;
+  visibility: visible;
+}
+.hookah-smoke.is-active::before {
+  opacity: 0.85;
+}
+.hookah-smoke__plume {
+  position: absolute;
+  bottom: -8%;
+  left: calc(var(--smoke-x) - var(--smoke-w) / 2);
+  width: var(--smoke-w);
+  height: 42%;
+  border-radius: 50%;
+  filter: blur(34px);
+  opacity: 0;
+  background: radial-gradient(
+    ellipse 75% 55% at 50% 100%,
+    color-mix(in oklab, var(--text) 22%, transparent),
+    color-mix(in oklab, var(--accent-teal) 28%, transparent) 42%,
+    color-mix(in oklab, #c868f5 12%, transparent) 58%,
+    transparent 78%
+  );
+  animation: hookah-smoke-rise var(--smoke-dur, 14s) ease-in-out infinite;
+  animation-delay: var(--smoke-delay, 0s);
+  animation-play-state: paused;
+  will-change: transform, opacity;
+}
+.hookah-smoke.is-active .hookah-smoke__plume {
+  animation-play-state: running;
+}
+@keyframes hookah-smoke-rise {
+  0% {
+    transform: translate3d(0, 12%, 0) scale(0.6);
+    opacity: 0;
+  }
+  14% {
+    opacity: 0.38;
+  }
+  48% {
+    transform: translate3d(var(--smoke-drift, 0), -48%, 0) scale(1);
+    opacity: 0.26;
+  }
+  100% {
+    transform: translate3d(calc(var(--smoke-drift, 0) * -0.6), -108%, 0)
+      scale(1.28);
+    opacity: 0;
+  }
 }
 .library-feed {
   position: relative;
@@ -1358,6 +1454,9 @@ input[type="range"]::-webkit-slider-thumb {
   justify-content: flex-end;
 }
 @media (max-width: 1024px) {
+  .hookah-smoke {
+    left: 0;
+  }
   .app-shell {
     grid-template-columns: 1fr;
   }
@@ -1477,6 +1576,16 @@ input[type="range"]::-webkit-slider-thumb {
   }
 }
 @media (max-width: 720px) {
+  :root,
+  [data-theme="light"] {
+    --player-bar-offset: min(42vh, 280px);
+  }
+  .hookah-smoke {
+    height: min(62vh, 520px);
+  }
+  .hookah-smoke__plume {
+    filter: blur(26px);
+  }
   .app-shell {
     padding-bottom: min(42vh, 280px);
   }
@@ -1612,6 +1721,9 @@ input[type="range"]::-webkit-slider-thumb {
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  .hookah-smoke {
+    display: none;
+  }
   *,
   *::before,
   *::after {
