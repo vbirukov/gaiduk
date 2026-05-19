@@ -11,7 +11,7 @@ import { useMediaSession } from "./useMediaSession";
 import { usePlayerKeyboard } from "./usePlayerKeyboard";
 import { useWakeLock } from "./useWakeLock";
 import {
-  getCachedPlaybackUrl,
+  cancelInflightDownloads,
   peekCachedPlaybackUrl,
   prefetchPlayback,
   streamPlaybackUrl,
@@ -24,6 +24,8 @@ import type { Catalog, Track } from "../types/catalog";
 import type { UserState } from "../types/user";
 
 const PROGRESS_SAVE_INTERVAL_SEC = 5;
+/** Не качаем соседние треки сразу — иначе душим стрим текущего через прокси. */
+const PREFETCH_ADJACENT_DELAY_MS = 25_000;
 
 type ToastPush = (
   message: string,
@@ -66,6 +68,9 @@ export function useAudioPlayer({
   const lastPlaybackUrlRef = useRef("");
   const lastSavedSecond = useRef(-1);
   const lastLiveSecond = useRef(-1);
+  const prefetchTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
   const userProgressRef = useRef(user.progress);
   userProgressRef.current = user.progress;
 
@@ -87,16 +92,17 @@ export function useAudioPlayer({
     [queue, trackIds],
   );
 
-  const prefetchAdjacentTracks = useCallback(
+  const schedulePrefetchNext = useCallback(
     (fromTrackId: string) => {
-      const source = playbackSource();
-      const idx = source.indexOf(fromTrackId);
-      if (idx < 0) return;
-      for (let step = 1; step <= 2; step++) {
-        const id = source[idx + step];
-        if (!id) break;
-        const t = trackMap.get(id);
-        if (!t || isStubTrack(t)) continue;
+      clearTimeout(prefetchTimerRef.current);
+      prefetchTimerRef.current = setTimeout(() => {
+        const source = playbackSource();
+        const idx = source.indexOf(fromTrackId);
+        if (idx < 0) return;
+        const nextId = source[idx + 1];
+        if (!nextId || nextId === activePlaybackTrackRef.current) return;
+        const t = trackMap.get(nextId);
+        if (!t || isStubTrack(t)) return;
         void (async () => {
           let href = t.url;
           if (!href) {
@@ -107,9 +113,11 @@ export function useAudioPlayer({
               return;
             }
           }
-          prefetchPlayback(t.id, href);
+          if (activePlaybackTrackRef.current === fromTrackId) {
+            prefetchPlayback(t.id, href);
+          }
         })();
-      }
+      }, PREFETCH_ADJACENT_DELAY_MS);
     },
     [patchTrackUrl, playbackSource, trackMap],
   );
@@ -123,16 +131,14 @@ export function useAudioPlayer({
         const url = await fetchDiskDownloadHref(track.path);
         if (cancelled || !url) return;
         patchTrackUrl(track.id, url);
-        prefetchPlayback(track.id, url);
-        prefetchAdjacentTracks(track.id);
       } catch {
-        /* prefetch */
+        /* href */
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [currentTrackId, patchTrackUrl, prefetchAdjacentTracks, trackMap]);
+  }, [currentTrackId, patchTrackUrl, trackMap]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -157,69 +163,17 @@ export function useAudioPlayer({
     };
   }, [currentTrackId, currentTrack?.url]);
 
-  const upgradeToCachedSource = useCallback(
-    async (
-      audio: HTMLAudioElement,
-      trackId: string,
-      diskHref: string,
-      streamUrl: string,
-    ) => {
-      try {
-        const blobUrl = await getCachedPlaybackUrl(trackId, diskHref);
-        if (activePlaybackTrackRef.current !== trackId) return;
-        if (lastPlaybackUrlRef.current !== streamUrl) return;
-
-        const position = audio.currentTime || 0;
-        const shouldResume = playbackIntentRef.current && !audio.ended;
-
-        lastPlaybackUrlRef.current = blobUrl;
-        audio.src = blobUrl;
-
-        await new Promise<void>((resolve) => {
-          if (audio.readyState >= 2) {
-            resolve();
-            return;
-          }
-          const onReady = () => {
-            audio.removeEventListener("canplay", onReady);
-            audio.removeEventListener("loadedmetadata", onReady);
-            resolve();
-          };
-          audio.addEventListener("canplay", onReady, { once: true });
-          audio.addEventListener("loadedmetadata", onReady, { once: true });
-        });
-
-        if (activePlaybackTrackRef.current !== trackId) return;
-        const duration = audio.duration || position;
-        if (position > 0) {
-          audio.currentTime = Math.min(position, duration);
-        }
-        if (shouldResume && audio.paused) {
-          playbackIntentRef.current = true;
-          await audio.play().catch(() => {});
-        }
-      } catch {
-        /* остаёмся на стриме */
-      }
-    },
-    [],
-  );
-
   const assignPlaybackSource = useCallback(
     (audio: HTMLAudioElement, trackId: string, diskHref: string) => {
       activePlaybackTrackRef.current = trackId;
-      const cached = peekCachedPlaybackUrl(trackId);
-      const streamUrl = streamPlaybackUrl(diskHref);
-      const initial = cached ?? streamUrl;
-
-      lastPlaybackUrlRef.current = initial;
-      audio.src = initial;
-
-      if (!cached) {
-        void upgradeToCachedSource(audio, trackId, diskHref, streamUrl);
+      const url = peekCachedPlaybackUrl(trackId) ?? streamPlaybackUrl(diskHref);
+      audio.preload = "auto";
+      if (lastPlaybackUrlRef.current !== url) {
+        lastPlaybackUrlRef.current = url;
+        audio.src = url;
       }
     },
-    [upgradeToCachedSource],
+    [],
   );
 
   const playTrack = useCallback(
@@ -228,6 +182,8 @@ export function useAudioPlayer({
       setUser((prev) => ({ ...prev, lastTrackId: track.id }));
       const audio = audioRef.current;
       if (!audio || isStubTrack(track)) return;
+      clearTimeout(prefetchTimerRef.current);
+      cancelInflightDownloads();
       setIsLoadingTrack(true);
       let url = track.url;
       try {
@@ -239,7 +195,7 @@ export function useAudioPlayer({
         assignPlaybackSource(audio, track.id, url);
         playbackIntentRef.current = true;
         await audio.play();
-        prefetchAdjacentTracks(track.id);
+        schedulePrefetchNext(track.id);
       } catch (err) {
         playbackIntentRef.current = false;
         pushToast(formatPlaybackError(err), {
@@ -250,7 +206,7 @@ export function useAudioPlayer({
         setIsLoadingTrack(false);
       }
     },
-    [assignPlaybackSource, patchTrackUrl, prefetchAdjacentTracks, pushToast, setUser],
+    [assignPlaybackSource, patchTrackUrl, schedulePrefetchNext, pushToast, setUser],
   );
 
   const togglePlay = useCallback(async () => {
@@ -452,7 +408,7 @@ export function useAudioPlayer({
         position: audio.currentTime || 0,
         duration: audio.duration || 0,
       });
-      prefetchAdjacentTracks(trackId);
+      schedulePrefetchNext(trackId);
     };
 
     const handleTime = () => {
@@ -489,7 +445,15 @@ export function useAudioPlayer({
       audio.removeEventListener("ended", handleEnded);
       flush();
     };
-  }, [currentTrack, persistProgress, prefetchAdjacentTracks, user.playbackRate, user.volume]);
+  }, [currentTrack, persistProgress, schedulePrefetchNext, user.playbackRate, user.volume]);
+
+  useEffect(
+    () => () => {
+      clearTimeout(prefetchTimerRef.current);
+      cancelInflightDownloads();
+    },
+    [],
+  );
 
   const keyboardRef = useRef({
     onTogglePlay: () => void playerActionsRef.current.togglePlay(),

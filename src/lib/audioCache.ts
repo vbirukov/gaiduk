@@ -2,8 +2,9 @@ import { playbackSrc } from "./diskDownload";
 
 const blobUrlByTrackId = new Map<string, string>();
 const inflightByTrackId = new Map<string, Promise<string>>();
+const abortByTrackId = new Map<string, AbortController>();
 const cacheOrder: string[] = [];
-const MAX_CACHED_TRACKS = 10;
+const MAX_CACHED_TRACKS = 6;
 
 function touchCache(trackId: string) {
   const i = cacheOrder.indexOf(trackId);
@@ -12,9 +13,22 @@ function touchCache(trackId: string) {
   while (cacheOrder.length > MAX_CACHED_TRACKS) {
     const evict = cacheOrder.shift();
     if (!evict) break;
+    abortByTrackId.get(evict)?.abort();
+    abortByTrackId.delete(evict);
+    inflightByTrackId.delete(evict);
     const url = blobUrlByTrackId.get(evict);
     if (url) URL.revokeObjectURL(url);
     blobUrlByTrackId.delete(evict);
+  }
+}
+
+/** Сбросить фоновые загрузки blob (не трогает уже готовый кэш). */
+export function cancelInflightDownloads(exceptTrackId?: string) {
+  for (const [id, ctrl] of abortByTrackId) {
+    if (exceptTrackId && id === exceptTrackId) continue;
+    ctrl.abort();
+    abortByTrackId.delete(id);
+    inflightByTrackId.delete(id);
   }
 }
 
@@ -36,8 +50,11 @@ export function getCachedPlaybackUrl(
   const pending = inflightByTrackId.get(trackId);
   if (pending) return pending;
 
+  const ctrl = new AbortController();
+  abortByTrackId.set(trackId, ctrl);
+
   const promise = (async () => {
-    const res = await fetch(playbackSrc(diskHref));
+    const res = await fetch(playbackSrc(diskHref), { signal: ctrl.signal });
     if (!res.ok) throw new Error(`audio ${res.status}`);
     const blob = await res.blob();
     if (!blob.size) throw new Error("empty audio");
@@ -49,10 +66,13 @@ export function getCachedPlaybackUrl(
 
   inflightByTrackId.set(trackId, promise);
   return promise.finally(() => {
+    if (abortByTrackId.get(trackId) === ctrl) abortByTrackId.delete(trackId);
     inflightByTrackId.delete(trackId);
   });
 }
 
+/** Фоновый полный кэш — только для следующего трека, не мешает стриму текущего. */
 export function prefetchPlayback(trackId: string, diskHref: string) {
+  if (blobUrlByTrackId.has(trackId) || inflightByTrackId.has(trackId)) return;
   void getCachedPlaybackUrl(trackId, diskHref).catch(() => {});
 }
