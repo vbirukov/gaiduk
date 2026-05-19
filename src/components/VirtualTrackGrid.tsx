@@ -66,17 +66,16 @@ function useScrollMargin(containerRef: RefObject<HTMLElement | null>) {
     const el = containerRef.current;
     if (!el) return;
     const measure = () => {
-      setMargin(el.getBoundingClientRect().top + window.scrollY);
+      const next = Math.round(el.getBoundingClientRect().top + window.scrollY);
+      setMargin((prev) => (prev === next ? prev : next));
     };
     measure();
-    window.addEventListener("scroll", measure, { passive: true });
     window.addEventListener("resize", measure);
     const ro = new ResizeObserver(measure);
     ro.observe(el);
     const main = el.closest(".main");
     if (main) ro.observe(main);
     return () => {
-      window.removeEventListener("scroll", measure);
       window.removeEventListener("resize", measure);
       ro.disconnect();
     };
@@ -118,6 +117,10 @@ export function VirtualTrackGrid({
     scrollMargin,
     enabled: useVirtual,
   });
+  virtualizer.shouldAdjustScrollPositionOnItemSizeChange = () => false;
+
+  const virtualizerRef = useRef(virtualizer);
+  virtualizerRef.current = virtualizer;
 
   useLayoutEffect(() => {
     if (!scrollToTrackId) return;
@@ -130,35 +133,47 @@ export function VirtualTrackGrid({
 
     let cancelled = false;
     const rowIndex = Math.floor(idx / cols);
-    const maxAttempts = 10;
 
-    const scrollToCard = (behavior: ScrollBehavior) => {
-      const el = document.querySelector(
-        `[data-track-id="${CSS.escape(trackId)}"]`,
-      );
-      if (!el) return false;
-      el.scrollIntoView({ behavior, block: "center", inline: "nearest" });
-      return true;
+    const finish = () => {
+      if (!cancelled) onScrolledToTrack?.();
     };
 
     const run = (attempt: number) => {
       if (cancelled) return;
       if (useVirtual) {
-        virtualizer.scrollToIndex(rowIndex, { align: "start", behavior: "auto" });
-      }
-      const behavior: ScrollBehavior = attempt < 2 ? "auto" : "smooth";
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          if (cancelled) return;
-          const hit = scrollToCard(behavior);
-          if (hit && attempt >= 2) {
-            window.setTimeout(() => onScrolledToTrack?.(), 450);
-          } else if (attempt < maxAttempts) {
-            window.setTimeout(() => run(attempt + 1), 90 + attempt * 35);
-          } else {
-            onScrolledToTrack?.();
-          }
+        virtualizerRef.current.scrollToIndex(rowIndex, {
+          align: "center",
+          behavior: attempt === 0 ? "auto" : "smooth",
         });
+      } else {
+        const el = document.querySelector(
+          `[data-track-id="${CSS.escape(trackId)}"]`,
+        );
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+          finish();
+        } else if (attempt < 4) {
+          window.setTimeout(() => run(attempt + 1), 80);
+        } else {
+          finish();
+        }
+        return;
+      }
+      requestAnimationFrame(() => {
+        if (cancelled) return;
+        const el = document.querySelector(
+          `[data-track-id="${CSS.escape(trackId)}"]`,
+        );
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+          finish();
+          return;
+        }
+        if (attempt < 4) {
+          window.setTimeout(() => run(attempt + 1), 80);
+        } else {
+          finish();
+        }
       });
     };
 
@@ -166,37 +181,30 @@ export function VirtualTrackGrid({
     return () => {
       cancelled = true;
     };
-  }, [
-    scrollToTrackId,
-    tracks,
-    cols,
-    useVirtual,
-    virtualizer,
-    onScrolledToTrack,
-  ]);
+  }, [scrollToTrackId, tracks, cols, useVirtual, onScrolledToTrack]);
 
   const renderCard = (track: Track) => {
     const isActive = track.id === activeTrackId;
     return (
-    <TrackCard
-      key={track.id}
-      track={track}
-      isActive={isActive}
-      isPlaying={isActive && isPlaying}
-      progress={resolveTrackProgress(
-        track.id,
-        activeTrackId,
-        livePlayback,
-        progressOf,
-      )}
-      liked={isLiked(track.id)}
-      favorite={isFavorite(track.id)}
-      playlistButtons={playlistButtons}
-      onPlayTrack={onPlayTrack}
-      onToggleLike={onToggleLike}
-      onToggleFavorite={onToggleFavorite}
-      onAddToPlaylist={onAddToPlaylist}
-    />
+      <TrackCard
+        key={track.id}
+        track={track}
+        isActive={isActive}
+        isPlaying={isActive && isPlaying}
+        progress={resolveTrackProgress(
+          track.id,
+          activeTrackId,
+          livePlayback,
+          progressOf,
+        )}
+        liked={isLiked(track.id)}
+        favorite={isFavorite(track.id)}
+        playlistButtons={playlistButtons}
+        onPlayTrack={onPlayTrack}
+        onToggleLike={onToggleLike}
+        onToggleFavorite={onToggleFavorite}
+        onAddToPlaylist={onAddToPlaylist}
+      />
     );
   };
 

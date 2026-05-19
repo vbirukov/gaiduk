@@ -4,6 +4,9 @@ node_modules/
 # build
 dist/
 
+# редирект для старого бакета YC (заливается вручную)
+bucket-redirect/
+
 # local env & deploy (шаблоны *.example — в репо)
 .env
 .env.*
