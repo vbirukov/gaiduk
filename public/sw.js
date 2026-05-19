@@ -1,4 +1,6 @@
-const CACHE = "gayduk-shell-v1";
+const CACHE = "gayduk-shell-v2";
+const STATIC_RE =
+  /^\/(images|gaiduk|covers|brand|icons)\/|\.(webp|jpg|jpeg|svg|woff2?)$/i;
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -34,17 +36,19 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  const cacheable =
+    url.pathname.includes("/assets/") || STATIC_RE.test(url.pathname);
+
   event.respondWith(
-    caches.match(event.request).then(
-      (cached) =>
-        cached ||
-        fetch(event.request).then((response) => {
-          if (response.ok && url.pathname.includes("/assets/")) {
-            const copy = response.clone();
-            caches.open(CACHE).then((cache) => cache.put(event.request, copy));
-          }
-          return response;
-        }),
-    ),
+    caches.match(event.request).then((cached) => {
+      if (cached) return cached;
+      return fetch(event.request).then((response) => {
+        if (cacheable && response.ok) {
+          const copy = response.clone();
+          caches.open(CACHE).then((cache) => cache.put(event.request, copy));
+        }
+        return response;
+      });
+    }),
   );
 });

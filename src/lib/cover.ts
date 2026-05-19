@@ -2,9 +2,9 @@ import type { Track } from "../types/catalog";
 
 const DEFAULT_COVER = "/covers/default.webp";
 
-export function coverForFolder(folder: string | null | undefined): string {
-  if (!folder?.trim()) return DEFAULT_COVER;
-  return `/covers/${encodeURIComponent(folder.trim())}.webp`;
+/** Пока в /covers/ только default.webp — без 404 на каждую папку. */
+export function coverForFolder(_folder: string | null | undefined): string {
+  return DEFAULT_COVER;
 }
 
 export function coverForTrack(track: Pick<Track, "folder"> | null | undefined): string {

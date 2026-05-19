@@ -737,13 +737,7 @@ input {
   pointer-events: none;
   border-radius: inherit;
   overflow: hidden;
-}
-.card-bg img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-  display: block;
+  background: url("/images/track.webp") center / cover no-repeat;
   transform: scale(1.12);
   filter: blur(3px);
 }
