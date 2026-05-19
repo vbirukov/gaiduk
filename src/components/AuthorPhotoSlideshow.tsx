@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import {
   AUTHOR_PHOTOS,
   randomAuthorPhotoIndex,
@@ -7,19 +7,12 @@ import {
 const SLIDE_INTERVAL_MS = 5500;
 const FADE_MS = 1200;
 
-function preloadPhoto(path: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve();
-    img.onerror = () => reject(new Error("photo load failed"));
-    img.src = path;
-  });
-}
-
 export function AuthorPhotoSlideshow() {
   const [index, setIndex] = useState(randomAuthorPhotoIndex);
   const [visible, setVisible] = useState(true);
   const [motionOk, setMotionOk] = useState(true);
+  const indexRef = useRef(index);
+  indexRef.current = index;
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -32,25 +25,15 @@ export function AuthorPhotoSlideshow() {
   useEffect(() => {
     if (!motionOk) return;
 
-    let cancelled = false;
     const id = window.setInterval(() => {
-      const next = (index + 1) % AUTHOR_PHOTOS.length;
-      void preloadPhoto(AUTHOR_PHOTOS[next]).then(() => {
-        if (cancelled) return;
-        setVisible(false);
-        window.setTimeout(() => {
-          if (cancelled) return;
-          setIndex(next);
-          setVisible(true);
-        }, FADE_MS);
-      });
+      setVisible(false);
+      window.setTimeout(() => {
+        setIndex((indexRef.current + 1) % AUTHOR_PHOTOS.length);
+      }, FADE_MS);
     }, SLIDE_INTERVAL_MS);
 
-    return () => {
-      cancelled = true;
-      window.clearInterval(id);
-    };
-  }, [index, motionOk]);
+    return () => window.clearInterval(id);
+  }, [motionOk]);
 
   return (
     <div
@@ -64,6 +47,9 @@ export function AuthorPhotoSlideshow() {
         className={`hero-art-slide${visible ? " is-visible" : ""}`}
         decoding="async"
         fetchPriority="low"
+        onLoad={() => {
+          if (!visible) setVisible(true);
+        }}
       />
     </div>
   );
