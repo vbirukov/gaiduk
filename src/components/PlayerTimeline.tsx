@@ -3,9 +3,11 @@ import { fmtTime } from "../lib/format";
 
 export function PlayerTimeline({
   audioRef,
+  trackId,
   onSeek,
 }: {
   audioRef: React.RefObject<HTMLAudioElement | null>;
+  trackId: string | null;
   onSeek: (value: number) => void;
 }) {
   const trackRef = useRef<HTMLDivElement>(null);
@@ -45,6 +47,12 @@ export function PlayerTimeline({
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
+
+    durationRef.current = 0;
+    setDuration(0);
+    setDisplayTime(0);
+    lastLabelSecRef.current = -1;
+    paintRatio(0);
 
     const syncDuration = () => {
       const d = audio.duration;
@@ -99,7 +107,7 @@ export function PlayerTimeline({
       audio.removeEventListener("seeked", onSeeked);
       audio.removeEventListener("ended", onPause);
     };
-  }, [audioRef]);
+  }, [audioRef, trackId]);
 
   const applySeek = (ratio: number, commit: boolean) => {
     paintRatio(ratio);

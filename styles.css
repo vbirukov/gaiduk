@@ -230,7 +230,7 @@ html.has-player {
   margin: auto;
 }
 .icon-spin {
-  animation: icon-spin 0.85s linear infinite;
+  animation: icon-spin 1.02s linear infinite;
 }
 @keyframes icon-spin {
   to {

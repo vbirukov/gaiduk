@@ -98,7 +98,11 @@ export function NowPlayingSheet({
           <h2>{track.title}</h2>
           <p className="mini-text">{track.fileName}</p>
         </div>
-        <PlayerTimeline audioRef={audioRef} onSeek={onSeek} />
+        <PlayerTimeline
+          audioRef={audioRef}
+          trackId={currentTrackId}
+          onSeek={onSeek}
+        />
         <PlayerTransport
           user={user}
           isPlaying={isPlaying}
