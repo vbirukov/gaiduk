@@ -1,5 +1,6 @@
 export const PUBLIC_KEY = "https://disk.yandex.ru/d/fqkAWd063U6ViZ";
 export const AUTHOR_VK_URL = "https://vk.com/haidux";
+export const AUTHOR_SUPPORT_URL = "https://vk.com/club238646852";
 export const API_ROOT = "https://cloud-api.yandex.net/v1/disk/public/resources";
 export const STORAGE_KEY = "gayduk-react-player-v1";
 export const HERO_COLLAPSED_KEY = "gayduk-hero-collapsed-v1";
