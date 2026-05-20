@@ -7,10 +7,11 @@ import {
   type RefObject,
 } from "react";
 import {
-  computeFeedColumns,
   defaultFeedColumns,
+  FEED_GRID_DESKTOP_MIN_PX,
   GRID_GAP_PX,
   measureFeedGridWidth,
+  resolveFeedColumns,
 } from "../lib/gridColumns";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import {
@@ -56,7 +57,7 @@ function useColumnCount(containerRef: RefObject<HTMLElement | null>) {
     if (!el) return;
 
     const measure = () => {
-      setCols(computeFeedColumns(measureFeedGridWidth(el)));
+      setCols(resolveFeedColumns(measureFeedGridWidth(el)));
     };
 
     measure();
@@ -66,10 +67,15 @@ function useColumnCount(containerRef: RefObject<HTMLElement | null>) {
     ro.observe(target);
     if (target !== el) ro.observe(el);
     window.addEventListener("resize", measure);
+    const mq = window.matchMedia(
+      `(min-width: ${FEED_GRID_DESKTOP_MIN_PX}px)`,
+    );
+    mq.addEventListener("change", measure);
 
     return () => {
       ro.disconnect();
       window.removeEventListener("resize", measure);
+      mq.removeEventListener("change", measure);
     };
   }, [containerRef]);
 
@@ -236,9 +242,8 @@ export function VirtualTrackGrid({
     );
   };
 
-  const feedGridStyle = {
-    "--feed-cols": cols,
-  } as CSSProperties;
+  const feedGridStyle =
+    cols > 1 ? ({ "--feed-cols": cols } as CSSProperties) : undefined;
 
   const renderRow = (rowTracks: Track[], className: string) => (
     <div className={className}>{rowTracks.map(renderCard)}</div>
