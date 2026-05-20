@@ -62,7 +62,10 @@ export function Sidebar({
           <h2>Разделы</h2>
           {(
             [
-              ["all", "Весь каталог"],
+              [
+                "all",
+                `Весь каталог (${catalog.tracks.length} элементов)`,
+              ],
               ["resume", `Продолжить · ${resumeCount}`],
               [
                 "favorites",

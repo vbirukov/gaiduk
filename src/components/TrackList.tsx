@@ -117,9 +117,6 @@ export function TrackList({
           </button>
           <p>{sectionSub}</p>
         </div>
-        <div className="mini-text">
-          {catalogLoading ? "Загрузка…" : `${tracks.length} элементов`}
-        </div>
       </section>
       {catalogLoading ? (
         <VirtualTrackGrid
