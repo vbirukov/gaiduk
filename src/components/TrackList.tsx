@@ -93,7 +93,6 @@ export function TrackList({
       <div className="library-feed-content" ref={feedRef}>
       <LibraryHero
         catalog={catalog}
-        user={user}
         collapsed={collapsed}
         onCollapse={collapse}
         onExpand={expand}

@@ -1,11 +1,10 @@
+import { useCallback, useRef } from "react";
 import { AuthorPhotoSlideshow } from "./AuthorPhotoSlideshow";
 import { AUTHOR_CONCERTS_URL, AUTHOR_VK_URL } from "../config";
 import type { Catalog } from "../types/catalog";
-import type { UserState } from "../types/user";
 
 type Props = {
   catalog: Catalog;
-  user: UserState;
   collapsed: boolean;
   onCollapse: () => void;
   onExpand: () => void;
@@ -13,19 +12,40 @@ type Props = {
 
 export function LibraryHero({
   catalog,
-  user,
   collapsed,
   onCollapse,
   onExpand,
 }: Props) {
-  const playlistCount = user.playlists.filter((p) => !p.system).length;
+  const mainRef = useRef<HTMLDivElement>(null);
+
+  const scrollMainIntoView = useCallback(() => {
+    const el = mainRef.current;
+    if (!el) return;
+    const instant = window.matchMedia("(prefers-reduced-motion: reduce)")
+      .matches;
+    el.scrollIntoView({
+      behavior: instant ? "auto" : "smooth",
+      block: "start",
+    });
+  }, []);
+
+  const handleToggle = useCallback(() => {
+    if (collapsed) {
+      onExpand();
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => scrollMainIntoView());
+      });
+    } else {
+      onCollapse();
+    }
+  }, [collapsed, onCollapse, onExpand, scrollMainIntoView]);
 
   return (
     <section className={collapsed ? "hero hero--compact" : "hero"}>
-      <div className="hero-main">
+      <div className="hero-main" ref={mainRef}>
         <div className="hero-head">
-          {!collapsed ? (
-            <>
+          <div className="hero-expandable" aria-hidden={collapsed}>
+            <div className="hero-expandable-inner">
               <div className="eyebrow">Об авторе</div>
               <h2>Дмитрий Гайдук</h2>
               <p className="hero-author-bio">
@@ -37,12 +57,12 @@ export function LibraryHero({
                 Его сказки запоминаются особой интонацией — немного озорной,
                 немного волшебной, но всегда искренней и близкой читателю.
               </p>
-            </>
-          ) : null}
+            </div>
+          </div>
           <button
             type="button"
             className="ghost hero-toggle"
-            onClick={collapsed ? onExpand : onCollapse}
+            onClick={handleToggle}
           >
             {collapsed ? "Об авторе" : "Свернуть"}
           </button>
@@ -76,22 +96,6 @@ export function LibraryHero({
             </a>
           </div>
         </div>
-        {!collapsed ? (
-          <div className="stats-grid">
-            <div className="stat">
-              <span>Разделов</span>
-              <strong>{catalog.folders.length}</strong>
-            </div>
-            <div className="stat">
-              <span>Треков</span>
-              <strong>{catalog.tracks.length}</strong>
-            </div>
-            <div className="stat">
-              <span>Плейлистов</span>
-              <strong>{playlistCount}</strong>
-            </div>
-          </div>
-        ) : null}
       </div>
     </section>
   );
