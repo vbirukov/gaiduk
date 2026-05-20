@@ -32,14 +32,7 @@ export function App() {
   const [view, setView] = useState<LibraryView>("all");
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [selectedPlaylist, setSelectedPlaylist] = useState<string | null>(null);
-  const {
-    skin,
-    setSkin,
-    appearance,
-    toggleAppearance,
-    showAppearanceToggle,
-    isJaipur,
-  } = useAppTheme();
+  const { skin, setSkin, isJaipur } = useAppTheme();
   const [swNeedRefresh, setSwNeedRefresh] = useState(false);
   const [installPrompt, setInstallPrompt] =
     useState<BeforeInstallPromptEvent | null>(null);
@@ -225,9 +218,6 @@ export function App() {
             onRefreshCatalog={() => void handleRefreshCatalog()}
             skin={skin}
             onSkinChange={setSkin}
-            showAppearanceToggle={showAppearanceToggle}
-            appearance={appearance}
-            onToggleAppearance={toggleAppearance}
           />
           <TrackList
             isJaipur={isJaipur}

@@ -27,13 +27,16 @@
     <script>
       try {
         var skin = localStorage.getItem("gayduk-skin-v1");
-        var appearance = localStorage.getItem("gayduk-appearance-v1") || "dark";
+        var appearance = localStorage.getItem("gayduk-appearance-v1");
         if (skin === "jaipur") {
           document.documentElement.setAttribute("data-skin", "jaipur");
           document.documentElement.setAttribute("data-theme", "jaipur");
+        } else if (skin === "rastaman-light" || appearance === "light") {
+          document.documentElement.setAttribute("data-skin", "rastaman-light");
+          document.documentElement.setAttribute("data-theme", "rastaman-light");
         } else {
           document.documentElement.setAttribute("data-skin", "rastaman");
-          document.documentElement.setAttribute("data-theme", appearance);
+          document.documentElement.setAttribute("data-theme", "dark");
         }
       } catch (e) {}
     </script>

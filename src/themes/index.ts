@@ -3,6 +3,7 @@ import type { AppSkin, Appearance, ThemeMeta } from "./types";
 export type { AppSkin, Appearance, ThemeMeta } from "./types";
 export { jaipurTheme } from "./jaipur";
 export { rastamanTheme } from "./rastaman";
+export { rastamanLightTheme } from "./rastaman-light";
 
 export const SKIN_STORAGE_KEY = "gayduk-skin-v1";
 export const APPEARANCE_STORAGE_KEY = "gayduk-appearance-v1";
@@ -10,9 +11,15 @@ export const APPEARANCE_STORAGE_KEY = "gayduk-appearance-v1";
 export const THEME_OPTIONS: ThemeMeta[] = [
   {
     id: "rastaman",
-    label: "Раста",
+    label: "Раста тёмная",
     shortLabel: "Раста",
     description: "Джунгли, закат, кальян",
+  },
+  {
+    id: "rastaman-light",
+    label: "Раста светлая",
+    shortLabel: "Светлая",
+    description: "Солнечный постер, флаг, комикс",
   },
   {
     id: "jaipur",
@@ -25,7 +32,16 @@ export const THEME_OPTIONS: ThemeMeta[] = [
 export function readStoredSkin(): AppSkin {
   try {
     const v = localStorage.getItem(SKIN_STORAGE_KEY);
-    if (v === "jaipur" || v === "rastaman") return v;
+    if (v === "jaipur" || v === "rastaman" || v === "rastaman-light") {
+      return v;
+    }
+  } catch {
+    /* private mode */
+  }
+  try {
+    if (localStorage.getItem(APPEARANCE_STORAGE_KEY) === "light") {
+      return "rastaman-light";
+    }
   } catch {
     /* private mode */
   }
@@ -44,31 +60,22 @@ export function readStoredAppearance(): Appearance {
 
 const THEME_COLOR: Record<AppSkin, string> = {
   rastaman: "#0c1115",
+  "rastaman-light": "#fff5bf",
   jaipur: "#c5796d",
 };
 
-const THEME_COLOR_LIGHT: Record<AppSkin, string> = {
-  rastaman: "#f3e0bc",
-  jaipur: "#f9f4ed",
-};
-
-export function applyDocumentTheme(skin: AppSkin, appearance: Appearance) {
+export function applyDocumentTheme(skin: AppSkin) {
   const root = document.documentElement;
   root.setAttribute("data-skin", skin);
   if (skin === "jaipur") {
     root.setAttribute("data-theme", "jaipur");
+  } else if (skin === "rastaman-light") {
+    root.setAttribute("data-theme", "rastaman-light");
   } else {
-    root.setAttribute("data-theme", appearance);
+    root.setAttribute("data-theme", "dark");
   }
-
-  const color =
-    skin === "jaipur"
-      ? THEME_COLOR.jaipur
-      : appearance === "dark"
-        ? THEME_COLOR.rastaman
-        : THEME_COLOR_LIGHT.rastaman;
 
   document
     .querySelectorAll('meta[name="theme-color"]')
-    .forEach((el) => el.setAttribute("content", color));
+    .forEach((el) => el.setAttribute("content", THEME_COLOR[skin]));
 }

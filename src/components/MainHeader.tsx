@@ -1,5 +1,5 @@
 import { PUBLIC_KEY } from "../config";
-import type { Appearance, AppSkin } from "../themes";
+import type { AppSkin } from "../themes";
 import { Icon } from "./icons/Icon";
 import { ThemeSwitcher } from "./ThemeSwitcher";
 
@@ -13,9 +13,6 @@ type Props = {
   onRefreshCatalog: () => void;
   skin: AppSkin;
   onSkinChange: (skin: AppSkin) => void;
-  showAppearanceToggle: boolean;
-  appearance: Appearance;
-  onToggleAppearance: () => void;
 };
 
 export function MainHeader({
@@ -28,9 +25,6 @@ export function MainHeader({
   onRefreshCatalog,
   skin,
   onSkinChange,
-  showAppearanceToggle,
-  appearance,
-  onToggleAppearance,
 }: Props) {
   return (
     <header className="topbar">
@@ -66,17 +60,6 @@ export function MainHeader({
         <button type="button" className="ghost" onClick={onRefreshCatalog}>
           {loadingCatalog ? "Обновляю…" : "Обновить каталог"}
         </button>
-        {showAppearanceToggle ? (
-          <button
-            type="button"
-            className="ghost"
-            onClick={onToggleAppearance}
-            aria-label={appearance === "dark" ? "Светлая тема" : "Тёмная тема"}
-            title={appearance === "dark" ? "Светлая тема" : "Тёмная тема"}
-          >
-            <Icon name={appearance === "dark" ? "sun" : "moon"} size={20} />
-          </button>
-        ) : null}
       </div>
     </header>
   );

@@ -1,4 +1,4 @@
-export type AppSkin = "rastaman" | "jaipur";
+export type AppSkin = "rastaman" | "rastaman-light" | "jaipur";
 
 export type Appearance = "light" | "dark";
 

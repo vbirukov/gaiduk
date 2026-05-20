@@ -470,7 +470,9 @@
 }
 
 .theme-switcher--compact .theme-switcher__btn {
-  padding: 0.35rem 0.55rem;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.625rem;
+  letter-spacing: 0.02em;
 }
 
 .sidebar-theme {
