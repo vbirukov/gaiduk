@@ -1383,18 +1383,13 @@ html.has-player {
   .card-play {
     display: grid;
     place-items: center;
-    margin-left: auto;
+    margin-left: 0;
   }
-}
-@media (min-width: 721px) {
-  .card-top {
-    padding-right: 5.5rem;
+  .card-actions {
+    gap: var(--space-2);
   }
   .card-social {
-    position: absolute;
-    top: var(--space-4);
-    right: var(--space-4);
-    z-index: 1;
+    margin-left: auto;
   }
 }
 .card h4,
