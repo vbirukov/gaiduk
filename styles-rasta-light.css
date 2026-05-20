@@ -322,15 +322,52 @@
   );
 }
 
-[data-skin="rastaman-light"] .hookah-smoke__plume {
-  mix-blend-mode: multiply;
+[data-skin="rastaman-light"] .hookah-smoke {
+  z-index: 1;
+}
+
+[data-skin="rastaman-light"] .hookah-smoke::before {
   background: radial-gradient(
-    ellipse 70% 50% at 50% 100%,
-    rgba(67, 170, 139, 0.22),
-    rgba(249, 199, 79, 0.18) 38%,
-    rgba(124, 197, 255, 0.12) 55%,
+    ellipse 90% 100% at 50% 100%,
+    rgba(255, 154, 60, 0.5),
+    rgba(67, 170, 139, 0.35) 42%,
+    rgba(124, 197, 255, 0.15) 58%,
     transparent 72%
   );
+  filter: blur(20px);
+}
+
+[data-skin="rastaman-light"] .hookah-smoke__plume {
+  mix-blend-mode: normal;
+  filter: blur(36px);
+  background: radial-gradient(
+    ellipse 70% 50% at 50% 100%,
+    rgba(55, 75, 65, 0.5),
+    rgba(67, 170, 139, 0.42) 36%,
+    rgba(255, 154, 60, 0.32) 50%,
+    rgba(124, 197, 255, 0.22) 58%,
+    transparent 74%
+  );
+  animation-name: hookah-smoke-rise-light;
+}
+
+@keyframes hookah-smoke-rise-light {
+  0% {
+    transform: translate3d(0, 8%, 0) scale(0.55);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.82;
+  }
+  45% {
+    transform: translate3d(var(--smoke-drift, 0), -45%, 0) scale(1.05);
+    opacity: 0.58;
+  }
+  100% {
+    transform: translate3d(calc(var(--smoke-drift, 0) * -0.5), -100%, 0)
+      scale(1.35);
+    opacity: 0;
+  }
 }
 
 [data-skin="rastaman-light"] .splash-screen {
