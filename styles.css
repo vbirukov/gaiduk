@@ -1013,9 +1013,8 @@ html.has-player {
 }
 .catalog-folder-heading__label {
   display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 .cards--section {
   margin: 0;
