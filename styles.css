@@ -504,6 +504,85 @@ html.has-player {
     opacity: 0;
   }
 }
+.jaipur-clouds {
+  position: fixed;
+  z-index: 1;
+  right: 0;
+  bottom: var(--player-bar-offset);
+  left: var(--sidebar-width);
+  height: min(82vh, 680px);
+  pointer-events: none;
+  overflow: visible;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 1.2s ease,
+    visibility 1.2s ease;
+}
+.jaipur-clouds::before {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: min(85%, 520px);
+  height: 32%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse 90% 100% at 50% 100%,
+    rgba(182, 221, 244, 0.45),
+    rgba(245, 188, 185, 0.28) 48%,
+    transparent 74%
+  );
+  filter: blur(10px);
+  opacity: 0;
+  transition: opacity 1.2s ease;
+}
+.jaipur-clouds.is-active {
+  opacity: 1;
+  visibility: visible;
+}
+.jaipur-clouds.is-active::before {
+  opacity: 1;
+}
+.jaipur-clouds__cloud {
+  position: absolute;
+  bottom: 4%;
+  left: calc(var(--cloud-x) - var(--cloud-w) / 2);
+  width: var(--cloud-w);
+  height: min(var(--cloud-h), 220px);
+  opacity: 0;
+  background: url("/clouds/jaipur-cloud.svg") center / contain no-repeat;
+  filter: drop-shadow(0 3px 10px rgba(125, 63, 53, 0.14));
+  animation: jaipur-cloud-float var(--cloud-dur, 20s) ease-in-out infinite;
+  animation-delay: var(--cloud-delay, 0s);
+  animation-play-state: paused;
+  will-change: transform, opacity;
+}
+.jaipur-clouds.is-active .jaipur-clouds__cloud {
+  animation-play-state: running;
+}
+@keyframes jaipur-cloud-float {
+  0% {
+    transform: translate3d(0, 12%, 0) scale(0.65);
+    opacity: 0;
+  }
+  8% {
+    opacity: calc(var(--cloud-peak, 0.78) * 0.55);
+  }
+  22% {
+    opacity: var(--cloud-peak, 0.78);
+  }
+  50% {
+    transform: translate3d(var(--cloud-drift, 0), -48%, 0) scale(1);
+    opacity: var(--cloud-peak, 0.78);
+  }
+  100% {
+    transform: translate3d(calc(var(--cloud-drift, 0) * -0.6), -105%, 0)
+      scale(1.08);
+    opacity: 0;
+  }
+}
 .library-feed {
   position: relative;
   display: grid;
@@ -1620,7 +1699,8 @@ input[type="range"]::-webkit-slider-thumb {
   justify-content: flex-end;
 }
 @media (max-width: 1024px) {
-  .hookah-smoke {
+  .hookah-smoke,
+  .jaipur-clouds {
     left: 0;
   }
   .app-shell {
@@ -1747,6 +1827,9 @@ input[type="range"]::-webkit-slider-thumb {
   }
   .hookah-smoke {
     height: min(62vh, 520px);
+  }
+  .jaipur-clouds {
+    height: min(64vh, 540px);
   }
   .hookah-smoke__plume {
     filter: blur(26px);
@@ -1877,7 +1960,8 @@ input[type="range"]::-webkit-slider-thumb {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .hookah-smoke {
+  .hookah-smoke,
+  .jaipur-clouds {
     display: none;
   }
   *,

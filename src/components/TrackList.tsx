@@ -8,6 +8,7 @@ import type { LivePlayback } from "../lib/trackProgress";
 import type { TrackCardProps } from "./TrackCard";
 import { ContinueBanner } from "./ContinueBanner";
 import { HookahSmoke } from "./HookahSmoke";
+import { JaipurClouds } from "./JaipurClouds";
 import { LibraryHero } from "./LibraryHero";
 import { VirtualTrackGrid } from "./VirtualTrackGrid";
 
@@ -113,7 +114,11 @@ export function TrackList({
   return (
     <section className="library-feed">
       <div className="library-feed-bg" aria-hidden />
-      {!isJaipur ? <HookahSmoke active={isPlaying} /> : null}
+      {isJaipur ? (
+        <JaipurClouds active={isPlaying} />
+      ) : (
+        <HookahSmoke active={isPlaying} />
+      )}
       <div className="library-feed-content" ref={feedRef}>
       <LibraryHero
         catalog={catalog}
