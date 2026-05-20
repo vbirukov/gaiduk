@@ -1,4 +1,5 @@
 import { useCallback, useRef } from "react";
+import { useFeedGridDesktop } from "../hooks/useFeedGridDesktop";
 import { AuthorPhotoSlideshow } from "./AuthorPhotoSlideshow";
 import { AUTHOR_CONCERTS_URL, AUTHOR_VK_URL } from "../config";
 import type { Catalog } from "../types/catalog";
@@ -16,6 +17,8 @@ export function LibraryHero({
   onCollapse,
   onExpand,
 }: Props) {
+  const isDesktop = useFeedGridDesktop();
+  const isCompact = collapsed && !isDesktop;
   const mainRef = useRef<HTMLDivElement>(null);
 
   const scrollMainIntoView = useCallback(() => {
@@ -30,6 +33,7 @@ export function LibraryHero({
   }, []);
 
   const handleToggle = useCallback(() => {
+    if (isDesktop) return;
     if (collapsed) {
       onExpand();
       requestAnimationFrame(() => {
@@ -38,13 +42,13 @@ export function LibraryHero({
     } else {
       onCollapse();
     }
-  }, [collapsed, onCollapse, onExpand, scrollMainIntoView]);
+  }, [collapsed, isDesktop, onCollapse, onExpand, scrollMainIntoView]);
 
   return (
-    <section className={collapsed ? "hero hero--compact" : "hero"}>
+    <section className={isCompact ? "hero hero--compact" : "hero"}>
       <div className="hero-main" ref={mainRef}>
         <div className="hero-head">
-          <div className="hero-expandable" aria-hidden={collapsed}>
+          <div className="hero-expandable" aria-hidden={isCompact}>
             <div className="hero-expandable-inner">
               <div className="eyebrow">Об авторе</div>
               <h2>Дмитрий Гайдук</h2>
@@ -59,15 +63,17 @@ export function LibraryHero({
               </p>
             </div>
           </div>
-          <button
-            type="button"
-            className="hero-toggle"
-            onClick={handleToggle}
-          >
-            {collapsed ? "Об авторе" : "Свернуть"}
-          </button>
+          {!isDesktop ? (
+            <button
+              type="button"
+              className="hero-toggle"
+              onClick={handleToggle}
+            >
+              {collapsed ? "Об авторе" : "Свернуть"}
+            </button>
+          ) : null}
         </div>
-        {collapsed ? (
+        {isCompact ? (
           <p className="hero-compact-stats mini-text">
             {catalog.tracks.length} треков
           </p>
