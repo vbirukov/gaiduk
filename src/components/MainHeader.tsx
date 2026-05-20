@@ -1,6 +1,6 @@
 import { PUBLIC_KEY } from "../config";
 import type { AppSkin } from "../themes";
-import { Icon } from "./icons/Icon";
+import { IconButtonIcon } from "./IconButton";
 import { ThemeSwitcher } from "./ThemeSwitcher";
 
 type Props = {
@@ -32,14 +32,13 @@ export function MainHeader({
 }: Props) {
   return (
     <header className="topbar">
-      <button
-        type="button"
-        className="ghost menu-toggle"
+      <IconButtonIcon
+        className="menu-toggle"
+        icon="menu"
+        iconSize={22}
         onClick={onOpenNav}
         aria-label="Открыть меню"
-      >
-        <Icon name="menu" size={22} />
-      </button>
+      />
       <div>
         <div className="eyebrow">Публичная коллекция Дмитрия Гайдука</div>
         <div className="source desktop-source">Источник: {PUBLIC_KEY}</div>

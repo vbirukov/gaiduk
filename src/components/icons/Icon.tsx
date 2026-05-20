@@ -21,7 +21,10 @@ export type IconName =
   | "wake"
   | "music"
   | "check"
-  | "chevron-up";
+  | "chevron-up"
+  | "leaf"
+  | "sun-portal"
+  | "cloud";
 
 type Props = SVGAttributes<SVGSVGElement> & {
   name: IconName;
@@ -135,6 +138,18 @@ const paths: Record<IconName, ReactNode> = {
   ),
   check: <path d="M5 12.5 9.5 17 19 7" />,
   "chevron-up": <path d="m6 15 6-6 6 6" />,
+  leaf: (
+    <path d="M12 3c-4 5-6 8-6 12a6 6 0 0 0 12 0c0-4-2-7-6-12z" />
+  ),
+  "sun-portal": (
+    <>
+      <circle cx="12" cy="12" r="5" />
+      <path d="M12 3v2M12 19v2M5.5 5.5l1.4 1.4M17.1 17.1l1.4 1.4M3 12h2M19 12h2M5.5 18.5l1.4-1.4M17.1 6.9l1.4-1.4" />
+    </>
+  ),
+  cloud: (
+    <path d="M7 17h10a4 4 0 0 0 .5-8 5.5 5.5 0 0 0-10.6-1.4A3.5 3.5 0 0 0 7 17z" />
+  ),
 };
 
 export function Icon({ name, size = 20, className, ...rest }: Props) {
@@ -147,7 +162,7 @@ export function Icon({ name, size = 20, className, ...rest }: Props) {
       aria-hidden={rest["aria-hidden"] ?? true}
       fill="none"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth={rest.strokeWidth ?? 2}
       strokeLinecap="round"
       strokeLinejoin="round"
       {...rest}

@@ -4,6 +4,7 @@ export type { AppSkin, Appearance, ThemeMeta } from "./types";
 export { jaipurTheme } from "./jaipur";
 export { rastamanTheme } from "./rastaman";
 export { rastamanLightTheme } from "./rastaman-light";
+export { motion, motionMs } from "./motion";
 
 export const SKIN_STORAGE_KEY = "gayduk-skin-v1";
 export const APPEARANCE_STORAGE_KEY = "gayduk-appearance-v1";

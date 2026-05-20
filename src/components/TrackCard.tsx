@@ -3,6 +3,7 @@ import { fmtBytes, fmtTime } from "../lib/format";
 import { isStubTrack } from "../lib/diskDownload";
 import { listenStatus, listenStatusLabel } from "../lib/listenStatus";
 import { Icon } from "./icons/Icon";
+import { IconButton, PlayPauseIcon } from "./IconButton";
 import { TrackCover } from "./TrackCover";
 import type { Track } from "../types/catalog";
 import type { Playlist, Progress } from "../types/user";
@@ -200,20 +201,22 @@ function TrackCardInner({
             <Icon name={liked ? "heart" : "heart-outline"} size={20} />
           </button>
         </div>
-        <button
-          type="button"
-          className="primary round card-play"
+        <IconButton
+          variant="primary"
+          size="md"
+          className="card-play"
           onClick={(e) => {
             e.stopPropagation();
             onPlayTrack(track);
           }}
           aria-label={playLabel}
         >
-          <Icon
-            name={isActive && isPlaying ? "pause" : "play"}
-            size={22}
+          <PlayPauseIcon
+            playing={isActive && isPlaying}
+            busy={false}
+            iconSize={22}
           />
-        </button>
+        </IconButton>
         {playlistButtons.map((pl) => (
           <button
             key={pl.id}

@@ -16,7 +16,11 @@ export function ScrollToTop() {
   return (
     <button
       type="button"
-      className={visible ? "scroll-top scroll-top--visible" : "scroll-top"}
+      className={
+        visible
+          ? "scroll-top scroll-top--visible icon-button ghost round icon-button--md"
+          : "scroll-top icon-button ghost round icon-button--md"
+      }
       onClick={() => {
         const instant = window.matchMedia(
           "(prefers-reduced-motion: reduce)",

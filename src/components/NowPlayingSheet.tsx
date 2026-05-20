@@ -2,6 +2,7 @@ import { useEffect, type RefObject } from "react";
 import type { Track } from "../types/catalog";
 import type { UserState } from "../types/user";
 import { Icon } from "./icons/Icon";
+import { IconButton } from "./IconButton";
 import { PlayerTimeline } from "./PlayerTimeline";
 import { PlayerTransport } from "./PlayerTransport";
 import { TrackCover } from "./TrackCover";
@@ -76,14 +77,9 @@ export function NowPlayingSheet({
     >
       <div className="now-playing-sheet">
         <header className="now-playing-head">
-          <button
-            type="button"
-            className="ghost round"
-            onClick={onClose}
-            aria-label="Закрыть"
-          >
+          <IconButton onClick={onClose} aria-label="Закрыть">
             <Icon name="close" size={22} />
-          </button>
+          </IconButton>
         </header>
         <div className="now-playing-art">
           <TrackCover track={track} size="xl" />
@@ -112,14 +108,13 @@ export function NowPlayingSheet({
           size="lg"
         />
         <div className="now-playing-actions row-actions">
-          <button
-            type="button"
-            className={`ghost round${liked ? " active" : ""}`}
+          <IconButton
+            active={liked}
             onClick={() => currentTrackId && onToggleLike(currentTrackId)}
             aria-label={liked ? "Убрать лайк" : "Лайк"}
           >
             <Icon name={liked ? "heart" : "heart-outline"} size={22} />
-          </button>
+          </IconButton>
         </div>
       </div>
     </div>

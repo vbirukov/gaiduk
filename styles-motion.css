@@ -1,0 +1,166 @@
+:root {
+  --motion-fast: 180ms;
+  --motion-normal: 260ms;
+  --motion-slow: 340ms;
+  --motion-ease-spring: cubic-bezier(0.17, 0.67, 0.19, 1.24);
+}
+
+.icon {
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.icon-button.round {
+  padding: 0;
+  display: grid;
+  place-items: center;
+  transition:
+    transform var(--motion-fast) var(--motion-ease-spring),
+    box-shadow var(--motion-fast) var(--motion-ease-spring),
+    background var(--motion-fast) ease,
+    border-color var(--motion-fast) ease,
+    color var(--motion-fast) ease,
+    opacity var(--motion-fast) ease;
+}
+
+.icon-button.round:hover:not(:disabled) {
+  transform: translateY(-1px) scale(1.05);
+}
+
+.icon-button.round:active:not(:disabled) {
+  transform: translateY(0) scale(0.96);
+}
+
+.icon-button--sm {
+  width: 40px;
+  height: 40px;
+  min-height: 40px;
+}
+
+.icon-button--md {
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+}
+
+.icon-button--lg {
+  width: 48px;
+  height: 48px;
+  min-height: 48px;
+}
+
+.icon-button--play {
+  width: 52px;
+  height: 52px;
+  min-height: 52px;
+}
+
+.player-controls--lg .icon-button--play {
+  width: 60px;
+  height: 60px;
+  min-height: 60px;
+}
+
+.icon-button .icon {
+  margin: auto;
+}
+
+.icon-swap {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.icon-swap__item {
+  grid-area: 1 / 1;
+  opacity: 0;
+  transform: scale(0.88) rotate(-4deg);
+  transition:
+    opacity 200ms var(--motion-ease-spring),
+    transform 200ms var(--motion-ease-spring);
+}
+
+.icon-swap__item.is-visible {
+  opacity: 1;
+  transform: scale(1) rotate(0deg);
+}
+
+.icon-button.primary.is-busy .icon-swap__item.is-visible {
+  animation: icon-spin 1.02s linear infinite;
+}
+
+@keyframes player-bar-enter {
+  from {
+    transform: translateY(14px) scale(1.02);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+html.has-player .player-bar {
+  animation: player-bar-enter 220ms var(--motion-ease-spring) both;
+}
+
+.progress-line.is-live span {
+  animation: progress-glow 2.4s ease-in-out infinite;
+}
+
+@keyframes progress-glow {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.12);
+  }
+}
+
+[data-skin="rastaman"] .icon-button.primary:hover:not(:disabled),
+[data-skin="rastaman"][data-theme="dark"] .icon-button.primary:hover:not(:disabled) {
+  box-shadow: var(--shadow-sm), var(--glow-primary);
+}
+
+[data-skin="rastaman-light"] .icon-button.ghost:hover:not(:disabled) {
+  background: color-mix(in oklab, var(--rl-yellow) 35%, var(--rl-cloud));
+}
+
+[data-skin="rastaman-light"] .icon-button.primary:hover:not(:disabled),
+[data-skin="rastaman-light"] .icon-button.ghost.active:hover:not(:disabled) {
+  box-shadow: 0 0 16px rgba(249, 199, 79, 0.55);
+}
+
+[data-skin="jaipur"] .icon-button.primary:hover:not(:disabled) {
+  box-shadow: var(--shadow-sm), var(--glow-primary);
+}
+
+.menu-toggle.icon-button {
+  width: 44px;
+  height: 44px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .icon-button.round:hover:not(:disabled),
+  .icon-button.round:active:not(:disabled) {
+    transform: none;
+  }
+
+  .icon-swap__item,
+  .icon-swap__item.is-visible {
+    transition-duration: 0.01ms;
+    transform: none;
+  }
+
+  html.has-player .player-bar {
+    animation: none;
+  }
+
+  .progress-line.is-live span {
+    animation: none;
+  }
+}

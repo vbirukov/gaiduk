@@ -3,6 +3,7 @@ import { PLAYBACK_RATES } from "../constants/player";
 import type { Track } from "../types/catalog";
 import type { UserState } from "../types/user";
 import { Icon } from "./icons/Icon";
+import { IconButton } from "./IconButton";
 import { NowPlayingSheet } from "./NowPlayingSheet";
 import { PlayerTimeline } from "./PlayerTimeline";
 import { PlayerTransport } from "./PlayerTransport";
@@ -112,9 +113,9 @@ export function PlayerBar({
               </p>
             </div>
             <div className="right-box">
-              <button
-                type="button"
-                className={`ghost round btn-wake${user.wakeLock ? " active" : ""}`}
+              <IconButton
+                className="btn-wake"
+                active={user.wakeLock}
                 onClick={() =>
                   setUser((prev) => ({ ...prev, wakeLock: !prev.wakeLock }))
                 }
@@ -125,15 +126,15 @@ export function PlayerBar({
                 title="Не давать экрану погаснуть"
               >
                 <Icon name="wake" size={20} />
-              </button>
-              <button
-                type="button"
-                className={`ghost round btn-like${liked ? " active" : ""}`}
+              </IconButton>
+              <IconButton
+                className="btn-like"
+                active={liked}
                 onClick={() => currentTrackId && onToggleLike(currentTrackId)}
                 aria-label={liked ? "Убрать лайк" : "Лайк"}
               >
                 <Icon name={liked ? "heart" : "heart-outline"} size={20} />
-              </button>
+              </IconButton>
               <label className="speed">
                 <span>Скорость</span>
                 <select

@@ -1,7 +1,7 @@
 import { PUBLIC_KEY } from "../config";
 import type { AppSkin } from "../themes";
 import { BrandLogo } from "./BrandLogo";
-import { Icon } from "./icons/Icon";
+import { IconButtonIcon } from "./IconButton";
 import { ThemeSwitcher } from "./ThemeSwitcher";
 import type { Catalog } from "../types/catalog";
 import type { LibraryView, UserState } from "../types/user";
@@ -55,14 +55,13 @@ export function Sidebar({
         <div className="brand">
           <BrandLogo className="logo-box" />
           <h1>Haiduk</h1>
-          <button
-            type="button"
-            className="ghost round sidebar-close"
+          <IconButtonIcon
+            className="sidebar-close"
+            icon="close"
+            iconSize={22}
             onClick={onClose}
             aria-label="Закрыть меню"
-          >
-            <Icon name="close" size={22} />
-          </button>
+          />
         </div>
         <section className="side-section">
           <h2>Разделы</h2>

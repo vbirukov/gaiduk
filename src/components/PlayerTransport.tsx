@@ -1,5 +1,6 @@
 import type { UserState } from "../types/user";
 import { Icon } from "./icons/Icon";
+import { IconButton, PlayPauseIcon } from "./IconButton";
 
 type Props = {
   user: UserState;
@@ -30,6 +31,7 @@ export function PlayerTransport({
 }: Props) {
   const icon = size === "lg" ? 24 : 20;
   const playIcon = size === "lg" ? 28 : 24;
+  const btnSize = size === "lg" ? "lg" : "md";
 
   const repeatIcon =
     user.repeatMode === "one"
@@ -40,44 +42,39 @@ export function PlayerTransport({
 
   return (
     <div className={`player-controls${size === "lg" ? " player-controls--lg" : ""}`}>
-      <button
-        type="button"
-        className={`ghost round${user.shuffle ? " active" : ""}`}
+      <IconButton
+        size={btnSize}
+        active={user.shuffle}
         onClick={onToggleShuffle}
         aria-label="Случайный порядок"
         aria-pressed={user.shuffle}
       >
         <Icon name="shuffle" size={icon} />
-      </button>
-      <button
-        type="button"
-        className={`ghost round${user.repeatMode !== "off" ? " active" : ""}`}
+      </IconButton>
+      <IconButton
+        size={btnSize}
+        active={user.repeatMode !== "off"}
         onClick={onCycleRepeat}
         aria-label={repeatLabel}
       >
         <Icon name={repeatIcon} size={icon} />
-      </button>
-      <button type="button" className="ghost round" onClick={onPrev} aria-label="Предыдущий трек">
+      </IconButton>
+      <IconButton size={btnSize} onClick={onPrev} aria-label="Предыдущий трек">
         <Icon name="skip-back" size={icon} />
-      </button>
-      <button
-        type="button"
-        className={`primary round big${audioBusy ? " is-busy" : ""}`}
+      </IconButton>
+      <IconButton
+        variant="primary"
+        size="play"
+        className={audioBusy ? "is-busy" : undefined}
         onClick={onTogglePlay}
         disabled={audioBusy && !isPlaying}
         aria-label={playButtonLabel}
       >
-        {audioBusy ? (
-          <Icon name="loader" size={playIcon} className="icon-spin" />
-        ) : isPlaying ? (
-          <Icon name="pause" size={playIcon} />
-        ) : (
-          <Icon name="play" size={playIcon} />
-        )}
-      </button>
-      <button type="button" className="ghost round" onClick={onNext} aria-label="Следующий трек">
+        <PlayPauseIcon playing={isPlaying} busy={audioBusy} iconSize={playIcon} />
+      </IconButton>
+      <IconButton size={btnSize} onClick={onNext} aria-label="Следующий трек">
         <Icon name="skip-forward" size={icon} />
-      </button>
+      </IconButton>
     </div>
   );
 }
