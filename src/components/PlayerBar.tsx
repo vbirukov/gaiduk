@@ -20,9 +20,7 @@ type Props = {
   playButtonLabel: string;
   repeatLabel: string;
   isLiked: (id: string) => boolean;
-  isFavorite: (id: string) => boolean;
   onToggleLike: (id: string) => void;
-  onToggleFavorite: (id: string) => void;
   onToggleShuffle: () => void;
   onCycleRepeat: () => void;
   onPrev: () => void;
@@ -43,9 +41,7 @@ export function PlayerBar({
   playButtonLabel,
   repeatLabel,
   isLiked,
-  isFavorite,
   onToggleLike,
-  onToggleFavorite,
   onToggleShuffle,
   onCycleRepeat,
   onPrev,
@@ -60,7 +56,6 @@ export function PlayerBar({
   }, [currentTrack?.id]);
 
   const liked = currentTrackId ? isLiked(currentTrackId) : false;
-  const favorite = currentTrackId ? isFavorite(currentTrackId) : false;
 
   return (
     <>
@@ -139,16 +134,6 @@ export function PlayerBar({
               >
                 <Icon name={liked ? "heart" : "heart-outline"} size={20} />
               </button>
-              <button
-                type="button"
-                className={`ghost round btn-favorite${favorite ? " active" : ""}`}
-                onClick={() =>
-                  currentTrackId && onToggleFavorite(currentTrackId)
-                }
-                aria-label={favorite ? "Убрать из избранного" : "В избранное"}
-              >
-                <Icon name={favorite ? "star" : "star-outline"} size={20} />
-              </button>
               <label className="speed">
                 <span>Скорость</span>
                 <select
@@ -195,9 +180,7 @@ export function PlayerBar({
             playButtonLabel={playButtonLabel}
             repeatLabel={repeatLabel}
             isLiked={isLiked}
-            isFavorite={isFavorite}
             onToggleLike={onToggleLike}
-            onToggleFavorite={onToggleFavorite}
             onToggleShuffle={onToggleShuffle}
             onCycleRepeat={onCycleRepeat}
             onPrev={onPrev}

@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useEffect, useState } from "react";
 import { fmtBytes, fmtTime } from "../lib/format";
 import { isStubTrack } from "../lib/diskDownload";
 import { listenStatus, listenStatusLabel } from "../lib/listenStatus";
@@ -13,11 +13,9 @@ export type TrackCardProps = {
   isActive: boolean;
   isPlaying: boolean;
   liked: boolean;
-  favorite: boolean;
   playlistButtons: Playlist[];
   onPlayTrack: (track: Track) => void;
   onToggleLike: (id: string) => void;
-  onToggleFavorite: (id: string) => void;
   onAddToPlaylist: (playlistId: string, trackId: string) => void;
 };
 
@@ -27,17 +25,28 @@ function TrackCardInner({
   isActive,
   isPlaying,
   liked,
-  favorite,
   playlistButtons,
   onPlayTrack,
   onToggleLike,
-  onToggleFavorite,
   onAddToPlaylist,
 }: TrackCardProps) {
   const ratio = progress.duration
     ? Math.min(100, (progress.position / progress.duration) * 100)
     : 0;
   const status = listenStatus(progress);
+  const [mobileTapPlay, setMobileTapPlay] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      window.matchMedia("(max-width: 720px)").matches,
+  );
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 720px)");
+    const sync = () => setMobileTapPlay(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
 
   const progressHint = isActive
     ? isPlaying
@@ -60,11 +69,37 @@ function TrackCardInner({
     .filter(Boolean)
     .join(" ");
 
+  const playLabel = isStubTrack(track)
+    ? "Подготовлено"
+    : isActive && isPlaying
+      ? "Пауза"
+      : isActive
+        ? "Продолжить"
+        : "Слушать";
+
+  const handleCardClick = (e: React.MouseEvent<HTMLElement>) => {
+    if (!mobileTapPlay) return;
+    if ((e.target as HTMLElement).closest("button, a")) return;
+    onPlayTrack(track);
+  };
+
+  const handleCardKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
+    if (!mobileTapPlay) return;
+    if (e.key !== "Enter" && e.key !== " ") return;
+    if ((e.target as HTMLElement).closest("button, a")) return;
+    e.preventDefault();
+    onPlayTrack(track);
+  };
+
   return (
     <article
       className={cardClass}
       data-track-id={track.id}
       aria-current={isActive ? "true" : undefined}
+      onClick={handleCardClick}
+      onKeyDown={handleCardKeyDown}
+      tabIndex={mobileTapPlay ? 0 : undefined}
+      aria-label={`${track.title}, ${track.folder}. ${playLabel}`}
     >
       <div className="card-bg" aria-hidden>
         <div className="card-bg__shade" />
@@ -117,21 +152,20 @@ function TrackCardInner({
           >
             <Icon name={liked ? "heart" : "heart-outline"} size={20} />
           </button>
-          <button
-            type="button"
-            className={`ghost round${favorite ? " active" : ""}`}
-            onClick={() => onToggleFavorite(track.id)}
-            aria-label={favorite ? "Убрать из избранного" : "В избранное"}
-          >
-            <Icon name={favorite ? "star" : "star-outline"} size={20} />
-          </button>
         </div>
         <button
           type="button"
-          className="primary card-play"
-          onClick={() => onPlayTrack(track)}
+          className="primary round card-play"
+          onClick={(e) => {
+            e.stopPropagation();
+            onPlayTrack(track);
+          }}
+          aria-label={playLabel}
         >
-          {isStubTrack(track) ? "Подготовлено" : "Слушать"}
+          <Icon
+            name={isActive && isPlaying ? "pause" : "play"}
+            size={22}
+          />
         </button>
         {playlistButtons.map((pl) => (
           <button
@@ -161,13 +195,11 @@ export const TrackCard = memo(TrackCardInner, (prev, next) => {
   if (prev.isActive !== next.isActive) return false;
   if (prev.isPlaying !== next.isPlaying) return false;
   if (prev.liked !== next.liked) return false;
-  if (prev.favorite !== next.favorite) return false;
   if (!progressEqual(prev.progress, next.progress)) return false;
   if (prev.playlistButtons !== next.playlistButtons) return false;
   return (
     prev.onPlayTrack === next.onPlayTrack &&
     prev.onToggleLike === next.onToggleLike &&
-    prev.onToggleFavorite === next.onToggleFavorite &&
     prev.onAddToPlaylist === next.onAddToPlaylist
   );
 });

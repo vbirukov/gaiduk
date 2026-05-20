@@ -23,8 +23,7 @@ export function App() {
     setUser,
     progressOf,
     isLiked,
-    isFavorite,
-    toggleMap,
+    toggleLike,
     addPlaylist,
     addTrackToPlaylist,
     cycleRepeat,
@@ -129,12 +128,8 @@ export function App() {
     [player.playTrack],
   );
   const handleToggleLike = useCallback(
-    (id: string) => toggleMap("likes", id),
-    [toggleMap],
-  );
-  const handleToggleFavorite = useCallback(
-    (id: string) => toggleMap("favorites", id),
-    [toggleMap],
+    (id: string) => toggleLike(id),
+    [toggleLike],
   );
 
   const handleRefreshCatalog = async () => {
@@ -251,10 +246,8 @@ export function App() {
             livePlayback={player.livePlayback}
             progressOf={progressOf}
             isLiked={isLiked}
-            isFavorite={isFavorite}
             onPlayTrack={handlePlayTrack}
             onToggleLike={handleToggleLike}
-            onToggleFavorite={handleToggleFavorite}
             onAddToPlaylist={addTrackToPlaylist}
             onOpenNav={() => setNavOpen(true)}
           />
@@ -273,9 +266,7 @@ export function App() {
         playButtonLabel={player.playButtonLabel}
         repeatLabel={player.repeatLabel}
         isLiked={isLiked}
-        isFavorite={isFavorite}
-        onToggleLike={(id) => toggleMap("likes", id)}
-        onToggleFavorite={(id) => toggleMap("favorites", id)}
+        onToggleLike={handleToggleLike}
         onToggleShuffle={() =>
           setUser((prev) => ({ ...prev, shuffle: !prev.shuffle }))
         }

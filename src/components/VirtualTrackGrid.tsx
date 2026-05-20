@@ -28,11 +28,9 @@ type Props = {
   livePlayback: LivePlayback | null;
   progressOf: (id: string) => Progress;
   isLiked: (id: string) => boolean;
-  isFavorite: (id: string) => boolean;
   playlistButtons: Playlist[];
   onPlayTrack: TrackCardProps["onPlayTrack"];
   onToggleLike: TrackCardProps["onToggleLike"];
-  onToggleFavorite: TrackCardProps["onToggleFavorite"];
   onAddToPlaylist: TrackCardProps["onAddToPlaylist"];
   scrollToTrackId?: string | null;
   onScrolledToTrack?: () => void;
@@ -94,11 +92,9 @@ export function VirtualTrackGrid({
   livePlayback,
   progressOf,
   isLiked,
-  isFavorite,
   playlistButtons,
   onPlayTrack,
   onToggleLike,
-  onToggleFavorite,
   onAddToPlaylist,
   scrollToTrackId = null,
   onScrolledToTrack,
@@ -198,11 +194,9 @@ export function VirtualTrackGrid({
           progressOf,
         )}
         liked={isLiked(track.id)}
-        favorite={isFavorite(track.id)}
         playlistButtons={playlistButtons}
         onPlayTrack={onPlayTrack}
         onToggleLike={onToggleLike}
-        onToggleFavorite={onToggleFavorite}
         onAddToPlaylist={onAddToPlaylist}
       />
     );

@@ -18,9 +18,7 @@ type Props = {
   playButtonLabel: string;
   repeatLabel: string;
   isLiked: (id: string) => boolean;
-  isFavorite: (id: string) => boolean;
   onToggleLike: (id: string) => void;
-  onToggleFavorite: (id: string) => void;
   onToggleShuffle: () => void;
   onCycleRepeat: () => void;
   onPrev: () => void;
@@ -41,9 +39,7 @@ export function NowPlayingSheet({
   playButtonLabel,
   repeatLabel,
   isLiked,
-  isFavorite,
   onToggleLike,
-  onToggleFavorite,
   onToggleShuffle,
   onCycleRepeat,
   onPrev,
@@ -67,7 +63,6 @@ export function NowPlayingSheet({
   if (!open || !track) return null;
 
   const liked = currentTrackId ? isLiked(currentTrackId) : false;
-  const favorite = currentTrackId ? isFavorite(currentTrackId) : false;
 
   return (
     <div
@@ -124,14 +119,6 @@ export function NowPlayingSheet({
             aria-label={liked ? "Убрать лайк" : "Лайк"}
           >
             <Icon name={liked ? "heart" : "heart-outline"} size={22} />
-          </button>
-          <button
-            type="button"
-            className={`ghost round${favorite ? " active" : ""}`}
-            onClick={() => currentTrackId && onToggleFavorite(currentTrackId)}
-            aria-label={favorite ? "Убрать из избранного" : "В избранное"}
-          >
-            <Icon name={favorite ? "star" : "star-outline"} size={22} />
           </button>
         </div>
       </div>

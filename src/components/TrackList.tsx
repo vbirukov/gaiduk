@@ -27,10 +27,8 @@ type Props = {
   livePlayback: LivePlayback | null;
   progressOf: (id: string) => Progress;
   isLiked: (id: string) => boolean;
-  isFavorite: (id: string) => boolean;
   onPlayTrack: TrackCardProps["onPlayTrack"];
   onToggleLike: TrackCardProps["onToggleLike"];
-  onToggleFavorite: TrackCardProps["onToggleFavorite"];
   onAddToPlaylist: TrackCardProps["onAddToPlaylist"];
   onOpenNav: () => void;
   isJaipur: boolean;
@@ -52,10 +50,8 @@ export function TrackList({
   livePlayback,
   progressOf,
   isLiked,
-  isFavorite,
   onPlayTrack,
   onToggleLike,
-  onToggleFavorite,
   onAddToPlaylist,
   onOpenNav,
   isJaipur,
@@ -152,11 +148,9 @@ export function TrackList({
           livePlayback={livePlayback}
           progressOf={progressOf}
           isLiked={isLiked}
-          isFavorite={isFavorite}
           playlistButtons={playlistButtons}
           onPlayTrack={onPlayTrack}
           onToggleLike={onToggleLike}
-          onToggleFavorite={onToggleFavorite}
           onAddToPlaylist={onAddToPlaylist}
           scrollToTrackId={scrollToTrackId}
           onScrolledToTrack={clearScrollToTrack}
@@ -177,11 +171,9 @@ export function TrackList({
           livePlayback={livePlayback}
           progressOf={progressOf}
           isLiked={isLiked}
-          isFavorite={isFavorite}
           playlistButtons={playlistButtons}
           onPlayTrack={onPlayTrack}
           onToggleLike={onToggleLike}
-          onToggleFavorite={onToggleFavorite}
           onAddToPlaylist={onAddToPlaylist}
           scrollToTrackId={scrollToTrackId}
           onScrolledToTrack={clearScrollToTrack}

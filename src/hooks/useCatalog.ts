@@ -69,9 +69,6 @@ export function useCatalog(user: UserState, filters: Filters) {
     if (filters.view === "liked") {
       list = list.filter((t) => user.likes[t.id]);
     }
-    if (filters.view === "favorites") {
-      list = list.filter((t) => user.favorites[t.id]);
-    }
     if (filters.view === "resume") {
       list = list.filter((t) => {
         const p = progressOf(t.id);
@@ -94,7 +91,6 @@ export function useCatalog(user: UserState, filters: Filters) {
     filters.selectedPlaylist,
     filters.view,
     progressOf,
-    user.favorites,
     user.likes,
     user.playlists,
   ]);
@@ -134,9 +130,7 @@ export function useCatalog(user: UserState, filters: Filters) {
     ? filters.selectedFolder
     : filters.view === "resume"
       ? "Продолжить прослушивание"
-      : filters.view === "favorites"
-        ? "Избранное"
-        : filters.view === "liked"
+      : filters.view === "liked"
           ? "Лайки"
           : filters.view === "playlist"
             ? `Плейлист: ${user.playlists.find((p) => p.id === filters.selectedPlaylist)?.name ?? ""}`

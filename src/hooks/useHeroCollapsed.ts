@@ -9,12 +9,10 @@ function readReturningUser(): boolean {
     const data = JSON.parse(raw) as {
       progress?: Record<string, unknown>;
       likes?: Record<string, unknown>;
-      favorites?: Record<string, unknown>;
     };
     return (
       Object.keys(data.progress ?? {}).length > 0 ||
-      Object.keys(data.likes ?? {}).length > 0 ||
-      Object.keys(data.favorites ?? {}).length > 0
+      Object.keys(data.likes ?? {}).length > 0
     );
   } catch {
     return false;

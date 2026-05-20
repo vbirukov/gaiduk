@@ -4,7 +4,6 @@ import type { Progress, UserState } from "../types/user";
 
 const defaultUserState = (): UserState => ({
   likes: {},
-  favorites: {},
   playlists: [
     { id: "resume", name: "Продолжить позже", trackIds: [], system: true },
   ],
@@ -20,9 +19,12 @@ const defaultUserState = (): UserState => ({
 const loadUserState = (): UserState => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw
-      ? { ...defaultUserState(), ...JSON.parse(raw) }
-      : defaultUserState();
+    if (!raw) return defaultUserState();
+    const parsed = JSON.parse(raw) as Partial<UserState> & {
+      favorites?: Record<string, true>;
+    };
+    const { favorites: _favorites, ...rest } = parsed;
+    return { ...defaultUserState(), ...rest };
   } catch {
     return defaultUserState();
   }
@@ -49,17 +51,13 @@ export function useUserState() {
   );
 
   const isLiked = useCallback((id: string) => Boolean(user.likes[id]), [user.likes]);
-  const isFavorite = useCallback(
-    (id: string) => Boolean(user.favorites[id]),
-    [user.favorites],
-  );
 
-  const toggleMap = useCallback((type: "likes" | "favorites", id: string) => {
+  const toggleLike = useCallback((id: string) => {
     setUser((prev) => {
-      const nextMap = { ...prev[type] };
-      if (nextMap[id]) delete nextMap[id];
-      else nextMap[id] = true;
-      return { ...prev, [type]: nextMap };
+      const nextLikes = { ...prev.likes };
+      if (nextLikes[id]) delete nextLikes[id];
+      else nextLikes[id] = true;
+      return { ...prev, likes: nextLikes };
     });
   }, []);
 
@@ -104,8 +102,7 @@ export function useUserState() {
     setUser,
     progressOf,
     isLiked,
-    isFavorite,
-    toggleMap,
+    toggleLike,
     addPlaylist,
     addTrackToPlaylist,
     cycleRepeat,

@@ -82,10 +82,6 @@ export function Sidebar({
           {(
             [
               ["resume", `Продолжить · ${resumeCount}`],
-              [
-                "favorites",
-                `Избранное · ${Object.keys(user.favorites).length}`,
-              ],
               ["liked", `Лайки · ${Object.keys(user.likes).length}`],
             ] as const
           ).map(([id, label]) => (

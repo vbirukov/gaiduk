@@ -16,7 +16,6 @@ export type Progress = {
 
 export type UserState = {
   likes: Record<string, true>;
-  favorites: Record<string, true>;
   playlists: Playlist[];
   progress: Record<string, Progress>;
   lastTrackId: string | null;
@@ -27,4 +26,4 @@ export type UserState = {
   wakeLock: boolean;
 };
 
-export type LibraryView = "all" | "resume" | "favorites" | "liked" | "playlist";
+export type LibraryView = "all" | "resume" | "liked" | "playlist";
