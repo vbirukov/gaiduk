@@ -1008,6 +1008,11 @@ html.has-player {
   font-size: var(--text-xs);
   color: var(--text-muted);
 }
+@media (min-width: 721px) {
+  .section-head--catalog {
+    display: none;
+  }
+}
 .track-feed {
   display: grid;
   gap: var(--space-2);
