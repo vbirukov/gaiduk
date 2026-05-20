@@ -90,53 +90,142 @@
     linear-gradient(180deg, var(--rl-sky) 0%, var(--rl-sunny) 42%, var(--rl-sunset) 100%);
 }
 
-[data-skin="rastaman-light"] .library-feed-bg::before,
-[data-skin="rastaman-light"] .library-feed-bg::after {
-  content: "";
-  position: absolute;
-  width: 300%;
-  height: 300%;
-  left: -100%;
-  top: -100%;
+.rasta-sun-light {
+  position: fixed;
+  z-index: 1;
+  left: var(--sidebar-width);
+  right: 0;
+  top: 0;
+  bottom: var(--player-bar-offset);
+  overflow: hidden;
   pointer-events: none;
-  will-change: transform;
-  transform-origin: 50% 50%;
 }
 
-[data-skin="rastaman-light"] .library-feed-bg::before {
-  z-index: 0;
-  mix-blend-mode: overlay;
-  background: radial-gradient(
-    circle at 50% 6%,
-    rgba(255, 255, 220, 1) 0%,
-    rgba(255, 225, 120, 0.75) 10%,
-    rgba(255, 180, 60, 0.45) 22%,
-    rgba(255, 154, 60, 0.12) 38%,
-    transparent 52%
-  );
-  animation: rasta-light-sun-orbit 36s linear infinite;
-}
-
-[data-skin="rastaman-light"] .library-feed-bg::after {
-  z-index: 0;
+.rasta-sun-light__ambient {
+  position: absolute;
+  inset: 0;
   mix-blend-mode: soft-light;
-  background: radial-gradient(
-    circle at 50% 6%,
-    rgba(255, 200, 80, 0.55) 0%,
-    rgba(249, 199, 79, 0.28) 16%,
-    transparent 42%
-  );
-  filter: blur(4px);
-  animation: rasta-light-sun-orbit 36s linear infinite;
-  animation-delay: -18s;
+  animation: rasta-sun-ambient 84s ease-in-out infinite;
 }
 
-@keyframes rasta-light-sun-orbit {
-  from {
-    transform: rotate(0deg);
+.rasta-sun-light__orb {
+  position: absolute;
+  top: -6%;
+  left: 0;
+  width: min(54vw, 540px);
+  height: min(62vh, 580px);
+  border-radius: 50%;
+  filter: blur(26px);
+  mix-blend-mode: screen;
+  opacity: 0.88;
+  will-change: transform, background;
+  animation: rasta-sun-pass 84s ease-in-out infinite;
+}
+
+@keyframes rasta-sun-pass {
+  0% {
+    transform: translateX(-8vw);
+    background: radial-gradient(
+      ellipse 78% 72% at 48% 40%,
+      rgba(255, 210, 130, 0.9) 0%,
+      rgba(255, 175, 75, 0.5) 24%,
+      rgba(255, 145, 55, 0.18) 44%,
+      transparent 70%
+    );
   }
-  to {
-    transform: rotate(360deg);
+  18% {
+    transform: translateX(14vw);
+    background: radial-gradient(
+      ellipse 78% 72% at 48% 40%,
+      rgba(255, 232, 165, 0.85) 0%,
+      rgba(255, 205, 95, 0.48) 26%,
+      transparent 70%
+    );
+  }
+  50% {
+    transform: translateX(38vw) translateY(5vh);
+    background: radial-gradient(
+      ellipse 82% 76% at 50% 36%,
+      rgba(255, 255, 245, 0.82) 0%,
+      rgba(255, 248, 210, 0.45) 30%,
+      rgba(255, 235, 170, 0.12) 50%,
+      transparent 72%
+    );
+  }
+  78% {
+    transform: translateX(62vw);
+    background: radial-gradient(
+      ellipse 80% 74% at 48% 40%,
+      rgba(255, 155, 105, 0.78) 0%,
+      rgba(235, 95, 115, 0.42) 32%,
+      rgba(200, 80, 140, 0.2) 48%,
+      transparent 70%
+    );
+  }
+  100% {
+    transform: translateX(82vw);
+    background: radial-gradient(
+      ellipse 78% 72% at 48% 40%,
+      rgba(255, 105, 125, 0.72) 0%,
+      rgba(185, 65, 130, 0.45) 28%,
+      rgba(160, 70, 165, 0.22) 46%,
+      transparent 72%
+    );
+  }
+}
+
+@keyframes rasta-sun-ambient {
+  0% {
+    background: linear-gradient(
+      115deg,
+      rgba(255, 195, 100, 0.22) 0%,
+      transparent 42%,
+      transparent 100%
+    );
+  }
+  50% {
+    background: linear-gradient(
+      180deg,
+      rgba(255, 250, 220, 0.14) 0%,
+      transparent 55%
+    );
+  }
+  100% {
+    background: linear-gradient(
+      245deg,
+      transparent 0%,
+      transparent 38%,
+      rgba(210, 75, 120, 0.2) 100%
+    );
+  }
+}
+
+@media (max-width: 1024px) {
+  .rasta-sun-light {
+    left: 0;
+  }
+}
+
+@supports (mix-blend-mode: plus-lighter) {
+  .rasta-sun-light__orb {
+    mix-blend-mode: plus-lighter;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rasta-sun-light__orb,
+  .rasta-sun-light__ambient {
+    animation: none;
+  }
+
+  .rasta-sun-light__orb {
+    transform: translateX(38vw) translateY(5vh);
+    background: radial-gradient(
+      ellipse 82% 76% at 50% 36%,
+      rgba(255, 255, 245, 0.7) 0%,
+      rgba(255, 248, 210, 0.35) 35%,
+      transparent 72%
+    );
   }
 }
 
@@ -193,12 +282,12 @@
 }
 
 [data-skin="rastaman-light"] .card-bg {
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(10px) saturate(1.12);
+  backdrop-filter: blur(10px) saturate(1.12);
   background: linear-gradient(
     165deg,
-    color-mix(in oklab, var(--rl-cloud) 64%, transparent),
-    color-mix(in oklab, var(--rl-sunny) 54%, transparent)
+    color-mix(in oklab, var(--rl-cloud) 58%, transparent),
+    color-mix(in oklab, var(--rl-sunny) 48%, transparent)
   );
 }
 
