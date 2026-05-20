@@ -20,7 +20,8 @@ import { TrackCard, type TrackCardProps } from "./TrackCard";
 import { TrackCardSkeleton } from "./TrackCardSkeleton";
 
 const VIRTUALIZE_MIN = 48;
-const CARD_MIN_WIDTH = 320;
+const CARD_MIN_WIDTH = 240;
+const MAX_GRID_COLS = 3;
 const GRID_GAP_PX = 16;
 const ROW_ESTIMATE_PX = 340;
 const HEADER_ROW_ESTIMATE_PX = 52;
@@ -52,7 +53,10 @@ function useColumnCount(containerRef: RefObject<HTMLElement | null>) {
     const measure = () => {
       const w = el.clientWidth;
       setCols(
-        Math.max(1, Math.floor((w + GRID_GAP_PX) / (CARD_MIN_WIDTH + GRID_GAP_PX))),
+        Math.min(
+          MAX_GRID_COLS,
+          Math.max(1, Math.floor((w + GRID_GAP_PX) / (CARD_MIN_WIDTH + GRID_GAP_PX))),
+        ),
       );
     };
     measure();
