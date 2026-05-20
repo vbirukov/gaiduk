@@ -1,5 +1,7 @@
 import { PUBLIC_KEY } from "../config";
+import type { Appearance, AppSkin } from "../themes";
 import { Icon } from "./icons/Icon";
+import { ThemeSwitcher } from "./ThemeSwitcher";
 
 type Props = {
   onOpenNav: () => void;
@@ -9,8 +11,11 @@ type Props = {
   onDismissIosHint: () => void;
   loadingCatalog: boolean;
   onRefreshCatalog: () => void;
-  theme: "light" | "dark";
-  onToggleTheme: () => void;
+  skin: AppSkin;
+  onSkinChange: (skin: AppSkin) => void;
+  showAppearanceToggle: boolean;
+  appearance: Appearance;
+  onToggleAppearance: () => void;
 };
 
 export function MainHeader({
@@ -21,8 +26,11 @@ export function MainHeader({
   onDismissIosHint,
   loadingCatalog,
   onRefreshCatalog,
-  theme,
-  onToggleTheme,
+  skin,
+  onSkinChange,
+  showAppearanceToggle,
+  appearance,
+  onToggleAppearance,
 }: Props) {
   return (
     <header className="topbar">
@@ -39,6 +47,7 @@ export function MainHeader({
         <div className="source desktop-source">Источник: {PUBLIC_KEY}</div>
       </div>
       <div className="toolbar">
+        <ThemeSwitcher skin={skin} onSkinChange={onSkinChange} />
         {installPrompt ? (
           <button type="button" className="ghost" onClick={onInstall}>
             Установить
@@ -57,9 +66,17 @@ export function MainHeader({
         <button type="button" className="ghost" onClick={onRefreshCatalog}>
           {loadingCatalog ? "Обновляю…" : "Обновить каталог"}
         </button>
-        <button type="button" className="ghost" onClick={onToggleTheme}>
-          <Icon name={theme === "dark" ? "sun" : "moon"} size={20} />
-        </button>
+        {showAppearanceToggle ? (
+          <button
+            type="button"
+            className="ghost"
+            onClick={onToggleAppearance}
+            aria-label={appearance === "dark" ? "Светлая тема" : "Тёмная тема"}
+            title={appearance === "dark" ? "Светлая тема" : "Тёмная тема"}
+          >
+            <Icon name={appearance === "dark" ? "sun" : "moon"} size={20} />
+          </button>
+        ) : null}
       </div>
     </header>
   );

@@ -1,10 +1,14 @@
 import { PUBLIC_KEY } from "../config";
+import type { AppSkin } from "../themes";
 import { BrandLogo } from "./BrandLogo";
 import { Icon } from "./icons/Icon";
+import { ThemeSwitcher } from "./ThemeSwitcher";
 import type { Catalog } from "../types/catalog";
 import type { LibraryView, UserState } from "../types/user";
 
 type Props = {
+  skin: AppSkin;
+  onSkinChange: (skin: AppSkin) => void;
   navOpen: boolean;
   onClose: () => void;
   catalog: Catalog;
@@ -20,6 +24,8 @@ type Props = {
 };
 
 export function Sidebar({
+  skin,
+  onSkinChange,
   navOpen,
   onClose,
   catalog,
@@ -43,6 +49,9 @@ export function Sidebar({
         onClick={onClose}
       />
       <aside className={navOpen ? "sidebar is-open" : "sidebar"}>
+        <div className="sidebar-theme">
+          <ThemeSwitcher skin={skin} onSkinChange={onSkinChange} compact />
+        </div>
         <div className="brand">
           <BrandLogo className="logo-box" />
           <div>

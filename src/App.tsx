@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { useAppTheme } from "./hooks/useAppTheme";
 import type { Track } from "./types/catalog";
 import { MainHeader } from "./components/MainHeader";
 import { PlaylistModal } from "./components/PlaylistModal";
@@ -32,7 +33,14 @@ export function App() {
   const [view, setView] = useState<LibraryView>("all");
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [selectedPlaylist, setSelectedPlaylist] = useState<string | null>(null);
-  const [theme, setTheme] = useState<"light" | "dark">("dark");
+  const {
+    skin,
+    setSkin,
+    appearance,
+    toggleAppearance,
+    showAppearanceToggle,
+    isJaipur,
+  } = useAppTheme();
   const [swNeedRefresh, setSwNeedRefresh] = useState(false);
   const [installPrompt, setInstallPrompt] =
     useState<BeforeInstallPromptEvent | null>(null);
@@ -69,10 +77,6 @@ export function App() {
     trackMap,
     pushToast,
   });
-
-  useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-  }, [theme]);
 
   useEffect(() => {
     document.documentElement.classList.toggle(
@@ -158,6 +162,8 @@ export function App() {
         }
       >
         <Sidebar
+          skin={skin}
+          onSkinChange={setSkin}
           navOpen={navOpen}
           onClose={closeNav}
           catalog={catalog}
@@ -222,10 +228,14 @@ export function App() {
             onDismissIosHint={() => setIosHintDismissed(true)}
             loadingCatalog={loadingCatalog}
             onRefreshCatalog={() => void handleRefreshCatalog()}
-            theme={theme}
-            onToggleTheme={() => setTheme(theme === "dark" ? "light" : "dark")}
+            skin={skin}
+            onSkinChange={setSkin}
+            showAppearanceToggle={showAppearanceToggle}
+            appearance={appearance}
+            onToggleAppearance={toggleAppearance}
           />
           <TrackList
+            isJaipur={isJaipur}
             catalog={catalog}
             user={user}
             tracks={tracks}

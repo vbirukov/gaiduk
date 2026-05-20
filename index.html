@@ -24,6 +24,19 @@
       href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&f[]=boska@400,500,700&display=swap"
       rel="stylesheet"
     />
+    <script>
+      try {
+        var skin = localStorage.getItem("gayduk-skin-v1");
+        var appearance = localStorage.getItem("gayduk-appearance-v1") || "dark";
+        if (skin === "jaipur") {
+          document.documentElement.setAttribute("data-skin", "jaipur");
+          document.documentElement.setAttribute("data-theme", "jaipur");
+        } else {
+          document.documentElement.setAttribute("data-skin", "rastaman");
+          document.documentElement.setAttribute("data-theme", appearance);
+        }
+      } catch (e) {}
+    </script>
     <script type="module" src="/main.tsx"></script>
   </head>
   <body>

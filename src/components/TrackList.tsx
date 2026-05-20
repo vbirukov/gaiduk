@@ -32,6 +32,7 @@ type Props = {
   onToggleFavorite: TrackCardProps["onToggleFavorite"];
   onAddToPlaylist: TrackCardProps["onAddToPlaylist"];
   onOpenNav: () => void;
+  isJaipur: boolean;
 };
 
 export function TrackList({
@@ -56,6 +57,7 @@ export function TrackList({
   onToggleFavorite,
   onAddToPlaylist,
   onOpenNav,
+  isJaipur,
 }: Props) {
   const feedRef = useRef<HTMLElement>(null);
   const { collapsed, collapse, expand } = useHeroCollapsed();
@@ -89,7 +91,7 @@ export function TrackList({
   return (
     <section className="library-feed">
       <div className="library-feed-bg" aria-hidden />
-      <HookahSmoke active={isPlaying} />
+      {!isJaipur ? <HookahSmoke active={isPlaying} /> : null}
       <div className="library-feed-content" ref={feedRef}>
       <LibraryHero
         catalog={catalog}

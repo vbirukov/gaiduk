@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 72" preserveAspectRatio="none">
+  <defs>
+    <linearGradient id="archFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#B6DDF4"/>
+      <stop offset="55%" stop-color="#F5BCB9"/>
+      <stop offset="100%" stop-color="#C5796D" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#archFill)" d="M0 72 V28 Q50 0 100 18 T200 12 T300 18 T400 28 V72 Z"/>
+  <path fill="none" stroke="#F9F4ED" stroke-width="1.5" d="M8 72 V32 Q100 4 200 14 T392 32 V72"/>
+  <path fill="none" stroke="#FFFFFF" stroke-width="0.75" opacity="0.7" d="M24 72 V38 Q120 16 200 22 T376 38 V72"/>
+  <g fill="none" stroke="#F9F4ED" stroke-width="0.9" opacity="0.55">
+    <path d="M80 48 Q100 36 120 48"/>
+    <path d="M160 44 Q180 32 200 44"/>
+    <path d="M240 48 Q260 36 280 48"/>
+    <path d="M320 44 Q340 32 360 44"/>
+  </g>
+</svg>
