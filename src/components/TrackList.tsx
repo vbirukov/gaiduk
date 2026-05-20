@@ -105,18 +105,16 @@ export function TrackList({
           onContinue={handleContinue}
         />
       ) : null}
-      <section className="section-head">
-        <div>
-          <button
-            type="button"
-            className="section-head-title"
-            onClick={onOpenNav}
-            aria-label="Открыть меню разделов"
-          >
-            {sectionTitle}
-          </button>
-          <p>{sectionSub}</p>
-        </div>
+      <section className="section-head section-head--catalog">
+        <button
+          type="button"
+          className="ghost section-head-catalog-btn"
+          onClick={onOpenNav}
+          aria-label={`Каталог: ${sectionTitle}. ${sectionSub}`}
+        >
+          Каталог
+        </button>
+        <p>{sectionSub}</p>
       </section>
       {catalogLoading ? (
         <VirtualTrackGrid

@@ -60,12 +60,18 @@ export function Sidebar({
         </div>
         <section className="side-section">
           <h2>Разделы</h2>
+          <button
+            type="button"
+            className={view === "all" ? "nav active" : "nav"}
+            onClick={() => onSelectView("all")}
+          >
+            Весь каталог{" "}
+            <span className="nav-sublabel">
+              ({catalog.tracks.length} треков)
+            </span>
+          </button>
           {(
             [
-              [
-                "all",
-                `Весь каталог (${catalog.tracks.length} элементов)`,
-              ],
               ["resume", `Продолжить · ${resumeCount}`],
               [
                 "favorites",
