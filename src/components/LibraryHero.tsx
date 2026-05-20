@@ -61,7 +61,7 @@ export function LibraryHero({
           </div>
           <button
             type="button"
-            className="ghost hero-toggle"
+            className="hero-toggle"
             onClick={handleToggle}
           >
             {collapsed ? "Об авторе" : "Свернуть"}

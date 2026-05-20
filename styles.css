@@ -774,9 +774,31 @@ html.has-player {
 }
 .hero-toggle {
   flex-shrink: 0;
-  min-height: 36px;
-  padding: 0.45rem 0.85rem;
-  font-size: var(--text-xs);
+  align-self: flex-start;
+  appearance: none;
+  -webkit-appearance: none;
+  min-height: auto;
+  background: none;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--primary);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+.hero-toggle:hover {
+  color: var(--primary-hover);
+}
+.hero-toggle:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+  border-radius: 2px;
 }
 .hero-compact-stats {
   margin: 0;
