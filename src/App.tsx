@@ -246,6 +246,7 @@ export function App() {
             onToggleLike={handleToggleLike}
             onToggleFavorite={handleToggleFavorite}
             onAddToPlaylist={addTrackToPlaylist}
+            onOpenNav={() => setNavOpen(true)}
           />
         </main>
       </div>

@@ -31,6 +31,7 @@ type Props = {
   onToggleLike: TrackCardProps["onToggleLike"];
   onToggleFavorite: TrackCardProps["onToggleFavorite"];
   onAddToPlaylist: TrackCardProps["onAddToPlaylist"];
+  onOpenNav: () => void;
 };
 
 export function TrackList({
@@ -54,6 +55,7 @@ export function TrackList({
   onToggleLike,
   onToggleFavorite,
   onAddToPlaylist,
+  onOpenNav,
 }: Props) {
   const feedRef = useRef<HTMLElement>(null);
   const { collapsed, collapse, expand } = useHeroCollapsed();
@@ -105,7 +107,14 @@ export function TrackList({
       ) : null}
       <section className="section-head">
         <div>
-          <h3>{sectionTitle}</h3>
+          <button
+            type="button"
+            className="section-head-title"
+            onClick={onOpenNav}
+            aria-label="Открыть меню разделов"
+          >
+            {sectionTitle}
+          </button>
           <p>{sectionSub}</p>
         </div>
         <div className="mini-text">
