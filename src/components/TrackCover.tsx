@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { coverForTrack } from "../lib/cover";
+import { coverForTrack, DEFAULT_COVER_PATH } from "../lib/cover";
 import type { Track } from "../types/catalog";
 import { Icon } from "./icons/Icon";
 
@@ -19,12 +19,21 @@ const sizeClass: Record<NonNullable<Props["size"]>, string> = {
 export function TrackCover({ track, size = "md", className }: Props) {
   const [failed, setFailed] = useState(false);
   const src = coverForTrack(track);
+  const useCssDefault = src === DEFAULT_COVER_PATH;
   const rootClass = ["cover", sizeClass[size], className].filter(Boolean).join(" ");
 
   if (!track || failed) {
     return (
       <div className={rootClass} aria-hidden="true">
         <Icon name="music" size={size === "xl" ? 40 : size === "lg" ? 28 : 20} />
+      </div>
+    );
+  }
+
+  if (useCssDefault) {
+    return (
+      <div className={rootClass}>
+        <span className="cover-default-art" aria-hidden />
       </div>
     );
   }
