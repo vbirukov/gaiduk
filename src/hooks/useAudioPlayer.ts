@@ -12,6 +12,7 @@ import { usePlayerKeyboard } from "./usePlayerKeyboard";
 import { useWakeLock } from "./useWakeLock";
 import {
   cancelInflightDownloads,
+  getCachedPlaybackUrl,
   peekCachedPlaybackUrl,
   prefetchPlayback,
   streamPlaybackUrl,
@@ -21,9 +22,11 @@ import { isYandexDiskDownloadUrl, useLocalMedia } from "../lib/mediaUrl";
 import { formatPlaybackError } from "../lib/playbackErrors";
 import {
   applyResumePosition,
+  getResumePositionSec,
   isAudioFullyBuffered,
   waitForBufferAhead,
   waitForLoadedMetadata,
+  waitForSeeked,
 } from "../lib/audioBuffer";
 import { pickAdjacentId } from "../lib/queue";
 import type { LivePlayback } from "../lib/trackProgress";
@@ -272,10 +275,31 @@ export function useAudioPlayer({
           if (!url) throw new Error("empty href");
           patchTrackUrl(track.id, url);
         }
+        const saved = userProgressRef.current[track.id];
+        const resumeHint = getResumePositionSec(saved, saved?.duration ?? 0);
+        if (
+          resumeHint != null &&
+          resumeHint > 15 &&
+          !useLocalMedia() &&
+          !peekCachedPlaybackUrl(track.id)
+        ) {
+          try {
+            url = await getCachedPlaybackUrl(track.id, url);
+          } catch {
+            /* стрим с seek */
+          }
+        }
         assignPlaybackSource(audio, track.id, url);
         playbackIntentRef.current = true;
         await waitForLoadedMetadata(audio);
-        applyResumePosition(audio, userProgressRef.current[track.id]);
+        const resumeAt = applyResumePosition(audio, saved);
+        if (resumeAt != null) {
+          try {
+            await waitForSeeked(audio);
+          } catch {
+            /* продолжаем с текущей позиции */
+          }
+        }
         await waitForBufferAhead(audio, { signal: bufferSignal });
         if (!playbackIntentRef.current || activePlaybackTrackRef.current !== track.id) {
           return;
@@ -324,6 +348,17 @@ export function useAudioPlayer({
       playbackIntentRef.current = true;
       setIsLoadingTrack(true);
       try {
+        const saved = currentTrackId
+          ? userProgressRef.current[currentTrackId]
+          : undefined;
+        const resumeAt = applyResumePosition(audio, saved);
+        if (resumeAt != null) {
+          try {
+            await waitForSeeked(audio);
+          } catch {
+            /* ignore */
+          }
+        }
         await waitForBufferAhead(audio);
         if (!playbackIntentRef.current) return;
         await audio.play();

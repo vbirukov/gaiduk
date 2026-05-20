@@ -49,15 +49,82 @@ export function waitForLoadedMetadata(audio: HTMLAudioElement): Promise<void> {
   });
 }
 
+const RESUME_END_RATIO = 0.97;
+
+/** Секунда, с которой продолжить, или null (с начала). */
+export function getResumePositionSec(
+  entry: Progress | undefined,
+  mediaDuration: number,
+): number | null {
+  if (!entry || entry.completed || entry.position <= 0) return null;
+
+  const d =
+    Number.isFinite(mediaDuration) && mediaDuration > 0
+      ? mediaDuration
+      : entry.duration > 0
+        ? entry.duration
+        : 0;
+
+  if (d <= 0) return entry.position;
+
+  const pos = Math.min(entry.position, Math.max(0, d - 0.5));
+  if (pos < 2) return null;
+  if (pos / d >= RESUME_END_RATIO) return null;
+
+  return pos;
+}
+
 export function applyResumePosition(
   audio: HTMLAudioElement,
   entry: Progress | undefined,
-) {
-  if (!entry) return;
-  const d = audio.duration || 0;
-  if (entry.position > 0 && d > 0 && entry.position < d - 5) {
-    audio.currentTime = entry.position;
+): number | null {
+  const target = getResumePositionSec(entry, audio.duration);
+  if (target == null) return null;
+  if (Math.abs(audio.currentTime - target) < 0.35) return target;
+  audio.currentTime = target;
+  return target;
+}
+
+export function isTimeBuffered(
+  audio: HTMLAudioElement,
+  time: number,
+  epsilonSec = 0.25,
+): boolean {
+  const b = audio.buffered;
+  for (let i = 0; i < b.length; i++) {
+    if (time + epsilonSec >= b.start(i) && time <= b.end(i) + epsilonSec) {
+      return true;
+    }
   }
+  return false;
+}
+
+export function waitForSeeked(
+  audio: HTMLAudioElement,
+  timeoutMs = 20_000,
+): Promise<void> {
+  if (!audio.seeking) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const to = window.setTimeout(() => {
+      cleanup();
+      reject(new Error("seek timeout"));
+    }, timeoutMs);
+    const cleanup = () => {
+      window.clearTimeout(to);
+      audio.removeEventListener("seeked", onSeeked);
+      audio.removeEventListener("error", onErr);
+    };
+    const onSeeked = () => {
+      cleanup();
+      resolve();
+    };
+    const onErr = () => {
+      cleanup();
+      reject(new Error("seek failed"));
+    };
+    audio.addEventListener("seeked", onSeeked);
+    audio.addEventListener("error", onErr, { once: true });
+  });
 }
 
 /** Весь файл в буфере браузера (прогрессивная загрузка / стрим до конца). */
@@ -96,8 +163,15 @@ export function waitForBufferAhead(
     return Promise.reject(new DOMException("Aborted", "AbortError"));
   }
 
-  const meets = () =>
-    bufferedAheadSeconds(audio) >= minBufferAheadToStart(audio) - 0.05;
+  const meets = () => {
+    if (isAudioFullyBuffered(audio)) return true;
+    const t = audio.currentTime;
+    if (t > 0.5 && isTimeBuffered(audio, t)) {
+      const need = Math.min(2, minBufferAheadToStart(audio));
+      return bufferedAheadSeconds(audio) >= need - 0.05;
+    }
+    return bufferedAheadSeconds(audio) >= minBufferAheadToStart(audio) - 0.05;
+  };
 
   if (meets()) return Promise.resolve();
 
@@ -131,6 +205,7 @@ export function waitForBufferAhead(
       audio.removeEventListener("canplay", check);
       audio.removeEventListener("durationchange", check);
       audio.removeEventListener("suspend", check);
+      audio.removeEventListener("seeked", check);
       signal?.removeEventListener("abort", onAbort);
     };
 
@@ -139,6 +214,7 @@ export function waitForBufferAhead(
     audio.addEventListener("canplay", check);
     audio.addEventListener("durationchange", check);
     audio.addEventListener("suspend", check);
+    audio.addEventListener("seeked", check);
     signal?.addEventListener("abort", onAbort);
     check();
   });
