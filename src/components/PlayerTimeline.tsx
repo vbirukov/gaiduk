@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { maxBufferedEndRatio } from "../lib/audioBuffer";
 import { fmtTime } from "../lib/format";
 
 export function PlayerTimeline({
@@ -11,6 +12,7 @@ export function PlayerTimeline({
   onSeek: (value: number) => void;
 }) {
   const trackRef = useRef<HTMLDivElement>(null);
+  const bufferRef = useRef<HTMLDivElement>(null);
   const fillRef = useRef<HTMLDivElement>(null);
   const thumbRef = useRef<HTMLDivElement>(null);
   const [duration, setDuration] = useState(0);
@@ -25,6 +27,13 @@ export function PlayerTimeline({
     const pct = `${r * 100}%`;
     if (fillRef.current) fillRef.current.style.width = pct;
     if (thumbRef.current) thumbRef.current.style.left = pct;
+  };
+
+  const paintBufferRatio = () => {
+    const audio = audioRef.current;
+    if (!audio || !bufferRef.current) return;
+    const r = maxBufferedEndRatio(audio);
+    bufferRef.current.style.width = `${Math.max(0, Math.min(1, r)) * 100}%`;
   };
 
   const ratioFromClientX = (clientX: number) => {
@@ -53,12 +62,14 @@ export function PlayerTimeline({
     setDisplayTime(0);
     lastLabelSecRef.current = -1;
     paintRatio(0);
+    if (bufferRef.current) bufferRef.current.style.width = "0%";
 
     const syncDuration = () => {
       const d = audio.duration;
       if (!Number.isFinite(d) || d <= 0) return;
       durationRef.current = d;
       setDuration(d);
+      paintBufferRatio();
     };
 
     let rafId = 0;
@@ -68,6 +79,7 @@ export function PlayerTimeline({
         paintRatio(t / durationRef.current);
         updateLabel(t);
       }
+      paintBufferRatio();
       if (!audio.paused && !audio.ended) {
         rafId = requestAnimationFrame(loop);
       }
@@ -88,10 +100,16 @@ export function PlayerTimeline({
     };
     const onSeeked = onPause;
 
+    const onProgress = () => {
+      paintBufferRatio();
+    };
+
     syncDuration();
     onPause();
+    paintBufferRatio();
     audio.addEventListener("loadedmetadata", syncDuration);
     audio.addEventListener("durationchange", syncDuration);
+    audio.addEventListener("progress", onProgress);
     audio.addEventListener("play", onPlay);
     audio.addEventListener("pause", onPause);
     audio.addEventListener("seeked", onSeeked);
@@ -102,6 +120,7 @@ export function PlayerTimeline({
       cancelAnimationFrame(rafId);
       audio.removeEventListener("loadedmetadata", syncDuration);
       audio.removeEventListener("durationchange", syncDuration);
+      audio.removeEventListener("progress", onProgress);
       audio.removeEventListener("play", onPlay);
       audio.removeEventListener("pause", onPause);
       audio.removeEventListener("seeked", onSeeked);
@@ -179,6 +198,7 @@ export function PlayerTimeline({
           applySeek(ratio, true);
         }}
       >
+        <div ref={bufferRef} className="timeline-buffer" aria-hidden />
         <div ref={fillRef} className="timeline-fill" />
         <div ref={thumbRef} className="timeline-thumb" />
       </div>

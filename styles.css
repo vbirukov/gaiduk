@@ -1491,6 +1491,15 @@ html.has-player {
   outline: 2px solid var(--primary);
   outline-offset: 4px;
 }
+.timeline-buffer {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0;
+  border-radius: inherit;
+  background: color-mix(in oklab, var(--text-faint) 45%, var(--divider));
+  pointer-events: none;
+  z-index: 0;
+}
 .timeline-fill {
   position: absolute;
   inset: 0 auto 0 0;
@@ -1502,6 +1511,7 @@ html.has-player {
     color-mix(in oklab, var(--accent-mystic) 55%, var(--primary))
   );
   pointer-events: none;
+  z-index: 1;
 }
 .timeline-thumb {
   position: absolute;
@@ -1514,6 +1524,7 @@ html.has-player {
   box-shadow: 0 0 0 2px color-mix(in oklab, var(--bg) 70%, transparent);
   transform: translate(-50%, -50%);
   pointer-events: none;
+  z-index: 2;
 }
 input[type="range"] {
   appearance: none;

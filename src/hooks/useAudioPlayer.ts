@@ -19,14 +19,18 @@ import {
 import { fetchDiskDownloadHref, isStubTrack } from "../lib/diskDownload";
 import { isYandexDiskDownloadUrl, useLocalMedia } from "../lib/mediaUrl";
 import { formatPlaybackError } from "../lib/playbackErrors";
+import {
+  applyResumePosition,
+  isAudioFullyBuffered,
+  waitForBufferAhead,
+  waitForLoadedMetadata,
+} from "../lib/audioBuffer";
 import { pickAdjacentId } from "../lib/queue";
 import type { LivePlayback } from "../lib/trackProgress";
 import type { Catalog, Track } from "../types/catalog";
 import type { UserState } from "../types/user";
 
 const PROGRESS_SAVE_INTERVAL_SEC = 5;
-/** Не качаем соседние треки сразу — иначе душим стрим текущего через прокси. */
-const PREFETCH_ADJACENT_DELAY_MS = 25_000;
 
 type ToastPush = (
   message: string,
@@ -72,6 +76,8 @@ export function useAudioPlayer({
   const prefetchTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
   );
+  const prefetchGateCleanupRef = useRef<(() => void) | null>(null);
+  const bufferWaitAbortRef = useRef<AbortController | null>(null);
   const userProgressRef = useRef(user.progress);
   userProgressRef.current = user.progress;
 
@@ -87,11 +93,27 @@ export function useAudioPlayer({
     [queue, trackIds],
   );
 
+  const cancelPrefetchGate = useCallback(() => {
+    if (prefetchTimerRef.current !== undefined) {
+      clearTimeout(prefetchTimerRef.current);
+      prefetchTimerRef.current = undefined;
+    }
+    prefetchGateCleanupRef.current?.();
+    prefetchGateCleanupRef.current = null;
+  }, []);
+
   const schedulePrefetchNext = useCallback(
     (fromTrackId: string) => {
       if (useLocalMedia()) return;
-      clearTimeout(prefetchTimerRef.current);
-      prefetchTimerRef.current = setTimeout(() => {
+      cancelPrefetchGate();
+
+      const currentReadyForPrefetchNext = () => {
+        if (peekCachedPlaybackUrl(fromTrackId)) return true;
+        const a = audioRef.current;
+        return Boolean(a && isAudioFullyBuffered(a));
+      };
+
+      const runPrefetchNext = () => {
         const source = playbackSource();
         const idx = source.indexOf(fromTrackId);
         if (idx < 0) return;
@@ -113,9 +135,65 @@ export function useAudioPlayer({
             prefetchPlayback(t.id, href);
           }
         })();
-      }, PREFETCH_ADJACENT_DELAY_MS);
+      };
+
+      const armWaitOnAudio = (audio: HTMLAudioElement) => {
+        const tryRun = () => {
+          if (activePlaybackTrackRef.current !== fromTrackId) {
+            cleanup();
+            return;
+          }
+          if (currentReadyForPrefetchNext()) {
+            cleanup();
+            runPrefetchNext();
+          }
+        };
+
+        const onProgress = () => tryRun();
+        const onMeta = () => tryRun();
+        const onCanPlayThrough = () => tryRun();
+
+        const cleanup = () => {
+          audio.removeEventListener("progress", onProgress);
+          audio.removeEventListener("loadedmetadata", onMeta);
+          audio.removeEventListener("durationchange", onMeta);
+          audio.removeEventListener("canplaythrough", onCanPlayThrough);
+          if (prefetchGateCleanupRef.current === cleanup) {
+            prefetchGateCleanupRef.current = null;
+          }
+        };
+
+        audio.addEventListener("progress", onProgress);
+        audio.addEventListener("loadedmetadata", onMeta);
+        audio.addEventListener("durationchange", onMeta);
+        audio.addEventListener("canplaythrough", onCanPlayThrough);
+        prefetchGateCleanupRef.current = cleanup;
+        tryRun();
+      };
+
+      if (currentReadyForPrefetchNext()) {
+        runPrefetchNext();
+        return;
+      }
+
+      const audio = audioRef.current;
+      if (audio) {
+        armWaitOnAudio(audio);
+        return;
+      }
+
+      prefetchTimerRef.current = window.setTimeout(() => {
+        prefetchTimerRef.current = undefined;
+        const a = audioRef.current;
+        if (!a || activePlaybackTrackRef.current !== fromTrackId) return;
+        if (currentReadyForPrefetchNext()) {
+          runPrefetchNext();
+          return;
+        }
+        armWaitOnAudio(a);
+      }, 0);
     },
-    [patchTrackUrl, playbackSource, trackMap],
+    [cancelPrefetchGate, patchTrackUrl, playbackSource, trackMap],
   );
 
   useEffect(() => {
@@ -181,8 +259,11 @@ export function useAudioPlayer({
       setUser((prev) => ({ ...prev, lastTrackId: track.id }));
       const audio = audioRef.current;
       if (!audio || isStubTrack(track)) return;
-      clearTimeout(prefetchTimerRef.current);
+      cancelPrefetchGate();
       cancelInflightDownloads();
+      bufferWaitAbortRef.current?.abort();
+      bufferWaitAbortRef.current = new AbortController();
+      const bufferSignal = bufferWaitAbortRef.current.signal;
       setIsLoadingTrack(true);
       let url = track.url;
       try {
@@ -193,19 +274,42 @@ export function useAudioPlayer({
         }
         assignPlaybackSource(audio, track.id, url);
         playbackIntentRef.current = true;
+        await waitForLoadedMetadata(audio);
+        applyResumePosition(audio, userProgressRef.current[track.id]);
+        await waitForBufferAhead(audio, { signal: bufferSignal });
+        if (!playbackIntentRef.current || activePlaybackTrackRef.current !== track.id) {
+          return;
+        }
         await audio.play();
         schedulePrefetchNext(track.id);
       } catch (err) {
+        if (activePlaybackTrackRef.current !== track.id) return;
+        if (err instanceof DOMException && err.name === "AbortError") return;
         playbackIntentRef.current = false;
-        pushToast(formatPlaybackError(err), {
-          label: "Повторить",
-          onClick: () => void playTrack(track),
-        });
+        if (err instanceof Error && err.message === "buffer wait timeout") {
+          pushToast("Слишком долгая загрузка — не набралось достаточно буфера для старта");
+        } else if (err instanceof Error && err.message === "metadata timeout") {
+          pushToast("Не удалось получить метаданные трека");
+        } else {
+          pushToast(formatPlaybackError(err), {
+            label: "Повторить",
+            onClick: () => void playTrack(track),
+          });
+        }
       } finally {
-        setIsLoadingTrack(false);
+        if (activePlaybackTrackRef.current === track.id) {
+          setIsLoadingTrack(false);
+        }
       }
     },
-    [assignPlaybackSource, patchTrackUrl, schedulePrefetchNext, pushToast, setUser],
+    [
+      assignPlaybackSource,
+      cancelPrefetchGate,
+      patchTrackUrl,
+      schedulePrefetchNext,
+      pushToast,
+      setUser,
+    ],
   );
 
   const togglePlay = useCallback(async () => {
@@ -218,11 +322,20 @@ export function useAudioPlayer({
     }
     if (audio.paused) {
       playbackIntentRef.current = true;
+      setIsLoadingTrack(true);
       try {
+        await waitForBufferAhead(audio);
+        if (!playbackIntentRef.current) return;
         await audio.play();
       } catch (err) {
         playbackIntentRef.current = false;
-        pushToast(formatPlaybackError(err));
+        if (err instanceof Error && err.message === "buffer wait timeout") {
+          pushToast("Не набрался буфер для возобновления");
+        } else {
+          pushToast(formatPlaybackError(err));
+        }
+      } finally {
+        setIsLoadingTrack(false);
       }
     } else {
       playbackIntentRef.current = false;
@@ -249,9 +362,30 @@ export function useAudioPlayer({
     if (user.repeatMode === "one" && currentTrackId) {
       const audio = audioRef.current;
       if (audio) {
+        const tid = currentTrackId;
         playbackIntentRef.current = true;
-        audio.currentTime = 0;
-        void audio.play().catch(() => {});
+        void (async () => {
+          setIsLoadingTrack(true);
+          try {
+            audio.currentTime = 0;
+            await waitForBufferAhead(audio);
+            if (!playbackIntentRef.current || activePlaybackTrackRef.current !== tid) {
+              return;
+            }
+            await audio.play().catch(() => {});
+          } catch (err) {
+            if (activePlaybackTrackRef.current !== tid) return;
+            if (err instanceof Error && err.message === "buffer wait timeout") {
+              pushToast("Не набрался буфер для повтора трека");
+            } else if (!(err instanceof DOMException && err.name === "AbortError")) {
+              pushToast(formatPlaybackError(err));
+            }
+          } finally {
+            if (activePlaybackTrackRef.current === tid) {
+              setIsLoadingTrack(false);
+            }
+          }
+        })();
       }
       return;
     }
@@ -265,6 +399,7 @@ export function useAudioPlayer({
     playbackSource,
     trackMap,
     user.repeatMode,
+    pushToast,
   ]);
 
   const persistProgress = useCallback(
@@ -335,11 +470,20 @@ export function useAudioPlayer({
     const audio = audioRef.current;
     if (!audio) return;
     playbackIntentRef.current = true;
+    setIsLoadingTrack(true);
     try {
+      await waitForBufferAhead(audio);
+      if (!playbackIntentRef.current) return;
       await audio.play();
     } catch (err) {
       playbackIntentRef.current = false;
-      pushToast(formatPlaybackError(err));
+      if (err instanceof Error && err.message === "buffer wait timeout") {
+        pushToast("Не набрался буфер для воспроизведения");
+      } else {
+        pushToast(formatPlaybackError(err));
+      }
+    } finally {
+      setIsLoadingTrack(false);
     }
   };
   playerActionsRef.current.pause = () => {
@@ -394,15 +538,7 @@ export function useAudioPlayer({
     audio.playbackRate = user.playbackRate;
 
     const handleLoaded = () => {
-      const p = userProgressRef.current[trackId] ?? {
-        position: 0,
-        duration: 0,
-        completed: false,
-        updatedAt: null,
-      };
-      if (p.position > 0 && p.position < (audio.duration || Infinity) - 5) {
-        audio.currentTime = p.position;
-      }
+      applyResumePosition(audio, userProgressRef.current[trackId]);
       setLivePlayback({
         position: audio.currentTime || 0,
         duration: audio.duration || 0,
@@ -448,10 +584,10 @@ export function useAudioPlayer({
 
   useEffect(
     () => () => {
-      clearTimeout(prefetchTimerRef.current);
+      cancelPrefetchGate();
       cancelInflightDownloads();
     },
-    [],
+    [cancelPrefetchGate],
   );
 
   const keyboardRef = useRef({
