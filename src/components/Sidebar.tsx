@@ -54,10 +54,7 @@ export function Sidebar({
         </div>
         <div className="brand">
           <BrandLogo className="logo-box" />
-          <div>
-            <h1>Haiduk</h1>
-            <p>аудиосказки</p>
-          </div>
+          <h1>Haiduk</h1>
           <button
             type="button"
             className="ghost round sidebar-close"

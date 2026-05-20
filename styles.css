@@ -315,6 +315,8 @@ html.has-player {
   }
 }
 .brand h1 {
+  flex: 1;
+  min-width: 0;
   font-family: var(--font-display);
   font-size: var(--text-xl);
   line-height: 1;
@@ -1923,6 +1925,11 @@ input[type="range"]::-webkit-slider-thumb {
     grid-template-columns: minmax(0, 1fr);
   }
   .player-hints {
+    display: none;
+  }
+}
+@media (min-width: 1025px) {
+  .sidebar-close {
     display: none;
   }
 }
