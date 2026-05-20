@@ -82,12 +82,6 @@ export function useAudioPlayer({
   useWakeLock(isPlaying && user.wakeLock);
   useBackgroundPlayback(audioEl, playbackIntentRef);
 
-  useEffect(() => {
-    if (!currentTrackId && user.lastTrackId && trackMap.has(user.lastTrackId)) {
-      setCurrentTrackId(user.lastTrackId);
-    }
-  }, [currentTrackId, trackMap, user.lastTrackId]);
-
   const playbackSource = useCallback(
     () => (queue.length ? queue : trackIds),
     [queue, trackIds],

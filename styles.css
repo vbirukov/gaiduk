@@ -44,7 +44,7 @@
   --font-display: "Boska", Georgia, serif;
   --font-body: "Satoshi", Inter, sans-serif;
   --sidebar-width: 300px;
-  --player-bar-offset: 108px;
+  --player-bar-offset: 0px;
 }
 [data-theme="light"] .hookah-smoke__plume {
   mix-blend-mode: multiply;
@@ -110,7 +110,20 @@ input {
   display: grid;
   grid-template-columns: 300px 1fr;
   min-height: 100vh;
-  padding-bottom: 108px;
+  padding-bottom: 0;
+}
+html.has-player {
+  --player-bar-offset: 108px;
+}
+.app-shell.has-player {
+  padding-bottom: var(--player-bar-offset);
+}
+.player-audio-host {
+  position: fixed;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
 }
 .sidebar {
   position: sticky;
@@ -1597,8 +1610,7 @@ input[type="range"]::-webkit-slider-thumb {
   }
 }
 @media (max-width: 720px) {
-  :root,
-  [data-theme="light"] {
+  html.has-player {
     --player-bar-offset: min(42vh, 280px);
   }
   .hookah-smoke {
@@ -1606,9 +1618,6 @@ input[type="range"]::-webkit-slider-thumb {
   }
   .hookah-smoke__plume {
     filter: blur(26px);
-  }
-  .app-shell {
-    padding-bottom: min(42vh, 280px);
   }
   .main,
   .sidebar {

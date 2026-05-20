@@ -75,6 +75,13 @@ export function App() {
   }, [theme]);
 
   useEffect(() => {
+    document.documentElement.classList.toggle(
+      "has-player",
+      Boolean(player.currentTrackId),
+    );
+  }, [player.currentTrackId]);
+
+  useEffect(() => {
     const b = import.meta.env.VITE_AUDIO_PROXY_BASE;
     if (import.meta.env.PROD && (typeof b !== "string" || !String(b).trim())) {
       console.warn(
@@ -145,7 +152,11 @@ export function App() {
     <>
       <SplashScreen />
       <ToastStack toasts={toasts} onDismiss={dismissToast} />
-      <div className="app-shell">
+      <div
+        className={
+          player.currentTrackId ? "app-shell has-player" : "app-shell"
+        }
+      >
         <Sidebar
           navOpen={navOpen}
           onClose={closeNav}

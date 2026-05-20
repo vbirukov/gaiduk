@@ -62,6 +62,18 @@ export function PlayerBar({
   const liked = currentTrackId ? isLiked(currentTrackId) : false;
   const favorite = currentTrackId ? isFavorite(currentTrackId) : false;
 
+  if (!currentTrackId) {
+    return (
+      <audio
+        ref={bindAudioRef}
+        className="player-audio-host"
+        preload="auto"
+        playsInline
+        crossOrigin="anonymous"
+      />
+    );
+  }
+
   return (
     <>
       <footer className="player-bar">
