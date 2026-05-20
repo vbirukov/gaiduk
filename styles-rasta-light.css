@@ -187,35 +187,48 @@
 }
 
 [data-skin="rastaman-light"] .card {
-  border: 2px solid var(--rl-ink);
+  border: 2px solid color-mix(in oklab, var(--rl-ink) 72%, transparent);
   box-shadow: var(--shadow-sm);
-  background: var(--rl-cloud);
+  background: transparent;
 }
 
 [data-skin="rastaman-light"] .card-bg {
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-  background: var(--rl-cloud);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  background: linear-gradient(
+    165deg,
+    color-mix(in oklab, var(--rl-cloud) 64%, transparent),
+    color-mix(in oklab, var(--rl-sunny) 54%, transparent)
+  );
 }
 
 [data-skin="rastaman-light"] .card-bg__shade {
   background: linear-gradient(
     165deg,
-    color-mix(in oklab, var(--rl-sunny) 40%, transparent),
-    color-mix(in oklab, var(--rl-cloud) 90%, transparent) 100%
+    color-mix(in oklab, var(--rl-cloud) 32%, transparent),
+    color-mix(in oklab, var(--rl-sunset) 16%, transparent) 100%
   );
 }
 
 [data-skin="rastaman-light"] .card.is-active {
   border-color: var(--rl-orange);
-  background: color-mix(in oklab, var(--rl-green) 8%, var(--rl-cloud));
+  background: transparent;
 }
 
 [data-skin="rastaman-light"] .card.is-active .card-bg {
   background: linear-gradient(
     165deg,
-    var(--rl-cloud),
-    color-mix(in oklab, var(--rl-green) 12%, var(--rl-cloud))
+    color-mix(in oklab, var(--rl-cloud) 68%, transparent),
+    color-mix(in oklab, var(--rl-green) 24%, transparent)
+  );
+}
+
+[data-skin="rastaman-light"] .card.is-active .card-bg__shade {
+  background: linear-gradient(
+    165deg,
+    color-mix(in oklab, var(--rl-orange) 18%, transparent),
+    color-mix(in oklab, var(--rl-green) 14%, transparent) 55%,
+    color-mix(in oklab, var(--rl-sunny) 12%, transparent) 100%
   );
 }
 
@@ -239,8 +252,10 @@
 }
 
 [data-skin="rastaman-light"] .pill {
-  background: color-mix(in oklab, var(--rl-yellow) 45%, var(--rl-cloud));
-  border: 1.5px solid var(--rl-ink);
+  background: color-mix(in oklab, var(--rl-yellow) 48%, transparent);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  border: 1.5px solid color-mix(in oklab, var(--rl-ink) 55%, transparent);
   color: var(--text);
 }
 
@@ -258,7 +273,9 @@
 [data-skin="rastaman-light"] .card-badge--progress,
 [data-skin="rastaman-light"] .card-badge--live {
   border-color: color-mix(in oklab, var(--rl-green) 40%, transparent);
-  background: color-mix(in oklab, var(--rl-green) 14%, var(--rl-cloud));
+  background: color-mix(in oklab, var(--rl-green) 16%, transparent);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
 }
 
 [data-skin="rastaman-light"] .progress-line {
