@@ -69,6 +69,57 @@ function TrackCardInner({
     .filter(Boolean)
     .join(" ");
 
+  const progressPct =
+    progress.duration > 0
+      ? Math.min(100, Math.round((progress.position / progress.duration) * 100))
+      : 0;
+
+  const showProgressMini =
+    (status !== "unstarted" || isActive) &&
+    (ratio > 0 || isActive);
+
+  const renderStatusBadge = () => {
+    if (isActive) {
+      return (
+        <span
+          className={`card-badge card-badge--live${isPlaying ? " is-playing" : ""}`}
+          aria-live="polite"
+        >
+          {isPlaying ? "Сейчас" : "Пауза"}
+        </span>
+      );
+    }
+    if (status === "completed") {
+      return (
+        <span
+          className="card-badge card-badge--completed"
+          title={listenStatusLabel.completed}
+          aria-label={listenStatusLabel.completed}
+        >
+          <Icon name="check" size={11} />
+        </span>
+      );
+    }
+    if (status === "in-progress") {
+      const label =
+        progress.duration > 0
+          ? `${progressPct}%`
+          : progress.position > 0
+            ? fmtTime(progress.position)
+            : "···";
+      return (
+        <span
+          className="card-badge card-badge--progress"
+          title={listenStatusLabel["in-progress"]}
+          aria-label={`${listenStatusLabel["in-progress"]}, ${label}`}
+        >
+          {label}
+        </span>
+      );
+    }
+    return null;
+  };
+
   const playLabel = isStubTrack(track)
     ? "Подготовлено"
     : isActive && isPlaying
@@ -107,28 +158,29 @@ function TrackCardInner({
       <div className="card-top">
         <TrackCover track={track} size="lg" className="card-thumb" />
         <div className="card-main">
-          {isActive ? (
-            <div className="card-now-playing" aria-live="polite">
-              {isPlaying ? "Сейчас играет" : "На паузе"}
-            </div>
-          ) : null}
           <div className="card-pills">
             <div className="pill">{track.folder}</div>
-            {!isActive && status !== "unstarted" ? (
-              <span
-                className={`status-mark status-mark--${status}`}
-                title={listenStatusLabel[status]}
-                aria-label={listenStatusLabel[status]}
-              >
-                {status === "completed" ? (
-                  <Icon name="check" size={12} />
-                ) : (
-                  <span className="status-mark-dot" aria-hidden="true" />
-                )}
-              </span>
-            ) : null}
+            {renderStatusBadge()}
           </div>
-          <h4>{track.title}</h4>
+          <h4 className="card-title">{track.title}</h4>
+          {showProgressMini ? (
+            <div
+              className={`card-progress-mini progress-line progress-line--${status}${isActive && isPlaying ? " is-live" : ""}`}
+              role="progressbar"
+              aria-valuenow={progressPct}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label={
+                isActive
+                  ? isPlaying
+                    ? "Сейчас играет"
+                    : "На паузе"
+                  : listenStatusLabel[status]
+              }
+            >
+              <span style={{ width: `${ratio}%` }} />
+            </div>
+          ) : null}
         </div>
       </div>
       <div className="mini-meta">
@@ -136,11 +188,6 @@ function TrackCardInner({
         <span className={isActive ? "mini-meta-now" : undefined}>
           {progressHint}
         </span>
-      </div>
-      <div
-        className={`progress-line progress-line--${status}${isActive && isPlaying ? " is-live" : ""}`}
-      >
-        <span style={{ width: `${ratio}%` }} />
       </div>
       <div className="card-actions row-actions wrap">
         <div className="card-social row-actions">

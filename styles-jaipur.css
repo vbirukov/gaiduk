@@ -190,13 +190,22 @@
   background: color-mix(in oklab, var(--jaipur-saffron) 40%, transparent);
 }
 
-[data-skin="jaipur"] .card-now-playing,
+[data-skin="jaipur"] .card-badge--progress,
+[data-skin="jaipur"] .card-badge--live,
 [data-skin="jaipur"] .mini-meta-now {
   color: var(--jaipur-saffron);
 }
 
-[data-skin="jaipur"] .card-now-playing::before {
+[data-skin="jaipur"] .card-badge--progress::before,
+[data-skin="jaipur"] .card-badge--live::before {
   background: var(--jaipur-saffron);
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--jaipur-saffron) 30%, transparent);
+}
+
+[data-skin="jaipur"] .card-badge--progress,
+[data-skin="jaipur"] .card-badge--live {
+  border-color: color-mix(in oklab, var(--jaipur-saffron) 45%, transparent);
+  background: color-mix(in oklab, var(--jaipur-saffron) 14%, var(--jaipur-clay));
 }
 
 [data-skin="jaipur"] .progress-line span,

@@ -1111,30 +1111,73 @@ html.has-player {
     opacity: 0.52;
   }
 }
-.card-now-playing {
+.card-badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  margin-bottom: var(--space-2);
-  font-size: var(--text-xs);
-  font-weight: 600;
+  gap: 0.3rem;
+  min-height: 1.35rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 700;
   letter-spacing: 0.04em;
+  line-height: 1.15;
   text-transform: uppercase;
-  color: var(--primary);
+  flex-shrink: 0;
+  border: 1px solid oklch(from var(--text) l c h / 0.1);
 }
-.card-now-playing::before {
+.card-badge--progress {
+  color: var(--primary);
+  background: color-mix(in oklab, var(--primary) 16%, var(--surface-offset));
+  border-color: color-mix(in oklab, var(--primary) 35%, transparent);
+  font-variant-numeric: tabular-nums;
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+.card-badge--progress::before {
   content: "";
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--primary);
+  flex-shrink: 0;
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--primary) 25%, transparent);
+}
+.card-badge--live {
+  color: var(--primary);
+  background: color-mix(in oklab, var(--primary) 18%, var(--surface-offset));
+  border-color: color-mix(in oklab, var(--primary) 40%, transparent);
+}
+.card-badge--live::before {
+  content: "";
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: var(--primary);
   flex-shrink: 0;
 }
-.card.is-playing .card-now-playing::before {
+.card-badge--live.is-playing::before {
   animation: now-playing-dot 1.4s ease-in-out infinite;
 }
-.card.is-active:not(.is-playing) .card-now-playing::before {
-  opacity: 0.45;
+.card-badge--completed {
+  width: 1.35rem;
+  height: 1.35rem;
+  padding: 0;
+  justify-content: center;
+  color: var(--text-muted);
+  background: color-mix(in oklab, var(--text-faint) 16%, var(--surface-offset));
+  border-color: color-mix(in oklab, var(--text-faint) 28%, transparent);
+}
+.card-title {
+  margin: 0.45rem 0 0;
+}
+.card-progress-mini {
+  height: 3px;
+  margin-top: var(--space-2);
+  border-radius: 999px;
+}
+.card.is-active .card-progress-mini {
+  height: 4px;
 }
 .mini-meta-now {
   color: var(--primary);
@@ -1208,9 +1251,12 @@ html.has-player {
     z-index: 1;
   }
 }
-.card h4 {
-  margin: 0.65rem 0 0.25rem;
+.card h4,
+.card-title {
   font-size: var(--text-base);
+}
+.card h4:not(.card-title) {
+  margin: 0.65rem 0 0.25rem;
 }
 .pill,
 .tag {
@@ -1275,31 +1321,8 @@ html.has-player {
   gap: var(--space-2);
   align-items: center;
 }
-.status-mark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.15rem;
-  height: 1.15rem;
-  flex-shrink: 0;
-  border-radius: 999px;
-  border: 1px solid oklch(from var(--text) l c h / 0.1);
-}
-.status-mark--completed {
-  color: var(--text-muted);
-  background: color-mix(in oklab, var(--text-faint) 14%, var(--surface-offset));
-}
-.status-mark--in-progress {
-  border-color: color-mix(in oklab, var(--primary) 28%, transparent);
-  background: color-mix(in oklab, var(--primary) 12%, var(--surface-offset));
-}
-.status-mark-dot {
-  width: 0.4rem;
-  height: 0.4rem;
-  border-radius: 999px;
-  background: var(--primary);
-}
-.card-status-completed:not(.is-active) .card-main h4 {
+.card-status-completed:not(.is-active) .card-main h4,
+.card-status-completed:not(.is-active) .card-title {
   color: var(--text-muted);
 }
 .progress-line--completed span {
@@ -1832,15 +1855,18 @@ input[type="range"]::-webkit-slider-thumb {
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .card .mini-meta,
-  .card .progress-line {
+  .card .mini-meta {
     display: none;
   }
-  .card-main .card-now-playing {
-    margin-bottom: var(--space-1);
+  .card-main h4,
+  .card-title {
+    margin-top: 0.35rem;
   }
   .card-actions .tag {
     flex-basis: 100%;
+  }
+  .card-social {
+    display: none;
   }
   .card {
     cursor: pointer;
