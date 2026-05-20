@@ -143,33 +143,33 @@
   backdrop-filter: blur(6px);
   background: linear-gradient(
     165deg,
-    color-mix(in oklab, var(--jaipur-facade) 52%, transparent),
-    color-mix(in oklab, var(--jaipur-blush) 40%, transparent)
+    color-mix(in oklab, var(--jaipur-facade) 68%, transparent),
+    color-mix(in oklab, var(--jaipur-blush) 56%, transparent)
   );
 }
 
 [data-skin="jaipur"] .card-bg__shade {
   background: linear-gradient(
     165deg,
-    color-mix(in oklab, var(--jaipur-outline) 6%, transparent),
-    color-mix(in oklab, var(--jaipur-clay) 12%, transparent) 100%
+    color-mix(in oklab, var(--jaipur-outline) 10%, transparent),
+    color-mix(in oklab, var(--jaipur-clay) 18%, transparent) 100%
   );
 }
 
 [data-skin="jaipur"] .card.is-active .card-bg {
   background: linear-gradient(
     165deg,
-    color-mix(in oklab, var(--jaipur-facade) 58%, transparent),
-    color-mix(in oklab, var(--jaipur-emerald) 26%, transparent)
+    color-mix(in oklab, var(--jaipur-facade) 72%, transparent),
+    color-mix(in oklab, var(--jaipur-emerald) 42%, transparent)
   );
 }
 
 [data-skin="jaipur"] .card.is-active .card-bg__shade {
   background: linear-gradient(
     165deg,
-    color-mix(in oklab, var(--jaipur-saffron) 12%, transparent),
-    color-mix(in oklab, var(--jaipur-clay) 14%, transparent) 55%,
-    color-mix(in oklab, var(--jaipur-facade) 10%, transparent) 100%
+    color-mix(in oklab, var(--jaipur-saffron) 18%, transparent),
+    color-mix(in oklab, var(--jaipur-clay) 20%, transparent) 55%,
+    color-mix(in oklab, var(--jaipur-facade) 16%, transparent) 100%
   );
 }
 
@@ -177,7 +177,7 @@
   content: "";
   position: absolute;
   inset: 0;
-  opacity: 0.1;
+  opacity: 0.2;
   background-image: var(--pattern-jali);
   background-size: 56px 56px;
   pointer-events: none;
@@ -193,7 +193,7 @@
 }
 
 [data-skin="jaipur"] .pill {
-  background: color-mix(in oklab, var(--jaipur-clay) 42%, transparent);
+  background: color-mix(in oklab, var(--jaipur-clay) 58%, transparent);
   -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
   border-color: var(--jaipur-outline);
