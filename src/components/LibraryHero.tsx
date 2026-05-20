@@ -1,7 +1,7 @@
 import { useCallback, useRef } from "react";
 import { useFeedGridDesktop } from "../hooks/useFeedGridDesktop";
 import { AuthorPhotoSlideshow } from "./AuthorPhotoSlideshow";
-import { AUTHOR_CONCERTS_URL, AUTHOR_VK_URL } from "../config";
+import { AUTHOR_VK_URL } from "../config";
 import type { Catalog } from "../types/catalog";
 
 type Props = {
@@ -94,7 +94,7 @@ export function LibraryHero({
             </a>
             <a
               className="chip hero-author-cta"
-              href={AUTHOR_CONCERTS_URL}
+              href={AUTHOR_VK_URL}
               target="_blank"
               rel="noopener noreferrer"
             >

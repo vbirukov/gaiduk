@@ -263,6 +263,7 @@
 [data-skin="rastaman-light"] .player-bar {
   border-top: 2px solid var(--rl-ink);
   background: var(--rl-cloud);
+  padding-top: calc(var(--space-3) + 4px);
 }
 
 [data-skin="rastaman-light"] .player-bar::before {
@@ -281,10 +282,6 @@
   );
   pointer-events: none;
   z-index: 2;
-}
-
-[data-skin="rastaman-light"] .player-bar {
-  position: relative;
 }
 
 [data-skin="rastaman-light"] .player-bar-bg {
