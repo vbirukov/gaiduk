@@ -33,6 +33,7 @@ type Props = {
   onAddToPlaylist: TrackCardProps["onAddToPlaylist"];
   onOpenNav: () => void;
   isJaipur: boolean;
+  isRastamanLight: boolean;
 };
 
 export function TrackList({
@@ -56,6 +57,7 @@ export function TrackList({
   onAddToPlaylist,
   onOpenNav,
   isJaipur,
+  isRastamanLight,
 }: Props) {
   const feedRef = useRef<HTMLDivElement>(null);
   const { collapsed, collapse, expand } = useHeroCollapsed();
@@ -119,7 +121,7 @@ export function TrackList({
       {isJaipur ? (
         <JaipurClouds active={isPlaying} />
       ) : (
-        <HookahSmoke active={isPlaying} />
+        <HookahSmoke active={isPlaying} dense={isRastamanLight} />
       )}
       <div className="library-feed-content" ref={feedRef}>
       <LibraryHero

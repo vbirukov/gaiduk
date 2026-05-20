@@ -75,6 +75,7 @@
 }
 
 [data-skin="rastaman-light"] .library-feed-bg {
+  overflow: hidden;
   background:
     radial-gradient(
       ellipse 65% 50% at 50% 0%,
@@ -87,6 +88,50 @@
       transparent 58%
     ),
     linear-gradient(180deg, var(--rl-sky) 0%, var(--rl-sunny) 42%, var(--rl-sunset) 100%);
+}
+
+[data-skin="rastaman-light"] .library-feed-bg::before,
+[data-skin="rastaman-light"] .library-feed-bg::after {
+  content: "";
+  position: absolute;
+  width: 240%;
+  height: 240%;
+  left: -70%;
+  top: -70%;
+  pointer-events: none;
+  will-change: transform;
+}
+
+[data-skin="rastaman-light"] .library-feed-bg::before {
+  background: radial-gradient(
+    circle at 74% 36%,
+    rgba(255, 248, 200, 0.85) 0%,
+    rgba(255, 210, 90, 0.5) 12%,
+    rgba(255, 154, 60, 0.22) 26%,
+    transparent 44%
+  );
+  animation: rasta-light-sun-orbit 52s linear infinite;
+}
+
+[data-skin="rastaman-light"] .library-feed-bg::after {
+  background: radial-gradient(
+    circle at 70% 40%,
+    rgba(255, 180, 70, 0.35) 0%,
+    rgba(249, 199, 79, 0.18) 18%,
+    transparent 38%
+  );
+  filter: blur(8px);
+  animation: rasta-light-sun-orbit 52s linear infinite reverse;
+  opacity: 0.9;
+}
+
+@keyframes rasta-light-sun-orbit {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 [data-skin="rastaman-light"] .hero {
@@ -324,6 +369,12 @@
 
 [data-skin="rastaman-light"] .hookah-smoke {
   z-index: 1;
+  height: min(94vh, 860px);
+}
+
+[data-skin="rastaman-light"] .hookah-smoke--dense .hookah-smoke__plume {
+  height: min(72%, 480px);
+  filter: blur(26px) saturate(1.25);
 }
 
 [data-skin="rastaman-light"] .hookah-smoke::before {

@@ -35,7 +35,7 @@ export function App() {
   const [view, setView] = useState<LibraryView>("all");
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [selectedPlaylist, setSelectedPlaylist] = useState<string | null>(null);
-  const { skin, setSkin, isJaipur } = useAppTheme();
+  const { skin, setSkin, isJaipur, isRastamanLight } = useAppTheme();
   const [swNeedRefresh, setSwNeedRefresh] = useState(false);
   const [installPrompt, setInstallPrompt] =
     useState<BeforeInstallPromptEvent | null>(null);
@@ -247,6 +247,7 @@ export function App() {
           />
           <TrackList
             isJaipur={isJaipur}
+            isRastamanLight={isRastamanLight}
             catalog={catalog}
             user={user}
             tracks={tracks}
