@@ -3,8 +3,15 @@ import {
   useMemo,
   useRef,
   useState,
+  type CSSProperties,
   type RefObject,
 } from "react";
+import {
+  computeFeedColumns,
+  defaultFeedColumns,
+  GRID_GAP_PX,
+  measureFeedGridWidth,
+} from "../lib/gridColumns";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import {
   buildFeedLayoutRows,
@@ -20,9 +27,6 @@ import { TrackCard, type TrackCardProps } from "./TrackCard";
 import { TrackCardSkeleton } from "./TrackCardSkeleton";
 
 const VIRTUALIZE_MIN = 48;
-const CARD_MIN_WIDTH = 240;
-const MAX_GRID_COLS = 3;
-const GRID_GAP_PX = 16;
 const ROW_ESTIMATE_PX = 340;
 const HEADER_ROW_ESTIMATE_PX = 52;
 const OVERSCAN_ROWS = 8;
@@ -45,24 +49,28 @@ type Props = {
 };
 
 function useColumnCount(containerRef: RefObject<HTMLElement | null>) {
-  const [cols, setCols] = useState(1);
+  const [cols, setCols] = useState(defaultFeedColumns);
 
   useLayoutEffect(() => {
     const el = containerRef.current;
     if (!el) return;
+
     const measure = () => {
-      const w = el.clientWidth;
-      setCols(
-        Math.min(
-          MAX_GRID_COLS,
-          Math.max(1, Math.floor((w + GRID_GAP_PX) / (CARD_MIN_WIDTH + GRID_GAP_PX))),
-        ),
-      );
+      setCols(computeFeedColumns(measureFeedGridWidth(el)));
     };
+
     measure();
     const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    return () => ro.disconnect();
+    const target =
+      (el.closest(".library-feed-content") as HTMLElement | null) ?? el;
+    ro.observe(target);
+    if (target !== el) ro.observe(el);
+    window.addEventListener("resize", measure);
+
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", measure);
+    };
   }, [containerRef]);
 
   return cols;
@@ -228,20 +236,22 @@ export function VirtualTrackGrid({
     );
   };
 
+  const feedGridStyle = {
+    "--feed-cols": cols,
+  } as CSSProperties;
+
   const renderRow = (rowTracks: Track[], className: string) => (
-    <div
-      className={className}
-      style={{
-        gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
-      }}
-    >
-      {rowTracks.map(renderCard)}
-    </div>
+    <div className={className}>{rowTracks.map(renderCard)}</div>
   );
 
   if (catalogLoading) {
     return (
-      <section className="cards" aria-busy="true" aria-label="Загрузка каталога">
+      <section
+        className="cards"
+        style={feedGridStyle}
+        aria-busy="true"
+        aria-label="Загрузка каталога"
+      >
         {Array.from({ length: SKELETON_COUNT }, (_, i) => (
           <TrackCardSkeleton key={i} />
         ))}
@@ -252,14 +262,14 @@ export function VirtualTrackGrid({
   if (!useVirtual) {
     if (showFolderHeaders) {
       return (
-        <div ref={containerRef} className="track-feed">
+        <div ref={containerRef} className="track-feed" style={feedGridStyle}>
           {folderGroups.map((group) => (
             <section
               key={group.folder}
               className="track-feed__section"
             >
               <CatalogFolderHeading folder={group.folder} />
-              <div className="cards cards--section">
+              <div className="cards cards--section" style={feedGridStyle}>
                 {group.tracks.map(renderCard)}
               </div>
             </section>
@@ -268,14 +278,18 @@ export function VirtualTrackGrid({
       );
     }
     return (
-      <section ref={containerRef} className="cards">
+      <section ref={containerRef} className="cards" style={feedGridStyle}>
         {tracks.map(renderCard)}
       </section>
     );
   }
 
   return (
-    <section ref={containerRef} className="cards cards--virtual">
+    <section
+      ref={containerRef}
+      className="cards cards--virtual"
+      style={feedGridStyle}
+    >
       <div
         className="cards-virtual-spacer"
         style={{ height: virtualizer.getTotalSize() }}
