@@ -1,4 +1,5 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { SPLASH_SEEN_KEY } from "../config";
 import { useHeroCollapsed } from "../hooks/useHeroCollapsed";
 import { emptyStateCopy } from "../lib/emptyState";
 import type { Catalog, Track } from "../types/catalog";
@@ -59,8 +60,33 @@ export function TrackList({
   onOpenNav,
   isJaipur,
 }: Props) {
-  const feedRef = useRef<HTMLElement>(null);
+  const feedRef = useRef<HTMLDivElement>(null);
   const { collapsed, collapse, expand } = useHeroCollapsed();
+
+  useEffect(() => {
+    const el = feedRef.current;
+    if (!el) return;
+
+    const alignFeedTop = () => {
+      const instant = window.matchMedia("(prefers-reduced-motion: reduce)")
+        .matches;
+      el.scrollIntoView({
+        block: "start",
+        behavior: instant ? "auto" : "instant",
+      });
+    };
+
+    requestAnimationFrame(() => requestAnimationFrame(alignFeedTop));
+
+    let splashDelay = 0;
+    try {
+      if (sessionStorage.getItem(SPLASH_SEEN_KEY) !== "1") splashDelay = 2050;
+    } catch {
+      /* private mode */
+    }
+    const afterSplash = window.setTimeout(alignFeedTop, splashDelay);
+    return () => window.clearTimeout(afterSplash);
+  }, []);
   const [scrollToTrackId, setScrollToTrackId] = useState<string | null>(null);
   const clearScrollToTrack = useCallback(() => setScrollToTrackId(null), []);
   const handleContinue = useCallback(

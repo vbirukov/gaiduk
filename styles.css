@@ -220,6 +220,14 @@ html.has-player {
 }
 .now-box-text {
   min-width: 0;
+  overflow: hidden;
+}
+.now-box-text strong,
+.now-box-text .mini-text {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .icon {
   display: block;
@@ -510,6 +518,7 @@ html.has-player {
   display: grid;
   gap: var(--space-6);
   padding-inline: var(--space-6);
+  padding-top: var(--space-4);
 }
 .library-feed-bg {
   position: absolute;
@@ -1720,6 +1729,7 @@ input[type="range"]::-webkit-slider-thumb {
   }
   .library-feed-content {
     padding-inline: var(--space-4);
+    padding-top: var(--space-3);
   }
   .menu-toggle {
     top: max(var(--space-4), env(safe-area-inset-top, 0px));
@@ -1738,12 +1748,6 @@ input[type="range"]::-webkit-slider-thumb {
   .now-box > div:last-child {
     min-width: 0;
     overflow: hidden;
-  }
-  .now-box strong {
-    display: block;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
   }
   .right-box {
     display: grid;
