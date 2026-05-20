@@ -41,7 +41,7 @@ function buildPlumes(count: number, stagger: number) {
 }
 
 export function HookahSmoke({ active, dense = false }: Props) {
-  const plumes = buildPlumes(dense ? 40 : 24, dense ? 0.38 : 0.58);
+  const plumes = buildPlumes(dense ? 34 : 24, dense ? 0.38 : 0.58);
 
   return (
     <div
