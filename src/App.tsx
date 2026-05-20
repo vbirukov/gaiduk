@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAppTheme } from "./hooks/useAppTheme";
 import type { Track } from "./types/catalog";
 import { MainHeader } from "./components/MainHeader";
@@ -11,6 +11,9 @@ import { ScrollToTop } from "./components/ScrollToTop";
 import { ToastStack } from "./components/ToastStack";
 import { useAudioPlayer } from "./hooks/useAudioPlayer";
 import { useCatalog } from "./hooks/useCatalog";
+import { useServerMediaTest } from "./hooks/useServerMediaTest";
+import { catalogWithServerMediaUrls } from "./lib/serverMediaCatalog";
+import { setRuntimeServerMediaTest } from "./lib/serverMediaTest";
 import { useToasts } from "./hooks/useToasts";
 import { useUserState } from "./hooks/useUserState";
 import { registerAppSW } from "./pwa/register";
@@ -40,6 +43,13 @@ export function App() {
   const [navOpen, setNavOpen] = useState(false);
   const [playlistName, setPlaylistName] = useState("");
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
+  const { serverMediaTest, toggle: toggleServerMediaTest } =
+    useServerMediaTest();
+
+  const catalogOpts = useMemo(
+    () => ({ serverMediaTest }),
+    [serverMediaTest],
+  );
 
   const {
     catalog,
@@ -56,7 +66,7 @@ export function App() {
     resumeCount,
     sectionTitle,
     sectionSub,
-  } = useCatalog(user, { view, selectedFolder, selectedPlaylist });
+  } = useCatalog(user, { view, selectedFolder, selectedPlaylist }, catalogOpts);
 
   const player = useAudioPlayer({
     catalog,
@@ -129,6 +139,20 @@ export function App() {
     const cat = await refreshCatalog();
     if (cat) setCatalog(cat);
     else pushToast("Не удалось обновить каталог. Проверьте сеть.");
+  };
+
+  const handleToggleServerMediaTest = () => {
+    const next = !serverMediaTest;
+    toggleServerMediaTest();
+    setRuntimeServerMediaTest(next);
+    if (next) {
+      setCatalog((c) => catalogWithServerMediaUrls(c));
+      pushToast("Тест /media: играем с сервера. Нет файла — ошибка.");
+    } else {
+      void refreshCatalog().then((cat) => {
+        if (cat) setCatalog(cat);
+      });
+    }
   };
 
   const showIosInstallHint =
@@ -216,6 +240,8 @@ export function App() {
             onDismissIosHint={() => setIosHintDismissed(true)}
             loadingCatalog={loadingCatalog}
             onRefreshCatalog={() => void handleRefreshCatalog()}
+            serverMediaTest={serverMediaTest}
+            onToggleServerMediaTest={handleToggleServerMediaTest}
             skin={skin}
             onSkinChange={setSkin}
           />

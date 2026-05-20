@@ -5,7 +5,9 @@ type CatalogWorkerOut =
   | { type: "done"; catalog: Catalog }
   | { type: "error"; message: string };
 
-export function runCatalogWorker(): Promise<Catalog | null> {
+export function runCatalogWorker(opts?: {
+  serverMediaTest?: boolean;
+}): Promise<Catalog | null> {
   return new Promise((resolve) => {
     const w = new CatalogWorkerCtor();
     const finish = (cat: Catalog | null) => {
@@ -18,6 +20,9 @@ export function runCatalogWorker(): Promise<Catalog | null> {
       else if (d?.type === "error") finish(null);
     };
     w.onerror = () => finish(null);
-    w.postMessage({ type: "build" });
+    w.postMessage({
+      type: "build",
+      serverMediaTest: opts?.serverMediaTest,
+    });
   });
 }

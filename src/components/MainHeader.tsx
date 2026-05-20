@@ -11,6 +11,8 @@ type Props = {
   onDismissIosHint: () => void;
   loadingCatalog: boolean;
   onRefreshCatalog: () => void;
+  serverMediaTest: boolean;
+  onToggleServerMediaTest: () => void;
   skin: AppSkin;
   onSkinChange: (skin: AppSkin) => void;
 };
@@ -23,6 +25,8 @@ export function MainHeader({
   onDismissIosHint,
   loadingCatalog,
   onRefreshCatalog,
+  serverMediaTest,
+  onToggleServerMediaTest,
   skin,
   onSkinChange,
 }: Props) {
@@ -57,6 +61,17 @@ export function MainHeader({
             iOS: Поделиться → На экран «Домой»
           </button>
         ) : null}
+        <button
+          type="button"
+          className={
+            serverMediaTest ? "ghost server-media-test is-on" : "ghost server-media-test"
+          }
+          aria-pressed={serverMediaTest}
+          title="Прямое аудио с /media/ на сервере (без прокси Яндекса)"
+          onClick={onToggleServerMediaTest}
+        >
+          {serverMediaTest ? "Сервер ✓" : "Тест /media"}
+        </button>
         <button type="button" className="ghost" onClick={onRefreshCatalog}>
           {loadingCatalog ? "Обновляю…" : "Обновить каталог"}
         </button>

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { fallbackCatalog } from "../data/fallbackCatalog";
-import { useLocalMedia } from "../lib/mediaUrl";
+import { catalogWithServerMediaUrls } from "../lib/serverMediaCatalog";
+import { useServerMedia } from "../lib/mediaUrl";
 import { runCatalogWorker } from "../lib/catalogWorker";
 import { shuffleIds } from "../lib/queue";
 import type { Catalog, Track } from "../types/catalog";
@@ -12,7 +13,11 @@ type Filters = {
   selectedPlaylist: string | null;
 };
 
-export function useCatalog(user: UserState, filters: Filters) {
+type Options = {
+  serverMediaTest?: boolean;
+};
+
+export function useCatalog(user: UserState, filters: Filters, options?: Options) {
   const [catalog, setCatalog] = useState<Catalog>(fallbackCatalog);
   const [initialLoading, setInitialLoading] = useState(true);
   const [loadingCatalog, setLoadingCatalog] = useState(false);
@@ -21,22 +26,27 @@ export function useCatalog(user: UserState, filters: Filters) {
   const refreshCatalog = useCallback(async () => {
     setLoadingCatalog(true);
     try {
-      return await runCatalogWorker();
+      const cat = await runCatalogWorker({
+        serverMediaTest: options?.serverMediaTest,
+      });
+      return cat ? catalogWithServerMediaUrls(cat) : null;
     } finally {
       setLoadingCatalog(false);
     }
-  }, []);
+  }, [options?.serverMediaTest]);
 
   useEffect(() => {
     void (async () => {
       try {
-        const cat = await runCatalogWorker();
-        if (cat?.tracks.length) setCatalog(cat);
+        const cat = await runCatalogWorker({
+          serverMediaTest: options?.serverMediaTest,
+        });
+        if (cat?.tracks.length) setCatalog(catalogWithServerMediaUrls(cat));
       } finally {
         setInitialLoading(false);
       }
     })();
-  }, []);
+  }, [options?.serverMediaTest]);
 
   const patchTrackUrl = useCallback((trackId: string, url: string) => {
     setCatalog((prev) => ({
@@ -138,8 +148,10 @@ export function useCatalog(user: UserState, filters: Filters) {
 
   const sectionSub = filters.selectedFolder
     ? "Все треки выбранной серии."
-    : useLocalMedia()
-      ? "Каталог и аудио с вашего сервера."
+    : useServerMedia()
+      ? options?.serverMediaTest
+        ? "Тест: аудио напрямую с /media/ (без прокси Яндекса). Нет файла — 404."
+        : "Каталог и аудио с вашего сервера."
       : catalog.loaded
         ? "Живой индекс публичной папки Яндекс.Диска."
         : "Идет fallback-режим до полной индексации каталога.";

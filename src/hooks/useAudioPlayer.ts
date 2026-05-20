@@ -19,7 +19,11 @@ import {
   streamPlaybackUrl,
 } from "../lib/audioCache";
 import { fetchDiskDownloadHref, isStubTrack } from "../lib/diskDownload";
-import { isYandexDiskDownloadUrl, useLocalMedia } from "../lib/mediaUrl";
+import {
+  isYandexDiskDownloadUrl,
+  mediaUrlForPath,
+  useServerMedia,
+} from "../lib/mediaUrl";
 import { formatPlaybackError } from "../lib/playbackErrors";
 import {
   applyResumePosition,
@@ -110,7 +114,7 @@ export function useAudioPlayer({
 
   const schedulePrefetchNext = useCallback(
     (fromTrackId: string) => {
-      if (useLocalMedia()) return;
+      if (useServerMedia()) return;
       cancelPrefetchGate();
 
       const currentReadyForPrefetchNext = () => {
@@ -205,6 +209,10 @@ export function useAudioPlayer({
   useEffect(() => {
     const track = currentTrackId ? trackMap.get(currentTrackId) : undefined;
     if (!track || track.url || isStubTrack(track)) return;
+    if (useServerMedia()) {
+      patchTrackUrl(track.id, mediaUrlForPath(track.path));
+      return;
+    }
     let cancelled = false;
     void (async () => {
       try {
@@ -301,7 +309,10 @@ export function useAudioPlayer({
 
       let url = track.url;
       try {
-        if (!url) {
+        if (useServerMedia()) {
+          url = mediaUrlForPath(track.path);
+          patchTrackUrl(track.id, url);
+        } else if (!url) {
           url = await fetchDiskDownloadHref(track.path);
           if (stale()) return;
           if (!url) throw new Error("empty href");
@@ -312,7 +323,7 @@ export function useAudioPlayer({
         if (
           resumeHint != null &&
           resumeHint > 15 &&
-          !useLocalMedia() &&
+          !useServerMedia() &&
           url &&
           !peekCachedPlaybackUrl(track.id)
         ) {

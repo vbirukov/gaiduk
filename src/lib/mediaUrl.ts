@@ -1,15 +1,33 @@
+import { isRuntimeServerMediaTest } from "./serverMediaTest";
+
 /** Локальные mp3 с сервера (после scripts/sync-disk-media.mjs). */
-export function mediaBase(): string {
+function mediaBaseFromEnv(): string {
   const raw = import.meta.env.VITE_MEDIA_BASE;
   return typeof raw === "string" ? raw.trim().replace(/\/$/, "") : "";
 }
 
+export function effectiveMediaBase(): string {
+  const env = mediaBaseFromEnv();
+  if (env) return env;
+  if (isRuntimeServerMediaTest()) return "/media";
+  return "";
+}
+
+export function mediaBase(): string {
+  return effectiveMediaBase();
+}
+
+export function useServerMedia(): boolean {
+  return Boolean(effectiveMediaBase());
+}
+
+/** @deprecated use useServerMedia */
 export function useLocalMedia(): boolean {
-  return Boolean(mediaBase());
+  return useServerMedia();
 }
 
 export function mediaUrlForPath(diskPath: string): string {
-  const base = mediaBase();
+  const base = effectiveMediaBase();
   if (!base) return "";
   const segments = diskPath
     .split("/")
