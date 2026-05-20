@@ -28,6 +28,48 @@ export function minBufferAheadToStart(audio: HTMLAudioElement): number {
   return PLAY_BUFFER_AHEAD_SEC;
 }
 
+/** HTML вместо mp3 (nginx без location /media/) — duration 0 / NaN. */
+export function assertPlayableAudio(audio: HTMLAudioElement): void {
+  if (audio.error) {
+    const code = audio.error?.code ?? 0;
+    throw new Error(code === 4 ? "404" : String(code));
+  }
+  const d = audio.duration;
+  if (!Number.isFinite(d) || d <= 0) {
+    throw new Error("invalid media");
+  }
+}
+
+export function waitForCanPlay(
+  audio: HTMLAudioElement,
+  timeoutMs = 20_000,
+): Promise<void> {
+  if (audio.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
+    return Promise.resolve();
+  }
+  return new Promise((resolve, reject) => {
+    const to = window.setTimeout(() => {
+      cleanup();
+      reject(new Error("canplay timeout"));
+    }, timeoutMs);
+    const cleanup = () => {
+      window.clearTimeout(to);
+      audio.removeEventListener("canplay", on);
+      audio.removeEventListener("error", onErr);
+    };
+    const on = () => {
+      cleanup();
+      resolve();
+    };
+    const onErr = () => {
+      cleanup();
+      reject(new Error("media error"));
+    };
+    audio.addEventListener("canplay", on);
+    audio.addEventListener("error", onErr, { once: true });
+  });
+}
+
 export function waitForLoadedMetadata(audio: HTMLAudioElement): Promise<void> {
   if (audio.readyState >= HTMLMediaElement.HAVE_METADATA) {
     return Promise.resolve();

@@ -27,9 +27,11 @@ import {
 import { formatPlaybackError } from "../lib/playbackErrors";
 import {
   applyResumePosition,
+  assertPlayableAudio,
   getResumePositionSec,
   isAudioFullyBuffered,
   waitForBufferAhead,
+  waitForCanPlay,
   waitForLoadedMetadata,
   waitForSeeked,
 } from "../lib/audioBuffer";
@@ -334,6 +336,7 @@ export function useAudioPlayer({
         playbackIntentRef.current = true;
         await waitForLoadedMetadata(audio);
         if (stale()) return;
+        assertPlayableAudio(audio);
 
         const resumeAt = applyResumePosition(audio, saved);
         if (resumeAt != null) {
@@ -344,7 +347,11 @@ export function useAudioPlayer({
           }
           if (stale()) return;
         }
-        await waitForBufferAhead(audio, { signal: bufferSignal });
+        if (useServerMedia()) {
+          await waitForCanPlay(audio);
+        } else {
+          await waitForBufferAhead(audio, { signal: bufferSignal });
+        }
         if (stale() || !playbackIntentRef.current) return;
         await audio.play();
         schedulePrefetchNext(track.id);

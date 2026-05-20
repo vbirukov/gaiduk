@@ -6,6 +6,10 @@ export function formatPlaybackError(err: unknown): string {
     return "Доступ к аудио запрещён. Проверьте VITE_AUDIO_PROXY_BASE и прокси на сервере.";
   if (msg === "404")
     return "Файла нет на сервере (/media/) — дождитесь sync или выключите тест.";
+  if (msg === "invalid media")
+    return "Сервер отдал не mp3 (часто index.html) — проверьте nginx: location ^~ /media/";
+  if (msg === "canplay timeout" || msg === "media error")
+    return "Не удалось декодировать аудио — проверьте URL /media/ на сервере.";
   if (msg === "empty href") return "Не удалось получить ссылку на файл.";
   if (/^\d+$/.test(msg)) return `Ошибка загрузки (HTTP ${msg}).`;
   if (err instanceof DOMException) {
