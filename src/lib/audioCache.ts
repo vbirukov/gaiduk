@@ -32,6 +32,12 @@ export function cancelInflightDownloads(exceptTrackId?: string) {
   }
 }
 
+export function abortPlaybackForTrack(trackId: string) {
+  abortByTrackId.get(trackId)?.abort();
+  abortByTrackId.delete(trackId);
+  inflightByTrackId.delete(trackId);
+}
+
 export function peekCachedPlaybackUrl(trackId: string) {
   return blobUrlByTrackId.get(trackId);
 }

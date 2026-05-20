@@ -11,6 +11,7 @@ import { useMediaSession } from "./useMediaSession";
 import { usePlayerKeyboard } from "./usePlayerKeyboard";
 import { useWakeLock } from "./useWakeLock";
 import {
+  abortPlaybackForTrack,
   cancelInflightDownloads,
   getCachedPlaybackUrl,
   peekCachedPlaybackUrl,
@@ -81,6 +82,8 @@ export function useAudioPlayer({
   );
   const prefetchGateCleanupRef = useRef<(() => void) | null>(null);
   const bufferWaitAbortRef = useRef<AbortController | null>(null);
+  const playGenerationRef = useRef(0);
+  const lastAssignedTrackRef = useRef<string | null>(null);
   const userProgressRef = useRef(user.progress);
   userProgressRef.current = user.progress;
 
@@ -243,12 +246,16 @@ export function useAudioPlayer({
   const assignPlaybackSource = useCallback(
     (audio: HTMLAudioElement, trackId: string, href: string) => {
       activePlaybackTrackRef.current = trackId;
+      const cached = peekCachedPlaybackUrl(trackId);
       const url =
-        href && !isYandexDiskDownloadUrl(href)
+        cached ??
+        (href && !isYandexDiskDownloadUrl(href)
           ? href
-          : (peekCachedPlaybackUrl(trackId) ?? streamPlaybackUrl(href));
+          : streamPlaybackUrl(href));
       audio.preload = "auto";
-      if (lastPlaybackUrlRef.current !== url) {
+      const trackChanged = lastAssignedTrackRef.current !== trackId;
+      if (trackChanged || lastPlaybackUrlRef.current !== url) {
+        lastAssignedTrackRef.current = trackId;
         lastPlaybackUrlRef.current = url;
         audio.src = url;
       }
@@ -258,20 +265,45 @@ export function useAudioPlayer({
 
   const playTrack = useCallback(
     async (track: Track) => {
+      const gen = ++playGenerationRef.current;
+      const stale = () =>
+        playGenerationRef.current !== gen ||
+        activePlaybackTrackRef.current !== track.id;
+
       setCurrentTrackId(track.id);
       setUser((prev) => ({ ...prev, lastTrackId: track.id }));
       const audio = audioRef.current;
       if (!audio || isStubTrack(track)) return;
+
       cancelPrefetchGate();
       cancelInflightDownloads();
+      if (
+        lastAssignedTrackRef.current &&
+        lastAssignedTrackRef.current !== track.id
+      ) {
+        abortPlaybackForTrack(lastAssignedTrackRef.current);
+      }
       bufferWaitAbortRef.current?.abort();
       bufferWaitAbortRef.current = new AbortController();
       const bufferSignal = bufferWaitAbortRef.current.signal;
+
+      audio.pause();
+      playbackIntentRef.current = false;
+      if (lastAssignedTrackRef.current !== track.id) {
+        lastPlaybackUrlRef.current = "";
+        lastAssignedTrackRef.current = null;
+        audio.removeAttribute("src");
+        audio.load();
+      }
+
+      activePlaybackTrackRef.current = track.id;
       setIsLoadingTrack(true);
+
       let url = track.url;
       try {
         if (!url) {
           url = await fetchDiskDownloadHref(track.path);
+          if (stale()) return;
           if (!url) throw new Error("empty href");
           patchTrackUrl(track.id, url);
         }
@@ -281,33 +313,32 @@ export function useAudioPlayer({
           resumeHint != null &&
           resumeHint > 15 &&
           !useLocalMedia() &&
+          url &&
           !peekCachedPlaybackUrl(track.id)
         ) {
-          try {
-            url = await getCachedPlaybackUrl(track.id, url);
-          } catch {
-            /* стрим с seek */
-          }
+          void getCachedPlaybackUrl(track.id, url).catch(() => {});
         }
+
         assignPlaybackSource(audio, track.id, url);
         playbackIntentRef.current = true;
         await waitForLoadedMetadata(audio);
+        if (stale()) return;
+
         const resumeAt = applyResumePosition(audio, saved);
         if (resumeAt != null) {
           try {
             await waitForSeeked(audio);
           } catch {
-            /* продолжаем с текущей позиции */
+            /* стрим без seek — играем с начала */
           }
+          if (stale()) return;
         }
         await waitForBufferAhead(audio, { signal: bufferSignal });
-        if (!playbackIntentRef.current || activePlaybackTrackRef.current !== track.id) {
-          return;
-        }
+        if (stale() || !playbackIntentRef.current) return;
         await audio.play();
         schedulePrefetchNext(track.id);
       } catch (err) {
-        if (activePlaybackTrackRef.current !== track.id) return;
+        if (stale()) return;
         if (err instanceof DOMException && err.name === "AbortError") return;
         playbackIntentRef.current = false;
         if (err instanceof Error && err.message === "buffer wait timeout") {
@@ -321,7 +352,10 @@ export function useAudioPlayer({
           });
         }
       } finally {
-        if (activePlaybackTrackRef.current === track.id) {
+        if (
+          activePlaybackTrackRef.current === track.id &&
+          playGenerationRef.current === gen
+        ) {
           setIsLoadingTrack(false);
         }
       }
