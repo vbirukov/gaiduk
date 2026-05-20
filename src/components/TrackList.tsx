@@ -111,6 +111,8 @@ export function TrackList({
   const showContinueBanner =
     Boolean(resumeTrack) && view === "all" && !selectedFolder;
 
+  const showFolderHeaders = !selectedFolder;
+
   return (
     <section className="library-feed">
       <div className="library-feed-bg" aria-hidden />
@@ -159,6 +161,7 @@ export function TrackList({
           onAddToPlaylist={onAddToPlaylist}
           scrollToTrackId={scrollToTrackId}
           onScrolledToTrack={clearScrollToTrack}
+          showFolderHeaders={showFolderHeaders}
         />
       ) : tracks.length === 0 ? (
         <section className="cards">
@@ -182,6 +185,7 @@ export function TrackList({
           onAddToPlaylist={onAddToPlaylist}
           scrollToTrackId={scrollToTrackId}
           onScrolledToTrack={clearScrollToTrack}
+          showFolderHeaders={showFolderHeaders}
         />
       )}
       </div>

@@ -6,11 +6,16 @@ import {
   type RefObject,
 } from "react";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
-import { chunk } from "../lib/chunk";
+import {
+  buildFeedLayoutRows,
+  groupTracksByFolder,
+  layoutRowForTrackId,
+} from "../lib/feedLayout";
 import { resolveTrackProgress } from "../lib/trackProgress";
 import type { LivePlayback } from "../lib/trackProgress";
 import type { Track } from "../types/catalog";
 import type { Playlist, Progress } from "../types/user";
+import { CatalogFolderHeading } from "./CatalogFolderHeading";
 import { TrackCard, type TrackCardProps } from "./TrackCard";
 import { TrackCardSkeleton } from "./TrackCardSkeleton";
 
@@ -18,6 +23,7 @@ const VIRTUALIZE_MIN = 48;
 const CARD_MIN_WIDTH = 320;
 const GRID_GAP_PX = 16;
 const ROW_ESTIMATE_PX = 340;
+const HEADER_ROW_ESTIMATE_PX = 52;
 const OVERSCAN_ROWS = 8;
 
 type Props = {
@@ -34,6 +40,7 @@ type Props = {
   onAddToPlaylist: TrackCardProps["onAddToPlaylist"];
   scrollToTrackId?: string | null;
   onScrolledToTrack?: () => void;
+  showFolderHeaders?: boolean;
 };
 
 function useColumnCount(containerRef: RefObject<HTMLElement | null>) {
@@ -98,16 +105,27 @@ export function VirtualTrackGrid({
   onAddToPlaylist,
   scrollToTrackId = null,
   onScrolledToTrack,
+  showFolderHeaders = false,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const cols = useColumnCount(containerRef);
   const scrollMargin = useScrollMargin(containerRef);
-  const rows = useMemo(() => chunk(tracks, cols), [tracks, cols]);
+  const layoutRows = useMemo(
+    () => buildFeedLayoutRows(tracks, cols, showFolderHeaders),
+    [tracks, cols, showFolderHeaders],
+  );
+  const folderGroups = useMemo(
+    () => (showFolderHeaders ? groupTracksByFolder(tracks) : []),
+    [tracks, showFolderHeaders],
+  );
   const useVirtual = tracks.length >= VIRTUALIZE_MIN;
 
   const virtualizer = useWindowVirtualizer({
-    count: useVirtual ? rows.length : 0,
-    estimateSize: () => ROW_ESTIMATE_PX,
+    count: useVirtual ? layoutRows.length : 0,
+    estimateSize: (index) =>
+      layoutRows[index]?.kind === "header"
+        ? HEADER_ROW_ESTIMATE_PX
+        : ROW_ESTIMATE_PX,
     gap: GRID_GAP_PX,
     overscan: OVERSCAN_ROWS,
     scrollMargin,
@@ -121,14 +139,12 @@ export function VirtualTrackGrid({
   useLayoutEffect(() => {
     if (!scrollToTrackId) return;
     const trackId = scrollToTrackId;
-    const idx = tracks.findIndex((t) => t.id === trackId);
-    if (idx < 0) {
+    let cancelled = false;
+    const rowIndex = layoutRowForTrackId(layoutRows, trackId);
+    if (rowIndex < 0) {
       onScrolledToTrack?.();
       return;
     }
-
-    let cancelled = false;
-    const rowIndex = Math.floor(idx / cols);
 
     const finish = () => {
       if (!cancelled) onScrolledToTrack?.();
@@ -177,7 +193,13 @@ export function VirtualTrackGrid({
     return () => {
       cancelled = true;
     };
-  }, [scrollToTrackId, tracks, cols, useVirtual, onScrolledToTrack]);
+  }, [
+    scrollToTrackId,
+    tracks,
+    layoutRows,
+    useVirtual,
+    onScrolledToTrack,
+  ]);
 
   const renderCard = (track: Track) => {
     const isActive = track.id === activeTrackId;
@@ -224,6 +246,23 @@ export function VirtualTrackGrid({
   }
 
   if (!useVirtual) {
+    if (showFolderHeaders) {
+      return (
+        <div ref={containerRef} className="track-feed">
+          {folderGroups.map((group) => (
+            <section
+              key={group.folder}
+              className="track-feed__section"
+            >
+              <CatalogFolderHeading folder={group.folder} />
+              <div className="cards cards--section">
+                {group.tracks.map(renderCard)}
+              </div>
+            </section>
+          ))}
+        </div>
+      );
+    }
     return (
       <section ref={containerRef} className="cards">
         {tracks.map(renderCard)}
@@ -238,20 +277,28 @@ export function VirtualTrackGrid({
         style={{ height: virtualizer.getTotalSize() }}
       >
         {virtualizer.getVirtualItems().map((virtualRow) => {
-          const rowTracks = rows[virtualRow.index];
-          if (!rowTracks?.length) return null;
+          const layoutRow = layoutRows[virtualRow.index];
+          if (!layoutRow) return null;
           return (
             <div
               key={virtualRow.key}
               data-index={virtualRow.index}
               ref={virtualizer.measureElement}
-              className="cards-virtual-row"
+              className={
+                layoutRow.kind === "header"
+                  ? "cards-virtual-row cards-virtual-row--header"
+                  : "cards-virtual-row"
+              }
               style={{
                 transform: `translateY(${virtualRow.start - scrollMargin}px)`,
                 width: "100%",
               }}
             >
-              {renderRow(rowTracks, "cards-row")}
+              {layoutRow.kind === "header" ? (
+                <CatalogFolderHeading folder={layoutRow.folder} />
+              ) : (
+                renderRow(layoutRow.tracks, "cards-row")
+              )}
             </div>
           );
         })}

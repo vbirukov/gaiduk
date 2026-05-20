@@ -183,6 +183,11 @@
   pointer-events: none;
 }
 
+[data-skin="jaipur"] .catalog-folder-heading {
+  color: var(--text-inverse);
+  border-bottom-color: color-mix(in oklab, var(--jaipur-outline) 55%, transparent);
+}
+
 [data-skin="jaipur"] .card h4,
 [data-skin="jaipur"] .card .mini-meta {
   color: var(--text-inverse);
