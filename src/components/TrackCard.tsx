@@ -171,13 +171,30 @@ function TrackCardInner({
     </div>
   );
 
+  const statusBadge = renderStatusBadge();
+  const folderAfterTitle = isRow && showFolderName;
+
   const main = (
     <div className="card-main">
-      <div className="card-pills">
-        {showFolderName ? <div className="pill">{track.folder}</div> : null}
-        {renderStatusBadge()}
-      </div>
-      <h4 className="card-title">{track.title}</h4>
+      {statusBadge ? (
+        <div className="card-pills">{statusBadge}</div>
+      ) : null}
+      {isRow ? (
+        <div className="card-title-line">
+          <h4 className="card-title">{track.title}</h4>
+          {folderAfterTitle ? (
+            <span className="card-folder">{track.folder}</span>
+          ) : null}
+        </div>
+      ) : (
+        <>
+          <div className="card-pills">
+            {showFolderName ? <div className="pill">{track.folder}</div> : null}
+            {statusBadge}
+          </div>
+          <h4 className="card-title">{track.title}</h4>
+        </>
+      )}
     </div>
   );
 
