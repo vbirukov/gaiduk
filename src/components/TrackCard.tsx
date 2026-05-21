@@ -68,17 +68,8 @@ function TrackCardInner({
     .filter(Boolean)
     .join(" ");
 
-  const progressPct =
-    progress.duration > 0
-      ? Math.min(100, Math.round((progress.position / progress.duration) * 100))
-      : 0;
-
   const progressBadgeLabel =
-    progress.duration > 0
-      ? `${progressPct}%`
-      : progress.position > 0
-        ? fmtTime(progress.position)
-        : "···";
+    progress.position > 0 ? fmtTime(progress.position) : "···";
 
   const renderProgressBadge = () => {
     if (isActive || status !== "in-progress") return null;
