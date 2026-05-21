@@ -161,17 +161,9 @@ export function PlayerBar({
                   onNext={onNext}
                   onShare={handleShare}
                   shareDisabled={!currentTrack}
+                  showCollapsePlayer={showCollapse}
+                  onCollapsePlayer={() => setBarCollapsed(true)}
                 />
-                {showCollapse ? (
-                  <IconButton
-                    className="btn-collapse-player"
-                    onClick={() => setBarCollapsed(true)}
-                    aria-label="Скрыть панель плеера"
-                    title="Скрыть панель"
-                  >
-                    <Icon name="chevron-down" size={20} />
-                  </IconButton>
-                ) : null}
               </div>
               <PlayerTimeline
                 audioRef={audioRef}

@@ -1326,7 +1326,7 @@ html.has-player.player-bar-collapsed {
 .card > .card-badge--corner {
   position: absolute;
   left: var(--space-4);
-  bottom: var(--space-4);
+  bottom: 1.6rem;
   z-index: 2;
   pointer-events: none;
 }

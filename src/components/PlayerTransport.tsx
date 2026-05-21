@@ -15,6 +15,8 @@ type Props = {
   onNext: () => void;
   onShare?: () => void;
   shareDisabled?: boolean;
+  onCollapsePlayer?: () => void;
+  showCollapsePlayer?: boolean;
   size?: "md" | "lg";
 };
 
@@ -31,6 +33,8 @@ export function PlayerTransport({
   onNext,
   onShare,
   shareDisabled = false,
+  onCollapsePlayer,
+  showCollapsePlayer = false,
   size = "md",
 }: Props) {
   const icon = size === "lg" ? 24 : 20;
@@ -89,6 +93,17 @@ export function PlayerTransport({
           title="Поделиться ссылкой"
         >
           <Icon name="share" size={icon} />
+        </IconButton>
+      ) : null}
+      {showCollapsePlayer && onCollapsePlayer ? (
+        <IconButton
+          className="btn-collapse-player"
+          size={btnSize}
+          onClick={onCollapsePlayer}
+          aria-label="Скрыть панель плеера"
+          title="Скрыть панель"
+        >
+          <Icon name="chevron-down" size={icon} />
         </IconButton>
       ) : null}
     </div>
