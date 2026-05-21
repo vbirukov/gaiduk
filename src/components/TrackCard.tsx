@@ -65,18 +65,16 @@ function TrackCardInner({
   const progressBadgeLabel =
     progress.position > 0 ? fmtTime(progress.position) : "···";
 
-  const renderProgressBadge = () => {
-    if (isActive || status !== "in-progress") return null;
-    return (
+  const progressBadge =
+    isActive || status !== "in-progress" ? null : (
       <span
-        className="card-badge card-badge--progress card-badge--corner"
+        className={`card-badge card-badge--progress${isRow ? "" : " card-badge--corner"}`}
         title={listenStatusLabel["in-progress"]}
         aria-label={`${listenStatusLabel["in-progress"]}, ${progressBadgeLabel}`}
       >
         {progressBadgeLabel}
       </span>
     );
-  };
 
   const renderStatusBadge = () => {
     if (isActive) {
@@ -132,6 +130,7 @@ function TrackCardInner({
 
   const actions = (
     <div className="card-actions row-actions wrap">
+      {isRow ? progressBadge : null}
       <div className="card-social row-actions">
         <button
           type="button"
@@ -197,7 +196,7 @@ function TrackCardInner({
           {actions}
         </>
       )}
-      {renderProgressBadge()}
+      {!isRow ? progressBadge : null}
     </article>
   );
 }
