@@ -14,11 +14,7 @@ type Filters = {
   selectedPlaylist: string | null;
 };
 
-type Options = {
-  serverMediaTest?: boolean;
-};
-
-export function useCatalog(user: UserState, filters: Filters, options?: Options) {
+export function useCatalog(user: UserState, filters: Filters) {
   const [catalog, setCatalog] = useState<Catalog>(fallbackCatalog);
   const [initialLoading, setInitialLoading] = useState(true);
   const [loadingCatalog, setLoadingCatalog] = useState(false);
@@ -28,21 +24,17 @@ export function useCatalog(user: UserState, filters: Filters, options?: Options)
   const refreshCatalog = useCallback(async () => {
     setLoadingCatalog(true);
     try {
-      const cat = await runCatalogWorker({
-        serverMediaTest: options?.serverMediaTest,
-      });
+      const cat = await runCatalogWorker();
       return cat ? catalogWithServerMediaUrls(cat) : null;
     } finally {
       setLoadingCatalog(false);
     }
-  }, [options?.serverMediaTest]);
+  }, []);
 
   useEffect(() => {
     void (async () => {
       try {
-        const cat = await runCatalogWorker({
-          serverMediaTest: options?.serverMediaTest,
-        });
+        const cat = await runCatalogWorker();
         if (cat?.tracks.length) {
           setCatalog(catalogWithServerMediaUrls(cat));
           if (!catalogReportedRef.current) {
@@ -54,7 +46,7 @@ export function useCatalog(user: UserState, filters: Filters, options?: Options)
         setInitialLoading(false);
       }
     })();
-  }, [options?.serverMediaTest]);
+  }, []);
 
   const patchTrackUrl = useCallback((trackId: string, url: string) => {
     setCatalog((prev) => ({
@@ -157,9 +149,7 @@ export function useCatalog(user: UserState, filters: Filters, options?: Options)
   const sectionSub = filters.selectedFolder
     ? "Все треки выбранной серии."
     : useServerMedia()
-      ? options?.serverMediaTest
-        ? "Тест: аудио напрямую с /media/ (без прокси Яндекса). Нет файла — 404."
-        : "Каталог и аудио с вашего сервера."
+      ? "Каталог и аудио с сервера."
       : catalog.loaded
         ? "Живой индекс публичной папки Яндекс.Диска."
         : "Идет fallback-режим до полной индексации каталога.";

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAppTheme } from "./hooks/useAppTheme";
 import type { Track } from "./types/catalog";
 import { MainHeader } from "./components/MainHeader";
@@ -11,9 +11,7 @@ import { ScrollToTop } from "./components/ScrollToTop";
 import { ToastStack } from "./components/ToastStack";
 import { useAudioPlayer } from "./hooks/useAudioPlayer";
 import { useCatalog } from "./hooks/useCatalog";
-import { useServerMediaTest } from "./hooks/useServerMediaTest";
-import { catalogWithServerMediaUrls } from "./lib/serverMediaCatalog";
-import { setRuntimeServerMediaTest } from "./lib/serverMediaTest";
+import { useServerMedia } from "./lib/mediaUrl";
 import { useToasts } from "./hooks/useToasts";
 import { useUserState } from "./hooks/useUserState";
 import {
@@ -48,14 +46,6 @@ export function App() {
   const [navOpen, setNavOpen] = useState(false);
   const [playlistName, setPlaylistName] = useState("");
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
-  const { serverMediaTest, toggle: toggleServerMediaTest } =
-    useServerMediaTest();
-
-  const catalogOpts = useMemo(
-    () => ({ serverMediaTest }),
-    [serverMediaTest],
-  );
-
   const {
     catalog,
     setCatalog,
@@ -71,7 +61,7 @@ export function App() {
     resumeCount,
     sectionTitle,
     sectionSub,
-  } = useCatalog(user, { view, selectedFolder, selectedPlaylist }, catalogOpts);
+  } = useCatalog(user, { view, selectedFolder, selectedPlaylist });
 
   const player = useAudioPlayer({
     catalog,
@@ -93,10 +83,11 @@ export function App() {
   }, [player.currentTrackId]);
 
   useEffect(() => {
-    const b = import.meta.env.VITE_AUDIO_PROXY_BASE;
-    if (import.meta.env.PROD && (typeof b !== "string" || !String(b).trim())) {
+    if (!import.meta.env.PROD || useServerMedia()) return;
+    const proxy = import.meta.env.VITE_AUDIO_PROXY_BASE;
+    if (typeof proxy !== "string" || !String(proxy).trim()) {
       console.warn(
-        "[gayduk] Сборка без VITE_AUDIO_PROXY_BASE — прямое аудио с Яндекс.Диска часто даёт 403.",
+        "[gayduk] Нет VITE_MEDIA_BASE и VITE_AUDIO_PROXY_BASE — воспроизведение не настроено.",
       );
     }
   }, []);
@@ -161,20 +152,6 @@ export function App() {
     else {
       ymGoal("catalog_refresh_fail");
       pushToast("Не удалось обновить каталог. Проверьте сеть.");
-    }
-  };
-
-  const handleToggleServerMediaTest = () => {
-    const next = !serverMediaTest;
-    toggleServerMediaTest();
-    setRuntimeServerMediaTest(next);
-    if (next) {
-      setCatalog((c) => catalogWithServerMediaUrls(c));
-      pushToast("Тест /media: играем с сервера. Нет файла — ошибка.");
-    } else {
-      void refreshCatalog().then((cat) => {
-        if (cat) setCatalog(cat);
-      });
     }
   };
 
@@ -266,8 +243,6 @@ export function App() {
             onDismissIosHint={() => setIosHintDismissed(true)}
             loadingCatalog={loadingCatalog}
             onRefreshCatalog={() => void handleRefreshCatalog()}
-            serverMediaTest={serverMediaTest}
-            onToggleServerMediaTest={handleToggleServerMediaTest}
             skin={skin}
             onSkinChange={setSkin}
           />

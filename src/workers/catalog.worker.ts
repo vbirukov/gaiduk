@@ -1,14 +1,14 @@
 import { buildDiskCatalog } from "../lib/diskCatalog";
 import { loadLocalCatalog } from "../lib/localCatalog";
 
-type WorkerIn = { type: "build"; serverMediaTest?: boolean };
+type WorkerIn = { type: "build" };
 
-function wantServerMedia(msg: WorkerIn): boolean {
+function wantServerMedia(): boolean {
   const env =
     typeof import.meta.env.VITE_MEDIA_BASE === "string"
       ? import.meta.env.VITE_MEDIA_BASE.trim()
       : "";
-  return Boolean(env) || Boolean(msg.serverMediaTest);
+  return Boolean(env);
 }
 type WorkerOut =
   | { type: "done"; catalog: Awaited<ReturnType<typeof buildDiskCatalog>> }
@@ -18,7 +18,7 @@ self.onmessage = async (ev: MessageEvent<WorkerIn>) => {
   if (ev.data?.type !== "build") return;
   try {
     let catalog;
-    if (wantServerMedia(ev.data)) {
+    if (wantServerMedia()) {
       try {
         catalog = await loadLocalCatalog();
       } catch {
