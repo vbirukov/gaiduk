@@ -1426,6 +1426,86 @@ html.has-player.player-bar-collapsed {
   min-height: auto;
   padding: 0.55rem 0.75rem;
 }
+.card-playlist-menu {
+  position: relative;
+  flex-shrink: 0;
+}
+.card-playlist-menu__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 40px;
+  padding: 0.45rem 0.75rem;
+  border-radius: 999px;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-muted);
+  border: 1px solid oklch(from var(--text) l c h / 0.1);
+  background: var(--surface-offset);
+}
+.card-playlist-menu__trigger:hover {
+  color: var(--text);
+  border-color: color-mix(in oklab, var(--primary) 35%, transparent);
+  background: color-mix(in oklab, var(--primary) 10%, var(--surface));
+}
+.card-playlist-menu.is-open .card-playlist-menu__trigger {
+  color: var(--primary);
+  border-color: color-mix(in oklab, var(--primary) 40%, transparent);
+  background: color-mix(in oklab, var(--primary) 12%, var(--surface));
+}
+.card-playlist-menu__chevron {
+  transition: transform 0.15s ease;
+}
+.card-playlist-menu.is-open .card-playlist-menu__chevron {
+  transform: rotate(180deg);
+}
+.card-playlist-menu__list {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + var(--space-2));
+  z-index: 12;
+  min-width: min(220px, 72vw);
+  max-width: min(280px, 90vw);
+  max-height: min(240px, 40vh);
+  margin: 0;
+  padding: var(--space-2);
+  list-style: none;
+  overflow: auto;
+  border-radius: 14px;
+  border: 1px solid oklch(from var(--text) l c h / 0.12);
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+}
+.card-playlist-menu__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: 40px;
+  padding: 0.5rem 0.65rem;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: var(--text-sm);
+  text-align: left;
+  cursor: pointer;
+}
+.card-playlist-menu__item:hover:not(:disabled) {
+  background: color-mix(in oklab, var(--primary) 12%, var(--surface));
+}
+.card-playlist-menu__item:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.card-playlist-menu__item-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .progress-line {
   height: 6px;
   border-radius: 999px;

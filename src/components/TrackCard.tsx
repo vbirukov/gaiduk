@@ -3,6 +3,7 @@ import { fmtTime } from "../lib/format";
 import { isStubTrack } from "../lib/diskDownload";
 import { listenStatus, listenStatusLabel } from "../lib/listenStatus";
 import { Icon } from "./icons/Icon";
+import { CardPlaylistMenu } from "./CardPlaylistMenu";
 import { IconButton, PlayPauseIcon } from "./IconButton";
 import type { Track } from "../types/catalog";
 import type { Playlist, Progress } from "../types/user";
@@ -170,16 +171,11 @@ function TrackCardInner({
             iconSize={22}
           />
         </IconButton>
-        {playlistButtons.map((pl) => (
-          <button
-            key={pl.id}
-            type="button"
-            className="tag"
-            onClick={() => onAddToPlaylist(pl.id, track.id)}
-          >
-            + {pl.name}
-          </button>
-        ))}
+        <CardPlaylistMenu
+          trackId={track.id}
+          playlists={playlistButtons}
+          onSelect={onAddToPlaylist}
+        />
       </div>
       {renderProgressBadge()}
     </article>

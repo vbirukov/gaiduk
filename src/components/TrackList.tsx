@@ -97,7 +97,7 @@ export function TrackList({
     [onPlayTrack],
   );
   const playlistButtons = useMemo(
-    () => user.playlists.filter((pl) => !pl.system).slice(0, 3),
+    () => user.playlists.filter((pl) => !pl.system),
     [user.playlists],
   );
 
