@@ -1,5 +1,6 @@
 import { memo, useEffect, useState } from "react";
-import { fmtBytes, fmtTime } from "../lib/format";
+import { coverForTrack, DEFAULT_COVER_PATH } from "../lib/cover";
+import { fmtTime } from "../lib/format";
 import { isStubTrack } from "../lib/diskDownload";
 import { listenStatus, listenStatusLabel } from "../lib/listenStatus";
 import { Icon } from "./icons/Icon";
@@ -31,9 +32,6 @@ function TrackCardInner({
   onToggleLike,
   onAddToPlaylist,
 }: TrackCardProps) {
-  const ratio = progress.duration
-    ? Math.min(100, (progress.position / progress.duration) * 100)
-    : 0;
   const status = listenStatus(progress);
   const [mobileTapPlay, setMobileTapPlay] = useState(
     () =>
@@ -61,11 +59,14 @@ function TrackCardInner({
       ? `С последнего раза: ${fmtTime(progress.position)}`
       : "Еще не запускали";
 
+  const thumbPlay = coverForTrack(track) === DEFAULT_COVER_PATH;
+
   const cardClass = [
     "card",
     `card-status-${status}`,
     isActive && "is-active",
     isActive && isPlaying && "is-playing",
+    thumbPlay && "card--thumb-play",
   ]
     .filter(Boolean)
     .join(" ");
@@ -74,10 +75,6 @@ function TrackCardInner({
     progress.duration > 0
       ? Math.min(100, Math.round((progress.position / progress.duration) * 100))
       : 0;
-
-  const showProgressMini =
-    (status !== "unstarted" || isActive) &&
-    (ratio > 0 || isActive);
 
   const renderStatusBadge = () => {
     if (isActive) {
@@ -143,6 +140,11 @@ function TrackCardInner({
     onPlayTrack(track);
   };
 
+  const handlePlayClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onPlayTrack(track);
+  };
+
   return (
     <article
       className={cardClass}
@@ -157,35 +159,32 @@ function TrackCardInner({
         <div className="card-bg__shade" />
       </div>
       <div className="card-top">
-        <TrackCover track={track} size="lg" className="card-thumb" />
+        {thumbPlay ? (
+          <IconButton
+            variant="primary"
+            size="md"
+            className="card-thumb card-thumb-play"
+            onClick={handlePlayClick}
+            aria-label={playLabel}
+          >
+            <PlayPauseIcon
+              playing={isActive && isPlaying}
+              busy={false}
+              iconSize={22}
+            />
+          </IconButton>
+        ) : (
+          <TrackCover track={track} size="lg" className="card-thumb" />
+        )}
         <div className="card-main">
           <div className="card-pills">
             <div className="pill">{track.folder}</div>
             {renderStatusBadge()}
           </div>
           <h4 className="card-title">{track.title}</h4>
-          {showProgressMini ? (
-            <div
-              className={`card-progress-mini progress-line progress-line--${status}${isActive && isPlaying ? " is-live" : ""}`}
-              role="progressbar"
-              aria-valuenow={progressPct}
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-label={
-                isActive
-                  ? isPlaying
-                    ? "Сейчас играет"
-                    : "На паузе"
-                  : listenStatusLabel[status]
-              }
-            >
-              <span style={{ width: `${ratio}%` }} />
-            </div>
-          ) : null}
         </div>
       </div>
       <div className="mini-meta">
-        <span>{fmtBytes(track.size)}</span>
         <span className={isActive ? "mini-meta-now" : undefined}>
           {progressHint}
         </span>
@@ -205,10 +204,7 @@ function TrackCardInner({
           variant="primary"
           size="md"
           className="card-play"
-          onClick={(e) => {
-            e.stopPropagation();
-            onPlayTrack(track);
-          }}
+          onClick={handlePlayClick}
           aria-label={playLabel}
         >
           <PlayPauseIcon
