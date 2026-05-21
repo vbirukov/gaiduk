@@ -45,6 +45,7 @@ type Props = {
   onPlayTrack: TrackCardProps["onPlayTrack"];
   onToggleLike: TrackCardProps["onToggleLike"];
   onAddToPlaylist: TrackCardProps["onAddToPlaylist"];
+  onSelectFolder?: TrackCardProps["onSelectFolder"];
   scrollToTrackId?: string | null;
   onScrolledToTrack?: () => void;
   showFolderHeaders?: boolean;
@@ -125,6 +126,7 @@ export function VirtualTrackGrid({
   onPlayTrack,
   onToggleLike,
   onAddToPlaylist,
+  onSelectFolder,
   scrollToTrackId = null,
   onScrolledToTrack,
   showFolderHeaders = false,
@@ -251,6 +253,7 @@ export function VirtualTrackGrid({
         onPlayTrack={onPlayTrack}
         onToggleLike={onToggleLike}
         onAddToPlaylist={onAddToPlaylist}
+        onSelectFolder={onSelectFolder}
       />
     );
   };

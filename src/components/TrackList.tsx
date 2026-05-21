@@ -33,6 +33,7 @@ type Props = {
   onPlayTrack: TrackCardProps["onPlayTrack"];
   onToggleLike: TrackCardProps["onToggleLike"];
   onAddToPlaylist: TrackCardProps["onAddToPlaylist"];
+  onSelectFolder: TrackCardProps["onSelectFolder"];
   onOpenNav: () => void;
   onFeedLayoutChange: (layout: FeedLayout) => void;
   nextTrackId: string | null;
@@ -59,6 +60,7 @@ export function TrackList({
   onPlayTrack,
   onToggleLike,
   onAddToPlaylist,
+  onSelectFolder,
   onOpenNav,
   onFeedLayoutChange,
   nextTrackId,
@@ -182,6 +184,7 @@ export function TrackList({
           showFolderNames={showFolderNames}
           feedLayout={user.feedLayout ?? "tiles"}
           nextTrackId={nextTrackId}
+          onSelectFolder={onSelectFolder}
         />
       ) : tracks.length === 0 ? (
         <section className="cards">
@@ -209,6 +212,7 @@ export function TrackList({
           showFolderNames={showFolderNames}
           feedLayout={user.feedLayout ?? "tiles"}
           nextTrackId={nextTrackId}
+          onSelectFolder={onSelectFolder}
         />
       )}
       </div>

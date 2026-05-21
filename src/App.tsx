@@ -159,6 +159,13 @@ export function App() {
 
   const closeNav = () => setNavOpen(false);
 
+  const handleSelectFolder = useCallback((folder: string) => {
+    setView("all");
+    setSelectedFolder(folder);
+    setSelectedPlaylist(null);
+    closeNav();
+  }, []);
+
   const handlePlayTrack = useCallback(
     (t: Track) => {
       if (player.currentTrackId === t.id) {
@@ -213,12 +220,7 @@ export function App() {
             setSelectedPlaylist(null);
             closeNav();
           }}
-          onSelectFolder={(folder) => {
-            setView("all");
-            setSelectedFolder(folder);
-            setSelectedPlaylist(null);
-            closeNav();
-          }}
+          onSelectFolder={handleSelectFolder}
           onSelectPlaylist={(id) => {
             setView("playlist");
             setSelectedPlaylist(id);
@@ -299,6 +301,7 @@ export function App() {
             onFeedLayoutChange={(feedLayout) =>
               setUser((prev) => ({ ...prev, feedLayout }))
             }
+            onSelectFolder={handleSelectFolder}
             nextTrackId={nextTrackId(player.currentTrackId)}
           />
         </main>

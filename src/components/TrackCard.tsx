@@ -21,7 +21,35 @@ export type TrackCardProps = {
   onPlayTrack: (track: Track) => void;
   onToggleLike: (id: string) => void;
   onAddToPlaylist: (playlistId: string, trackId: string) => void;
+  onSelectFolder?: (folder: string) => void;
 };
+
+function CardFolderLink({
+  folder,
+  className,
+  onSelectFolder,
+}: {
+  folder: string;
+  className: string;
+  onSelectFolder?: (folder: string) => void;
+}) {
+  if (!onSelectFolder) {
+    return <span className={className}>{folder}</span>;
+  }
+  return (
+    <button
+      type="button"
+      className={`${className} card-folder-btn`}
+      onClick={(e) => {
+        e.stopPropagation();
+        onSelectFolder(folder);
+      }}
+      aria-label={`Каталог: ${folder}`}
+    >
+      {folder}
+    </button>
+  );
+}
 
 function TrackCardInner({
   track,
@@ -36,6 +64,7 @@ function TrackCardInner({
   onPlayTrack,
   onToggleLike,
   onAddToPlaylist,
+  onSelectFolder,
 }: TrackCardProps) {
   const status = listenStatus(progress);
   const [mobileTapPlay, setMobileTapPlay] = useState(
@@ -181,13 +210,23 @@ function TrackCardInner({
           <h4 className="card-title">{track.title}</h4>
           {statusBadge}
           {folderAfterTitle ? (
-            <span className="card-folder">{track.folder}</span>
+            <CardFolderLink
+              folder={track.folder}
+              className="card-folder"
+              onSelectFolder={onSelectFolder}
+            />
           ) : null}
         </div>
       ) : (
         <>
           <div className="card-pills">
-            {showFolderName ? <div className="pill">{track.folder}</div> : null}
+            {showFolderName ? (
+              <CardFolderLink
+                folder={track.folder}
+                className="pill"
+                onSelectFolder={onSelectFolder}
+              />
+            ) : null}
             {statusBadge}
           </div>
           <h4 className="card-title">{track.title}</h4>
@@ -246,6 +285,7 @@ export const TrackCard = memo(TrackCardInner, (prev, next) => {
   return (
     prev.onPlayTrack === next.onPlayTrack &&
     prev.onToggleLike === next.onToggleLike &&
-    prev.onAddToPlaylist === next.onAddToPlaylist
+    prev.onAddToPlaylist === next.onAddToPlaylist &&
+    prev.onSelectFolder === next.onSelectFolder
   );
 });
