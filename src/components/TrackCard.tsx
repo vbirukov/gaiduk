@@ -176,12 +176,10 @@ function TrackCardInner({
 
   const main = (
     <div className="card-main">
-      {statusBadge ? (
-        <div className="card-pills">{statusBadge}</div>
-      ) : null}
       {isRow ? (
         <div className="card-title-line">
           <h4 className="card-title">{track.title}</h4>
+          {statusBadge}
           {folderAfterTitle ? (
             <span className="card-folder">{track.folder}</span>
           ) : null}
