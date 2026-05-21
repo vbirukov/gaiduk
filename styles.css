@@ -1642,7 +1642,7 @@ html.has-player {
 }
 .right-box {
   display: grid;
-  grid-template-columns: auto auto minmax(0, 1fr);
+  grid-template-columns: auto auto auto minmax(0, 1fr);
   grid-template-rows: auto auto;
   align-items: center;
   column-gap: var(--space-3);
@@ -1658,8 +1658,12 @@ html.has-player {
   grid-column: 2;
   grid-row: 1;
 }
-.right-box > .speed {
+.right-box > .btn-share {
   grid-column: 3;
+  grid-row: 1;
+}
+.right-box > .speed {
+  grid-column: 4;
   grid-row: 1;
   display: flex;
   flex-direction: row;

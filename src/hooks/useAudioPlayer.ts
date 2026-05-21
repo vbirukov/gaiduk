@@ -276,7 +276,7 @@ export function useAudioPlayer({
   );
 
   const playTrack = useCallback(
-    async (track: Track) => {
+    async (track: Track, opts?: { startAtSec?: number }) => {
       const gen = ++playGenerationRef.current;
       const stale = () =>
         playGenerationRef.current !== gen ||
@@ -340,7 +340,7 @@ export function useAudioPlayer({
         if (stale()) return;
         assertPlayableAudio(audio);
 
-        const resumeAt = applyResumePosition(audio, saved);
+        const resumeAt = applyResumePosition(audio, saved, opts?.startAtSec);
         if (resumeAt != null) {
           try {
             await waitForSeeked(audio);

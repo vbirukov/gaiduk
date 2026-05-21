@@ -119,8 +119,18 @@ export function getResumePositionSec(
 export function applyResumePosition(
   audio: HTMLAudioElement,
   entry: Progress | undefined,
+  startAtSec?: number,
 ): number | null {
-  const target = getResumePositionSec(entry, audio.duration);
+  let target: number | null = null;
+  if (startAtSec != null && Number.isFinite(startAtSec) && startAtSec >= 0) {
+    const d = audio.duration;
+    target =
+      Number.isFinite(d) && d > 0
+        ? Math.min(startAtSec, Math.max(0, d - 0.5))
+        : startAtSec;
+  } else {
+    target = getResumePositionSec(entry, audio.duration);
+  }
   if (target == null) return null;
   if (Math.abs(audio.currentTime - target) < 0.35) return target;
   audio.currentTime = target;

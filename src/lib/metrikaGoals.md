@@ -14,5 +14,6 @@
 | `pwa_install` | Установка PWA (outcome: accepted/dismissed) |
 | `playlist_created` | Создан плейлист |
 | `like_toggle` | Лайк вкл/выкл (liked: 0/1) |
+| `track_share` | Поделиться сказкой (Web Share) |
 
 Воронка (пример): `/app/open` → `play_start` → `play_complete`.

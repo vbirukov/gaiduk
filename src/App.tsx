@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useAppTheme } from "./hooks/useAppTheme";
 import type { Track } from "./types/catalog";
 import { MainHeader } from "./components/MainHeader";
@@ -19,6 +19,10 @@ import {
   ymGoal,
   ymHit,
 } from "./lib/metrika";
+import {
+  clearTrackShareParams,
+  parseTrackShareParams,
+} from "./lib/shareTrack";
 import { registerAppSW } from "./pwa/register";
 import type { LibraryView } from "./types/user";
 
@@ -63,6 +67,8 @@ export function App() {
     sectionSub,
   } = useCatalog(user, { view, selectedFolder, selectedPlaylist });
 
+  const shareLinkHandled = useRef(false);
+
   const player = useAudioPlayer({
     catalog,
     patchTrackUrl,
@@ -102,6 +108,20 @@ export function App() {
   useEffect(() => {
     if (navOpen) ymGoal("nav_open");
   }, [navOpen]);
+
+  useEffect(() => {
+    if (catalogLoading || shareLinkHandled.current) return;
+    const { trackId, startAtSec } = parseTrackShareParams();
+    if (!trackId) return;
+    shareLinkHandled.current = true;
+    const track = trackMap.get(trackId);
+    clearTrackShareParams();
+    if (!track) {
+      pushToast("Сказка по ссылке не найдена в каталоге");
+      return;
+    }
+    void player.playTrack(track, { startAtSec });
+  }, [catalogLoading, trackMap, player.playTrack, pushToast]);
 
   useEffect(() => {
     registerAppSW(() => setSwNeedRefresh(true));
@@ -293,6 +313,7 @@ export function App() {
         onNext={() => player.nextTrack(1)}
         onTogglePlay={() => void player.togglePlay()}
         onSeek={player.seek}
+        onShareToast={pushToast}
       />
       {showPlaylistModal ? (
         <PlaylistModal

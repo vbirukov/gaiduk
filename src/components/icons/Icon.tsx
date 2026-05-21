@@ -19,6 +19,7 @@ export type IconName =
   | "star"
   | "star-outline"
   | "wake"
+  | "share"
   | "music"
   | "check"
   | "chevron-up"
@@ -127,6 +128,13 @@ const paths: Record<IconName, ReactNode> = {
     <>
       <circle cx="12" cy="12" r="4" />
       <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2" />
+    </>
+  ),
+  share: (
+    <>
+      <path d="M12 3v10" />
+      <path d="M7 8l5-5 5 5" />
+      <path d="M5 13H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-1" />
     </>
   ),
   music: (

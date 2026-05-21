@@ -5,6 +5,7 @@ import type { UserState } from "../types/user";
 import { Icon } from "./icons/Icon";
 import { IconButton } from "./IconButton";
 import { ymGoal } from "../lib/metrika";
+import { shareTrack } from "../lib/shareTrack";
 import { NowPlayingSheet } from "./NowPlayingSheet";
 import { PlayerTimeline } from "./PlayerTimeline";
 import { PlayerTransport } from "./PlayerTransport";
@@ -29,6 +30,7 @@ type Props = {
   onNext: () => void;
   onTogglePlay: () => void;
   onSeek: (value: number) => void;
+  onShareToast: (message: string) => void;
 };
 
 export function PlayerBar({
@@ -50,6 +52,7 @@ export function PlayerBar({
   onNext,
   onTogglePlay,
   onSeek,
+  onShareToast,
 }: Props) {
   const [nowPlayingOpen, setNowPlayingOpen] = useState(false);
 
@@ -139,6 +142,27 @@ export function PlayerBar({
                 aria-label={liked ? "Убрать лайк" : "Лайк"}
               >
                 <Icon name={liked ? "heart" : "heart-outline"} size={20} />
+              </IconButton>
+              <IconButton
+                className="btn-share"
+                disabled={!currentTrack}
+                onClick={() => {
+                  if (!currentTrack) return;
+                  const pos = audioRef.current?.currentTime;
+                  void shareTrack({
+                    track: currentTrack,
+                    positionSec: Number.isFinite(pos) ? pos : undefined,
+                  }).then((r) => {
+                    if (r === "copied") onShareToast("Ссылка скопирована");
+                    if (r === "shared") {
+                      ymGoal("track_share", { track_id: currentTrack.id });
+                    }
+                  });
+                }}
+                aria-label="Поделиться сказкой"
+                title="Поделиться ссылкой"
+              >
+                <Icon name="share" size={20} />
               </IconButton>
               <label className="speed">
                 <span>Скорость</span>
