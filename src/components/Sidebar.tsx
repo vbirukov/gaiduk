@@ -1,5 +1,6 @@
 import type { AppSkin } from "../themes";
 import { BrandLogo } from "./BrandLogo";
+import { Icon } from "./icons/Icon";
 import { IconButtonIcon } from "./IconButton";
 import { ThemeSwitcher } from "./ThemeSwitcher";
 import type { Catalog } from "../types/catalog";
@@ -20,6 +21,7 @@ type Props = {
   onSelectFolder: (folder: string) => void;
   onSelectPlaylist: (playlistId: string) => void;
   onOpenPlaylistModal: () => void;
+  onDeletePlaylist: (playlistId: string) => void;
 };
 
 export function Sidebar({
@@ -37,6 +39,7 @@ export function Sidebar({
   onSelectFolder,
   onSelectPlaylist,
   onOpenPlaylistModal,
+  onDeletePlaylist,
 }: Props) {
   const likeCount = Object.keys(user.likes).length;
   const extraViews = [
@@ -118,13 +121,27 @@ export function Sidebar({
             {user.playlists
               .filter((p) => !p.system)
               .map((pl) => (
-                <button
-                  key={pl.id}
-                  className={selectedPlaylist === pl.id ? "nav active" : "nav"}
-                  onClick={() => onSelectPlaylist(pl.id)}
-                >
-                  {pl.name} <span>{pl.trackIds.length}</span>
-                </button>
+                <div key={pl.id} className="nav-item nav-item--playlist">
+                  <button
+                    type="button"
+                    className={selectedPlaylist === pl.id ? "nav active" : "nav"}
+                    onClick={() => onSelectPlaylist(pl.id)}
+                  >
+                    {pl.name} <span>{pl.trackIds.length}</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="nav-item__delete"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDeletePlaylist(pl.id);
+                    }}
+                    aria-label={`Удалить плейлист «${pl.name}»`}
+                    title="Удалить плейлист"
+                  >
+                    <Icon name="close" size={12} />
+                  </button>
+                </div>
               ))}
           </div>
         </section>

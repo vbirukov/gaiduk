@@ -36,6 +36,7 @@ export function App() {
     toggleLike,
     addPlaylist,
     addTrackToPlaylist,
+    deletePlaylist,
     cycleRepeat,
   } = useUserState();
 
@@ -215,6 +216,13 @@ export function App() {
             closeNav();
           }}
           onOpenPlaylistModal={() => setShowPlaylistModal(true)}
+          onDeletePlaylist={(id) => {
+            deletePlaylist(id);
+            if (selectedPlaylist === id) {
+              setView("all");
+              setSelectedPlaylist(null);
+            }
+          }}
         />
         <main className="main">
           {swNeedRefresh ? (

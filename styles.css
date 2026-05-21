@@ -363,6 +363,50 @@ html.has-player.player-bar-collapsed {
   display: grid;
   gap: var(--space-2);
 }
+.nav-item--playlist {
+  position: relative;
+}
+.nav-item--playlist > .nav {
+  width: 100%;
+  padding-right: 2rem;
+}
+.nav-item__delete {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  color: var(--text-muted);
+  background: color-mix(in oklab, var(--surface) 92%, var(--bg));
+  box-shadow: 0 0 0 1px oklch(from var(--text) l c h / 0.12);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.15s ease,
+    color 0.15s ease,
+    background 0.15s ease;
+}
+.nav-item--playlist:hover .nav-item__delete,
+.nav-item--playlist:focus-within .nav-item__delete {
+  opacity: 1;
+  pointer-events: auto;
+}
+.nav-item__delete:hover {
+  color: var(--text);
+  background: color-mix(in oklab, var(--primary) 18%, var(--surface));
+}
+.nav-item__delete:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
 .nav,
 .ghost,
 .primary,

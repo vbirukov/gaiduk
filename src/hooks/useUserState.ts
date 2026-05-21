@@ -85,6 +85,15 @@ export function useUserState() {
     }));
   }, []);
 
+  const deletePlaylist = useCallback((playlistId: string) => {
+    setUser((prev) => ({
+      ...prev,
+      playlists: prev.playlists.filter(
+        (pl) => pl.system || pl.id !== playlistId,
+      ),
+    }));
+  }, []);
+
   const cycleRepeat = useCallback(() => {
     setUser((prev) => ({
       ...prev,
@@ -105,6 +114,7 @@ export function useUserState() {
     toggleLike,
     addPlaylist,
     addTrackToPlaylist,
+    deletePlaylist,
     cycleRepeat,
   };
 }
