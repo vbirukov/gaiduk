@@ -51,6 +51,8 @@ export function App() {
   const [navOpen, setNavOpen] = useState(false);
   const [playlistName, setPlaylistName] = useState("");
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
+  const leadTrackIdRef = useRef<string | null>(user.lastTrackId);
+
   const {
     catalog,
     catalogLoading,
@@ -64,7 +66,12 @@ export function App() {
     resumeCount,
     sectionTitle,
     sectionSub,
-  } = useCatalog(user, { view, selectedFolder, selectedPlaylist });
+  } = useCatalog(user, {
+    view,
+    selectedFolder,
+    selectedPlaylist,
+    leadTrackIdRef,
+  });
 
   const shareLinkHandled = useRef(false);
 
@@ -79,6 +86,8 @@ export function App() {
     trackMap,
     pushToast,
   });
+
+  leadTrackIdRef.current = player.currentTrackId ?? user.lastTrackId;
 
   useEffect(() => {
     document.documentElement.classList.toggle(

@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type RefObject,
+} from "react";
 import { ymGoal } from "../lib/metrika";
 import {
   isCatalogRefreshDue,
@@ -10,7 +17,7 @@ import { fallbackCatalog } from "../data/fallbackCatalog";
 import { catalogWithServerMediaUrls } from "../lib/serverMediaCatalog";
 import { useServerMedia } from "../lib/mediaUrl";
 import { runCatalogWorker } from "../lib/catalogWorker";
-import { pickAdjacentId, shuffleIds } from "../lib/queue";
+import { pickAdjacentId, shuffleIds, shuffleIdsLeading } from "../lib/queue";
 import type { Catalog, Track } from "../types/catalog";
 import type { LibraryView, UserState } from "../types/user";
 
@@ -18,7 +25,20 @@ type Filters = {
   view: LibraryView;
   selectedFolder: string | null;
   selectedPlaylist: string | null;
+  /** Ref на текущий трек — при включении shuffle ставится первым в очереди */
+  leadTrackIdRef?: RefObject<string | null>;
 };
+
+function resolveLeadId(
+  filteredIds: string[],
+  leadRef: RefObject<string | null> | undefined,
+  lastTrackId: string | null,
+): string | null {
+  const fromRef = leadRef?.current;
+  if (fromRef && filteredIds.includes(fromRef)) return fromRef;
+  if (lastTrackId && filteredIds.includes(lastTrackId)) return lastTrackId;
+  return null;
+}
 
 export function useCatalog(user: UserState, filters: Filters) {
   const [catalog, setCatalog] = useState<Catalog>(() => {
@@ -167,7 +187,12 @@ export function useCatalog(user: UserState, filters: Filters) {
     }
 
     if (!wasShuffle && user.shuffle) {
-      setQueue(shuffleIds(filteredIds));
+      const lead = resolveLeadId(
+        filteredIds,
+        filters.leadTrackIdRef,
+        user.lastTrackId,
+      );
+      setQueue(shuffleIdsLeading(lead, filteredIds));
       return;
     }
 
@@ -176,12 +201,17 @@ export function useCatalog(user: UserState, filters: Filters) {
       const kept = prev.filter((id) => allowed.has(id));
       const added = filteredIds.filter((id) => !kept.includes(id));
       if (!prev.length || kept.length !== prev.length) {
-        return shuffleIds(filteredIds);
+        const lead = resolveLeadId(
+          filteredIds,
+          filters.leadTrackIdRef,
+          user.lastTrackId,
+        );
+        return shuffleIdsLeading(lead, filteredIds);
       }
       if (!added.length) return kept;
       return [...kept, ...shuffleIds(added)];
     });
-  }, [filteredIdKey, filteredIds, sortTracks, user.shuffle]);
+  }, [filteredIdKey, filteredIds, filters.leadTrackIdRef, sortTracks, user.shuffle]);
 
   const trackById = useMemo(
     () => new Map(filteredTracks.map((t) => [t.id, t])),

@@ -9,6 +9,13 @@ export function shuffleIds(ids: string[]): string[] {
   return arr;
 }
 
+/** Shuffle with `leadId` first (if present in `ids`). */
+export function shuffleIdsLeading(leadId: string | null, ids: string[]): string[] {
+  if (!leadId || !ids.includes(leadId)) return shuffleIds(ids);
+  const rest = ids.filter((id) => id !== leadId);
+  return [leadId, ...shuffleIds(rest)];
+}
+
 export function pickAdjacentId(
   source: string[],
   currentId: string | null,
