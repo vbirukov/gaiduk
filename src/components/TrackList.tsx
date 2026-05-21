@@ -114,7 +114,8 @@ export function TrackList({
   const showContinueBanner =
     Boolean(resumeTrack) && view === "all" && !selectedFolder;
 
-  const showFolderHeaders = user.shuffle && !selectedFolder;
+  const showFolderHeaders = !selectedFolder;
+  const showFolderNames = user.shuffle && !selectedFolder;
 
   return (
     <section className="library-feed">
@@ -166,6 +167,7 @@ export function TrackList({
           scrollToTrackId={scrollToTrackId}
           onScrolledToTrack={clearScrollToTrack}
           showFolderHeaders={showFolderHeaders}
+          showFolderNames={showFolderNames}
         />
       ) : tracks.length === 0 ? (
         <section className="cards">
@@ -190,6 +192,7 @@ export function TrackList({
           scrollToTrackId={scrollToTrackId}
           onScrolledToTrack={clearScrollToTrack}
           showFolderHeaders={showFolderHeaders}
+          showFolderNames={showFolderNames}
         />
       )}
       </div>
