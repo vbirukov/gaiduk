@@ -1323,6 +1323,13 @@ html.has-player.player-bar-collapsed {
   flex-shrink: 0;
   box-shadow: 0 0 0 2px color-mix(in oklab, var(--primary) 25%, transparent);
 }
+.card > .card-badge--corner {
+  position: absolute;
+  left: var(--space-4);
+  bottom: var(--space-4);
+  z-index: 2;
+  pointer-events: none;
+}
 .card-badge--live {
   color: var(--primary);
   background: color-mix(in oklab, var(--primary) 18%, var(--surface-offset));

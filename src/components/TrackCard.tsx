@@ -73,6 +73,26 @@ function TrackCardInner({
       ? Math.min(100, Math.round((progress.position / progress.duration) * 100))
       : 0;
 
+  const progressBadgeLabel =
+    progress.duration > 0
+      ? `${progressPct}%`
+      : progress.position > 0
+        ? fmtTime(progress.position)
+        : "···";
+
+  const renderProgressBadge = () => {
+    if (isActive || status !== "in-progress") return null;
+    return (
+      <span
+        className="card-badge card-badge--progress card-badge--corner"
+        title={listenStatusLabel["in-progress"]}
+        aria-label={`${listenStatusLabel["in-progress"]}, ${progressBadgeLabel}`}
+      >
+        {progressBadgeLabel}
+      </span>
+    );
+  };
+
   const renderStatusBadge = () => {
     if (isActive) {
       return (
@@ -92,23 +112,6 @@ function TrackCardInner({
           aria-label={listenStatusLabel.completed}
         >
           <Icon name="check" size={11} />
-        </span>
-      );
-    }
-    if (status === "in-progress") {
-      const label =
-        progress.duration > 0
-          ? `${progressPct}%`
-          : progress.position > 0
-            ? fmtTime(progress.position)
-            : "···";
-      return (
-        <span
-          className="card-badge card-badge--progress"
-          title={listenStatusLabel["in-progress"]}
-          aria-label={`${listenStatusLabel["in-progress"]}, ${label}`}
-        >
-          {label}
         </span>
       );
     }
@@ -204,6 +207,7 @@ function TrackCardInner({
           </button>
         ))}
       </div>
+      {renderProgressBadge()}
     </article>
   );
 }
