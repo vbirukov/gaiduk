@@ -24,6 +24,7 @@ export type IconName =
   | "check"
   | "chevron-up"
   | "chevron-down"
+  | "list-plus"
   | "leaf"
   | "sun-portal"
   | "cloud";
@@ -148,6 +149,12 @@ const paths: Record<IconName, ReactNode> = {
   check: <path d="M5 12.5 9.5 17 19 7" />,
   "chevron-up": <path d="m6 15 6-6 6 6" />,
   "chevron-down": <path d="m6 9 6 6 6-6" />,
+  "list-plus": (
+    <>
+      <path d="M11 6H3M11 12H3M11 18H3" />
+      <path d="M16 12v6M13 15h6" />
+    </>
+  ),
   leaf: (
     <path d="M12 3c-4 5-6 8-6 12a6 6 0 0 0 12 0c0-4-2-7-6-12z" />
   ),

@@ -1431,14 +1431,12 @@ html.has-player.player-bar-collapsed {
   flex-shrink: 0;
 }
 .card-playlist-menu__trigger {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  min-height: 40px;
-  padding: 0.45rem 0.75rem;
-  border-radius: 999px;
-  font-size: var(--text-sm);
-  font-weight: 500;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 14px;
   color: var(--text-muted);
   border: 1px solid oklch(from var(--text) l c h / 0.1);
   background: var(--surface-offset);
@@ -1450,14 +1448,7 @@ html.has-player.player-bar-collapsed {
 }
 .card-playlist-menu.is-open .card-playlist-menu__trigger {
   color: var(--primary);
-  border-color: color-mix(in oklab, var(--primary) 40%, transparent);
-  background: color-mix(in oklab, var(--primary) 12%, var(--surface));
-}
-.card-playlist-menu__chevron {
-  transition: transform 0.15s ease;
-}
-.card-playlist-menu.is-open .card-playlist-menu__chevron {
-  transform: rotate(180deg);
+  background: color-mix(in oklab, var(--primary) 14%, var(--surface));
 }
 .card-playlist-menu__list {
   position: absolute;

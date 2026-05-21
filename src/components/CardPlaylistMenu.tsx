@@ -51,16 +51,10 @@ export function CardPlaylistMenu({ trackId, playlists, onSelect }: Props) {
         aria-expanded={open}
         aria-haspopup="listbox"
         aria-controls={listId}
+        aria-label="Добавить в плейлист"
         title="Добавить в плейлист"
       >
-        <Icon name="star-outline" size={18} aria-hidden />
-        <span className="card-playlist-menu__label">В плейлист</span>
-        <Icon
-          name="chevron-down"
-          size={16}
-          className="card-playlist-menu__chevron"
-          aria-hidden
-        />
+        <Icon name="list-plus" size={20} />
       </button>
       {open ? (
         <ul
