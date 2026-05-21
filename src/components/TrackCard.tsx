@@ -159,23 +159,35 @@ function TrackCardInner({
         <div className="card-bg__shade" />
       </div>
       <div className="card-top">
-        {thumbPlay ? (
-          <IconButton
-            variant="primary"
-            size="md"
-            className="card-thumb card-thumb-play"
-            onClick={handlePlayClick}
-            aria-label={playLabel}
-          >
-            <PlayPauseIcon
-              playing={isActive && isPlaying}
-              busy={false}
-              iconSize={22}
-            />
-          </IconButton>
-        ) : (
-          <TrackCover track={track} size="lg" className="card-thumb" />
-        )}
+        <div className="card-aside">
+          {thumbPlay ? (
+            <IconButton
+              variant="primary"
+              size="md"
+              className="card-thumb card-thumb-play"
+              onClick={handlePlayClick}
+              aria-label={playLabel}
+            >
+              <PlayPauseIcon
+                playing={isActive && isPlaying}
+                busy={false}
+                iconSize={22}
+              />
+            </IconButton>
+          ) : (
+            <TrackCover track={track} size="lg" className="card-thumb" />
+          )}
+          <div className="card-social row-actions">
+            <button
+              type="button"
+              className={`ghost round${liked ? " active" : ""}`}
+              onClick={() => onToggleLike(track.id)}
+              aria-label={liked ? "Убрать лайк" : "Лайк"}
+            >
+              <Icon name={liked ? "heart" : "heart-outline"} size={20} />
+            </button>
+          </div>
+        </div>
         <div className="card-main">
           <div className="card-pills">
             <div className="pill">{track.folder}</div>
@@ -190,16 +202,6 @@ function TrackCardInner({
         </span>
       </div>
       <div className="card-actions row-actions wrap">
-        <div className="card-social row-actions">
-          <button
-            type="button"
-            className={`ghost round${liked ? " active" : ""}`}
-            onClick={() => onToggleLike(track.id)}
-            aria-label={liked ? "Убрать лайк" : "Лайк"}
-          >
-            <Icon name={liked ? "heart" : "heart-outline"} size={20} />
-          </button>
-        </div>
         <IconButton
           variant="primary"
           size="md"
