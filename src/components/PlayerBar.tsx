@@ -4,6 +4,7 @@ import type { Track } from "../types/catalog";
 import type { UserState } from "../types/user";
 import { Icon } from "./icons/Icon";
 import { IconButton } from "./IconButton";
+import { ymGoal } from "../lib/metrika";
 import { NowPlayingSheet } from "./NowPlayingSheet";
 import { PlayerTimeline } from "./PlayerTimeline";
 import { PlayerTransport } from "./PlayerTransport";
@@ -77,7 +78,11 @@ export function PlayerBar({
               <button
                 type="button"
                 className="cover cover-btn"
-                onClick={() => currentTrack && setNowPlayingOpen(true)}
+                onClick={() => {
+                  if (!currentTrack) return;
+                  setNowPlayingOpen(true);
+                  ymGoal("now_playing_open");
+                }}
                 disabled={!currentTrack}
                 aria-label={currentTrack ? "Открыть сейчас играет" : undefined}
               >

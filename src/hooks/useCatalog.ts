@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ymGoal } from "../lib/metrika";
 import { fallbackCatalog } from "../data/fallbackCatalog";
 import { catalogWithServerMediaUrls } from "../lib/serverMediaCatalog";
 import { useServerMedia } from "../lib/mediaUrl";
@@ -22,6 +23,7 @@ export function useCatalog(user: UserState, filters: Filters, options?: Options)
   const [initialLoading, setInitialLoading] = useState(true);
   const [loadingCatalog, setLoadingCatalog] = useState(false);
   const [queue, setQueue] = useState<string[]>([]);
+  const catalogReportedRef = useRef(false);
 
   const refreshCatalog = useCallback(async () => {
     setLoadingCatalog(true);
@@ -41,7 +43,13 @@ export function useCatalog(user: UserState, filters: Filters, options?: Options)
         const cat = await runCatalogWorker({
           serverMediaTest: options?.serverMediaTest,
         });
-        if (cat?.tracks.length) setCatalog(catalogWithServerMediaUrls(cat));
+        if (cat?.tracks.length) {
+          setCatalog(catalogWithServerMediaUrls(cat));
+          if (!catalogReportedRef.current) {
+            catalogReportedRef.current = true;
+            ymGoal("catalog_loaded", { track_count: cat.tracks.length });
+          }
+        }
       } finally {
         setInitialLoading(false);
       }

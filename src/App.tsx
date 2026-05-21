@@ -16,6 +16,11 @@ import { catalogWithServerMediaUrls } from "./lib/serverMediaCatalog";
 import { setRuntimeServerMediaTest } from "./lib/serverMediaTest";
 import { useToasts } from "./hooks/useToasts";
 import { useUserState } from "./hooks/useUserState";
+import {
+  libraryScreenPath,
+  ymGoal,
+  ymHit,
+} from "./lib/metrika";
 import { registerAppSW } from "./pwa/register";
 import type { LibraryView } from "./types/user";
 
@@ -97,6 +102,17 @@ export function App() {
   }, []);
 
   useEffect(() => {
+    ymHit(
+      libraryScreenPath(view, selectedFolder, selectedPlaylist),
+      sectionTitle,
+    );
+  }, [view, selectedFolder, selectedPlaylist, sectionTitle]);
+
+  useEffect(() => {
+    if (navOpen) ymGoal("nav_open");
+  }, [navOpen]);
+
+  useEffect(() => {
     registerAppSW(() => setSwNeedRefresh(true));
   }, []);
 
@@ -131,14 +147,21 @@ export function App() {
     [player.playTrack],
   );
   const handleToggleLike = useCallback(
-    (id: string) => toggleLike(id),
-    [toggleLike],
+    (id: string) => {
+      const liked = !isLiked(id);
+      toggleLike(id);
+      ymGoal("like_toggle", { track_id: id, liked: liked ? 1 : 0 });
+    },
+    [toggleLike, isLiked],
   );
 
   const handleRefreshCatalog = async () => {
     const cat = await refreshCatalog();
     if (cat) setCatalog(cat);
-    else pushToast("Не удалось обновить каталог. Проверьте сеть.");
+    else {
+      ymGoal("catalog_refresh_fail");
+      pushToast("Не удалось обновить каталог. Проверьте сеть.");
+    }
   };
 
   const handleToggleServerMediaTest = () => {
@@ -230,9 +253,12 @@ export function App() {
             onInstall={async () => {
               try {
                 await installPrompt?.prompt();
-                await installPrompt?.userChoice;
+                const { outcome } = (await installPrompt?.userChoice) ?? {
+                  outcome: "dismissed" as const,
+                };
+                ymGoal("pwa_install", { outcome });
               } catch {
-                /* отмена */
+                ymGoal("pwa_install", { outcome: "dismissed" });
               }
               setInstallPrompt(null);
             }}
@@ -300,6 +326,7 @@ export function App() {
           onClose={() => setShowPlaylistModal(false)}
           onSubmit={() => {
             if (addPlaylist(playlistName)) {
+              ymGoal("playlist_created");
               setPlaylistName("");
               setShowPlaylistModal(false);
             }

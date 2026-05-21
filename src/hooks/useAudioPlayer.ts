@@ -24,6 +24,7 @@ import {
   mediaUrlForPath,
   useServerMedia,
 } from "../lib/mediaUrl";
+import { ymGoal } from "../lib/metrika";
 import { formatPlaybackError } from "../lib/playbackErrors";
 import {
   applyResumePosition,
@@ -92,6 +93,7 @@ export function useAudioPlayer({
   const lastAssignedTrackRef = useRef<string | null>(null);
   const userProgressRef = useRef(user.progress);
   userProgressRef.current = user.progress;
+  const playCompleteReportedRef = useRef(new Set<string>());
 
   const currentTrack = currentTrackId
     ? (trackMap.get(currentTrackId) ?? null)
@@ -354,21 +356,31 @@ export function useAudioPlayer({
         }
         if (stale() || !playbackIntentRef.current) return;
         await audio.play();
+        ymGoal("play_start", {
+          track_id: track.id,
+          folder: track.folder ?? "",
+        });
         schedulePrefetchNext(track.id);
       } catch (err) {
         if (stale()) return;
         if (err instanceof DOMException && err.name === "AbortError") return;
         playbackIntentRef.current = false;
+        let reason = "unknown";
         if (err instanceof Error && err.message === "buffer wait timeout") {
+          reason = "buffer_timeout";
           pushToast("Слишком долгая загрузка — не набралось достаточно буфера для старта");
         } else if (err instanceof Error && err.message === "metadata timeout") {
+          reason = "metadata_timeout";
           pushToast("Не удалось получить метаданные трека");
         } else {
+          reason =
+            err instanceof Error ? err.message.slice(0, 120) : "unknown";
           pushToast(formatPlaybackError(err), {
             label: "Повторить",
             onClick: () => void playTrack(track),
           });
         }
+        ymGoal("playback_error", { track_id: track.id, reason });
       } finally {
         if (
           activePlaybackTrackRef.current === track.id &&
@@ -494,6 +506,10 @@ export function useAudioPlayer({
       const duration = audio.duration || 0;
       const position = audio.currentTime || 0;
       const completed = duration ? position / duration > 0.97 : false;
+      if (completed && !playCompleteReportedRef.current.has(trackId)) {
+        playCompleteReportedRef.current.add(trackId);
+        ymGoal("play_complete", { track_id: trackId });
+      }
       const updatedAt = new Date().toISOString();
       setUser((prev) => ({
         ...prev,
