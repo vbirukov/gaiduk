@@ -1377,9 +1377,6 @@ html.has-player.player-bar-collapsed {
   flex: 1;
   min-width: 0;
 }
-.card-thumb {
-  flex-shrink: 0;
-}
 .card-actions {
   align-items: center;
 }
@@ -2116,9 +2113,6 @@ input[type="range"]::-webkit-slider-thumb {
   }
   .right-box > .speed select {
     padding: 0.3rem 0.4rem;
-  }
-  .card-thumb {
-    display: none;
   }
   .card-top {
     display: block;

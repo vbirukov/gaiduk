@@ -4,7 +4,6 @@ import { isStubTrack } from "../lib/diskDownload";
 import { listenStatus, listenStatusLabel } from "../lib/listenStatus";
 import { Icon } from "./icons/Icon";
 import { IconButton, PlayPauseIcon } from "./IconButton";
-import { TrackCover } from "./TrackCover";
 import type { Track } from "../types/catalog";
 import type { Playlist, Progress } from "../types/user";
 
@@ -155,7 +154,6 @@ function TrackCardInner({
         <div className="card-bg__shade" />
       </div>
       <div className="card-top">
-        <TrackCover track={track} size="lg" className="card-thumb" />
         <div className="card-main">
           <div className="card-pills">
             <div className="pill">{track.folder}</div>
