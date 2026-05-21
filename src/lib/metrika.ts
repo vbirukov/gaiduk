@@ -1,6 +1,8 @@
 import type { LibraryView } from "../types/user";
 
-export const YM_COUNTER_ID = Number(import.meta.env.VITE_YM_COUNTER_ID) || 0;
+/** Публичный номер счётчика; fallback если CI собрал без VITE_YM_COUNTER_ID */
+export const YM_COUNTER_ID =
+  Number(import.meta.env.VITE_YM_COUNTER_ID) || 109337902;
 
 declare global {
   interface Window {

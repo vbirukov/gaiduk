@@ -43,8 +43,9 @@
     <!-- Yandex.Metrika: init в HTML до React (очередь ym через arguments) -->
     <script type="text/javascript">
       (function () {
-        var id = parseInt("%VITE_YM_COUNTER_ID%", 10);
-        if (!id) return;
+        var id = 109337902;
+        var fromEnv = parseInt("%VITE_YM_COUNTER_ID%", 10);
+        if (fromEnv) id = fromEnv;
         window.dataLayer = window.dataLayer || [];
         (function (m, e, t, r, i, k, a) {
           m[i] =
