@@ -1,4 +1,3 @@
-import { PUBLIC_KEY } from "../config";
 import type { AppSkin } from "../themes";
 import { IconButtonIcon } from "./IconButton";
 import { ThemeSwitcher } from "./ThemeSwitcher";
@@ -31,11 +30,7 @@ export function MainHeader({
         onClick={onOpenNav}
         aria-label="Открыть меню"
       />
-      <div>
-        <div className="eyebrow">Публичная коллекция Дмитрия Гайдука</div>
-        <div className="source desktop-source">Источник: {PUBLIC_KEY}</div>
-      </div>
-      <div className="toolbar">
+      <div className="toolbar topbar-toolbar">
         <ThemeSwitcher skin={skin} onSkinChange={onSkinChange} />
         {installPrompt ? (
           <button type="button" className="ghost" onClick={onInstall}>

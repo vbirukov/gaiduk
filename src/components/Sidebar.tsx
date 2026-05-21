@@ -1,4 +1,3 @@
-import { PUBLIC_KEY } from "../config";
 import type { AppSkin } from "../themes";
 import { BrandLogo } from "./BrandLogo";
 import { IconButtonIcon } from "./IconButton";
@@ -128,9 +127,6 @@ export function Sidebar({
               ))}
           </div>
         </section>
-        <p className="mini-text source sidebar-source">
-          Источник: {PUBLIC_KEY}
-        </p>
       </aside>
     </>
   );

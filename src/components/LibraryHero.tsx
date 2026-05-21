@@ -50,8 +50,6 @@ export function LibraryHero({
         <div className="hero-head">
           <div className="hero-expandable" aria-hidden={isCompact}>
             <div className="hero-expandable-inner">
-              <div className="eyebrow">Об авторе</div>
-              <h2>Дмитрий Гайдук</h2>
               <p className="hero-author-bio">
                 Дмитрий Гайдук — автор и рассказчик, который умеет превращать
                 сказку в живое, душевное и очень человеческое пространство. В его
