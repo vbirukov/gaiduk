@@ -1,4 +1,4 @@
-const CACHE = "gayduk-shell-v2";
+const CACHE = "gayduk-shell-v3";
 const STATIC_RE =
   /^\/(images|gaiduk|covers|brand|icons)\/|\.(webp|jpg|jpeg|svg|woff2?)$/i;
 

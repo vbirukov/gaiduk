@@ -40,7 +40,43 @@
         }
       } catch (e) {}
     </script>
-    <script type="module" src="/main.tsx"></script>
+    <!-- Yandex.Metrika: init в HTML до React (очередь ym через arguments) -->
+    <script type="text/javascript">
+      (function () {
+        var id = parseInt("%VITE_YM_COUNTER_ID%", 10);
+        if (!id) return;
+        window.dataLayer = window.dataLayer || [];
+        (function (m, e, t, r, i, k, a) {
+          m[i] =
+            m[i] ||
+            function () {
+              (m[i].a = m[i].a || []).push(arguments);
+            };
+          m[i].l = 1 * new Date();
+          for (var j = 0; j < document.scripts.length; j++) {
+            if (document.scripts[j].src === r) return;
+          }
+          k = e.createElement(t);
+          a = e.getElementsByTagName(t)[0];
+          k.async = 1;
+          k.src = r;
+          a.parentNode.insertBefore(k, a);
+        })(
+          window,
+          document,
+          "script",
+          "https://mc.yandex.ru/metrika/tag.js?id=" + id,
+          "ym",
+        );
+        ym(id, "init", {
+          clickmap: true,
+          trackLinks: true,
+          accurateTrackBounce: true,
+          webvisor: true,
+          ecommerce: "dataLayer",
+        });
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
@@ -52,5 +88,6 @@
           alt=""
         /></div
     ></noscript>
+    <script type="module" src="/main.tsx"></script>
   </body>
 </html>
