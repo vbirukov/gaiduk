@@ -103,8 +103,11 @@
     color-mix(in oklab, var(--jaipur-clay) 80%, var(--jaipur-facade))
   );
   border: 1.5px solid var(--jaipur-outline);
-  border-radius: var(--radius-arch);
+  border-radius: 24px;
   box-shadow: var(--shadow-md);
+}
+[data-skin="jaipur"] .hero-main {
+  border-radius: 0 0 24px 24px;
 }
 
 [data-skin="jaipur"] .hero h2,

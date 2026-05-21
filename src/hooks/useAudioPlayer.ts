@@ -94,6 +94,9 @@ export function useAudioPlayer({
   const userProgressRef = useRef(user.progress);
   userProgressRef.current = user.progress;
   const playCompleteReportedRef = useRef(new Set<string>());
+  const persistProgressRef = useRef(
+    (_audio: HTMLAudioElement, _trackId: string) => {},
+  );
 
   const currentTrack = currentTrackId
     ? (trackMap.get(currentTrackId) ?? null)
@@ -301,7 +304,9 @@ export function useAudioPlayer({
 
       audio.pause();
       playbackIntentRef.current = false;
-      if (lastAssignedTrackRef.current !== track.id) {
+      const prevAssigned = lastAssignedTrackRef.current;
+      if (prevAssigned && prevAssigned !== track.id) {
+        persistProgressRef.current(audio, prevAssigned);
         lastPlaybackUrlRef.current = "";
         lastAssignedTrackRef.current = null;
         audio.removeAttribute("src");
@@ -533,6 +538,7 @@ export function useAudioPlayer({
     },
     [setUser],
   );
+  persistProgressRef.current = persistProgress;
 
   const seekBy = useCallback(
     (deltaSec: number) => {

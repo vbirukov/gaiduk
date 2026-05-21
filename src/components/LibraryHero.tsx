@@ -51,7 +51,7 @@ export function LibraryHero({
           <div className="hero-expandable" aria-hidden={isCompact}>
             <div className="hero-expandable-inner">
               <p className="hero-author-bio">
-                Дмитрий Гайдук — автор и рассказчик, который умеет превращать
+                Автор и рассказчик, который умеет превращать
                 сказку в живое, душевное и очень человеческое пространство. В его
                 историях чувствуется любовь к свободе, юмору, странствиям и
                 мудрости народной речи. Он пишет так, будто ведёт неспешный,
@@ -90,22 +90,24 @@ export function LibraryHero({
             >
               Дмитрий Гайдук
             </a>
-            <a
-              className="chip hero-author-cta"
-              href={AUTHOR_VK_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Концерты
-            </a>
-            <a
-              className="chip hero-author-cta"
-              href={AUTHOR_SUPPORT_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Поддержать автора
-            </a>
+            <div className="hero-author-ctas">
+              <a
+                className="chip hero-author-cta"
+                href={AUTHOR_VK_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Концерты
+              </a>
+              <a
+                className="chip hero-author-cta"
+                href={AUTHOR_SUPPORT_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Поддержать автора
+              </a>
+            </div>
           </div>
         </div>
       </div>

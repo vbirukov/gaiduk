@@ -55,12 +55,33 @@ export function PlayerBar({
   onShareToast,
 }: Props) {
   const [nowPlayingOpen, setNowPlayingOpen] = useState(false);
+  const [barCollapsed, setBarCollapsed] = useState(false);
 
   useEffect(() => {
     if (!currentTrack) setNowPlayingOpen(false);
   }, [currentTrack?.id]);
 
+  useEffect(() => {
+    if (!currentTrackId) setBarCollapsed(false);
+  }, [currentTrackId]);
+
+  useEffect(() => {
+    if (isPlaying) setBarCollapsed(false);
+  }, [isPlaying]);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle(
+      "player-bar-collapsed",
+      Boolean(currentTrackId && barCollapsed),
+    );
+    return () => {
+      document.documentElement.classList.remove("player-bar-collapsed");
+    };
+  }, [currentTrackId, barCollapsed]);
+
   const liked = currentTrackId ? isLiked(currentTrackId) : false;
+  const showCollapse =
+    Boolean(currentTrackId) && !isPlaying && !audioBusy && !barCollapsed;
 
   return (
     <>
@@ -73,6 +94,21 @@ export function PlayerBar({
       />
       {currentTrackId ? (
         <>
+          {barCollapsed ? (
+            <button
+              type="button"
+              className="player-bar-restore"
+              onClick={() => setBarCollapsed(false)}
+              aria-label="Показать панель плеера"
+            >
+              <TrackCover track={currentTrack} size="sm" />
+              <span className="player-bar-restore__text">
+                <strong>{currentTrack?.title}</strong>
+                <span className="mini-text">На паузе · нажми, чтобы открыть</span>
+              </span>
+              <Icon name="chevron-up" size={20} aria-hidden />
+            </button>
+          ) : null}
           <footer className="player-bar">
             <div className="player-bar-bg" aria-hidden>
               <div className="player-bar-bg__shade" />
@@ -99,18 +135,30 @@ export function PlayerBar({
               </div>
             </div>
             <div className="center-box">
-              <PlayerTransport
-                user={user}
-                isPlaying={isPlaying}
-                audioBusy={audioBusy}
-                playButtonLabel={playButtonLabel}
-                repeatLabel={repeatLabel}
-                onToggleShuffle={onToggleShuffle}
-                onCycleRepeat={onCycleRepeat}
-                onPrev={onPrev}
-                onTogglePlay={onTogglePlay}
-                onNext={onNext}
-              />
+              <div className="center-box-head">
+                <PlayerTransport
+                  user={user}
+                  isPlaying={isPlaying}
+                  audioBusy={audioBusy}
+                  playButtonLabel={playButtonLabel}
+                  repeatLabel={repeatLabel}
+                  onToggleShuffle={onToggleShuffle}
+                  onCycleRepeat={onCycleRepeat}
+                  onPrev={onPrev}
+                  onTogglePlay={onTogglePlay}
+                  onNext={onNext}
+                />
+                {showCollapse ? (
+                  <IconButton
+                    className="btn-collapse-player"
+                    onClick={() => setBarCollapsed(true)}
+                    aria-label="Скрыть панель плеера"
+                    title="Скрыть панель"
+                  >
+                    <Icon name="chevron-down" size={20} />
+                  </IconButton>
+                ) : null}
+              </div>
               <PlayerTimeline
                 audioRef={audioRef}
                 trackId={currentTrackId}

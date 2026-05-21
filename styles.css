@@ -115,6 +115,9 @@ input {
 html.has-player {
   --player-bar-offset: 108px;
 }
+html.has-player.player-bar-collapsed {
+  --player-bar-offset: 0;
+}
 .app-shell.has-player {
   padding-bottom: var(--player-bar-offset);
 }
@@ -684,11 +687,23 @@ html.has-player {
 }
 .hero-author-actions {
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+}
+.hero-author-ctas {
+  display: flex;
   flex-wrap: wrap;
   gap: var(--space-3);
   justify-content: center;
   align-items: center;
   width: 100%;
+}
+@media (min-width: 1025px) {
+  .hero-author-ctas {
+    flex-wrap: nowrap;
+  }
 }
 .hero-author-cta {
   min-height: 40px;
@@ -850,6 +865,8 @@ html.has-player {
   gap: var(--space-3);
   min-width: 0;
   scroll-margin-top: var(--space-4);
+  border-radius: 0 0 24px 24px;
+  overflow: hidden;
 }
 .hero-head {
   display: flex;
@@ -1594,7 +1611,7 @@ html.has-player {
   bottom: 0;
   isolation: isolate;
   display: grid;
-  grid-template-columns: 1.2fr 1fr 0.8fr;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   gap: var(--space-4);
   align-items: center;
   box-sizing: border-box;
@@ -1605,6 +1622,67 @@ html.has-player {
   padding-right: max(var(--space-4), env(safe-area-inset-right, 0px));
   border-top: 1px solid oklch(from var(--text) l c h / 0.12);
   overflow: hidden;
+  transition:
+    transform 0.28s cubic-bezier(0.33, 1, 0.68, 1),
+    opacity 0.22s ease,
+    visibility 0.28s;
+}
+html.player-bar-collapsed .player-bar {
+  transform: translateY(100%);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.player-bar-restore {
+  position: fixed;
+  z-index: 26;
+  left: 50%;
+  bottom: max(var(--space-4), env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  max-width: min(92vw, 28rem);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid oklch(from var(--text) l c h / 0.12);
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--bg) 92%, var(--surface));
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+}
+.player-bar-restore:hover {
+  border-color: color-mix(in oklab, var(--primary) 35%, transparent);
+}
+.player-bar-restore:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+.player-bar-restore__text {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+  flex: 1;
+}
+.player-bar-restore__text strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-sm);
+}
+.center-box-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  justify-content: center;
+}
+.center-box-head .player-controls {
+  flex: 0 1 auto;
 }
 .player-bar-bg {
   position: absolute;
@@ -1637,7 +1715,13 @@ html.has-player {
   z-index: 1;
   min-width: 0;
 }
-.now-box,
+.now-box {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  justify-self: start;
+  max-width: 100%;
+}
 .player-controls,
 .center-box {
   display: flex;
@@ -1646,7 +1730,17 @@ html.has-player {
 }
 .center-box {
   flex-direction: column;
-  width: 100%;
+  align-items: center;
+  justify-self: center;
+  width: max-content;
+  min-width: min(18rem, 100%);
+  max-width: 100%;
+}
+.center-box .player-hints {
+  text-align: center;
+}
+.center-box .timeline {
+  width: min(28rem, 100%);
 }
 .right-box {
   display: grid;
@@ -1655,8 +1749,11 @@ html.has-player {
   align-items: center;
   column-gap: var(--space-3);
   row-gap: var(--space-2);
+  justify-self: end;
+  justify-items: end;
   min-width: 0;
-  width: 100%;
+  width: max-content;
+  max-width: 100%;
 }
 .right-box > .btn-wake {
   display: none !important;
@@ -1936,6 +2033,18 @@ input[type="range"]::-webkit-slider-thumb {
   .player-bar {
     grid-template-columns: minmax(0, 1fr);
   }
+  .now-box,
+  .center-box,
+  .right-box {
+    justify-self: stretch;
+    width: 100%;
+  }
+  .center-box {
+    align-items: center;
+  }
+  .right-box {
+    justify-items: stretch;
+  }
   .player-hints {
     display: none;
   }
@@ -1963,6 +2072,9 @@ input[type="range"]::-webkit-slider-thumb {
 @media (max-width: 720px) {
   html.has-player {
     --player-bar-offset: min(42vh, 280px);
+  }
+  html.has-player.player-bar-collapsed {
+    --player-bar-offset: 0;
   }
   .hookah-smoke {
     height: min(62vh, 520px);

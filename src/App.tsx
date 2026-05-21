@@ -150,9 +150,13 @@ export function App() {
 
   const handlePlayTrack = useCallback(
     (t: Track) => {
+      if (player.currentTrackId === t.id) {
+        void player.togglePlay();
+        return;
+      }
       void player.playTrack(t);
     },
-    [player.playTrack],
+    [player.currentTrackId, player.playTrack, player.togglePlay],
   );
   const handleToggleLike = useCallback(
     (id: string) => {

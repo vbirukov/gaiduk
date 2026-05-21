@@ -38,6 +38,12 @@ export function Sidebar({
   onSelectPlaylist,
   onOpenPlaylistModal,
 }: Props) {
+  const likeCount = Object.keys(user.likes).length;
+  const extraViews = [
+    resumeCount > 0 ? (["resume", `Продолжить · ${resumeCount}`] as const) : null,
+    likeCount > 0 ? (["liked", `Лайки · ${likeCount}`] as const) : null,
+  ].filter((item): item is readonly ["resume" | "liked", string] => item != null);
+
   return (
     <>
       <button
@@ -74,12 +80,7 @@ export function Sidebar({
               ({catalog.tracks.length} треков)
             </span>
           </button>
-          {(
-            [
-              ["resume", `Продолжить · ${resumeCount}`],
-              ["liked", `Лайки · ${Object.keys(user.likes).length}`],
-            ] as const
-          ).map(([id, label]) => (
+          {extraViews.map(([id, label]) => (
             <button
               key={id}
               className={view === id ? "nav active" : "nav"}
