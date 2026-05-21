@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ymGoal } from "../lib/metrika";
+import {
+  isCatalogRefreshDue,
+  loadCachedCatalog,
+  markCatalogRefreshed,
+  saveCachedCatalog,
+} from "../lib/catalogCache";
 import { fallbackCatalog } from "../data/fallbackCatalog";
 import { catalogWithServerMediaUrls } from "../lib/serverMediaCatalog";
 import { useServerMedia } from "../lib/mediaUrl";
@@ -15,38 +21,70 @@ type Filters = {
 };
 
 export function useCatalog(user: UserState, filters: Filters) {
-  const [catalog, setCatalog] = useState<Catalog>(fallbackCatalog);
-  const [initialLoading, setInitialLoading] = useState(true);
+  const [catalog, setCatalog] = useState<Catalog>(() => {
+    const cached = loadCachedCatalog();
+    return cached?.tracks.length ? catalogWithServerMediaUrls(cached) : fallbackCatalog;
+  });
+  const [initialLoading, setInitialLoading] = useState(() => !loadCachedCatalog()?.tracks.length);
   const [loadingCatalog, setLoadingCatalog] = useState(false);
   const [queue, setQueue] = useState<string[]>([]);
   const catalogReportedRef = useRef(false);
+  const refreshInFlightRef = useRef(false);
 
-  const refreshCatalog = useCallback(async () => {
-    setLoadingCatalog(true);
-    try {
-      const cat = await runCatalogWorker();
-      return cat ? catalogWithServerMediaUrls(cat) : null;
-    } finally {
-      setLoadingCatalog(false);
+  const applyCatalog = useCallback((cat: Catalog) => {
+    const prepared = catalogWithServerMediaUrls(cat);
+    setCatalog(prepared);
+    saveCachedCatalog(prepared);
+    markCatalogRefreshed();
+    if (!catalogReportedRef.current) {
+      catalogReportedRef.current = true;
+      ymGoal("catalog_loaded", { track_count: prepared.tracks.length });
     }
   }, []);
 
+  const fetchCatalog = useCallback(async () => {
+    const cat = await runCatalogWorker();
+    return cat?.tracks.length ? cat : null;
+  }, []);
+
+  const refreshCatalog = useCallback(
+    async (opts?: { background?: boolean }) => {
+      if (refreshInFlightRef.current) return null;
+      refreshInFlightRef.current = true;
+      if (!opts?.background) setLoadingCatalog(true);
+      try {
+        const cat = await fetchCatalog();
+        if (cat) applyCatalog(cat);
+        return cat;
+      } finally {
+        refreshInFlightRef.current = false;
+        if (!opts?.background) setLoadingCatalog(false);
+      }
+    },
+    [applyCatalog, fetchCatalog],
+  );
+
   useEffect(() => {
+    const hasCache = Boolean(loadCachedCatalog()?.tracks.length);
     void (async () => {
       try {
-        const cat = await runCatalogWorker();
-        if (cat?.tracks.length) {
-          setCatalog(catalogWithServerMediaUrls(cat));
-          if (!catalogReportedRef.current) {
-            catalogReportedRef.current = true;
-            ymGoal("catalog_loaded", { track_count: cat.tracks.length });
-          }
-        }
+        if (!isCatalogRefreshDue()) return;
+        await refreshCatalog({ background: hasCache });
       } finally {
         setInitialLoading(false);
       }
     })();
-  }, []);
+  }, [refreshCatalog]);
+
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState !== "visible") return;
+      if (!isCatalogRefreshDue()) return;
+      void refreshCatalog({ background: true });
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [refreshCatalog]);
 
   const patchTrackUrl = useCallback((trackId: string, url: string) => {
     setCatalog((prev) => ({
@@ -158,8 +196,6 @@ export function useCatalog(user: UserState, filters: Filters) {
     catalog,
     setCatalog,
     catalogLoading: initialLoading || loadingCatalog,
-    loadingCatalog,
-    refreshCatalog,
     patchTrackUrl,
     trackMap,
     tracks,

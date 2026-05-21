@@ -8,7 +8,6 @@
 | `play_complete` | Дослушано ≥97% |
 | `playback_error` | Ошибка загрузки/воспроизведения |
 | `catalog_loaded` | Первый успешный каталог |
-| `catalog_refresh_fail` | Не удалось обновить каталог |
 | `nav_open` | Открыто боковое меню |
 | `now_playing_open` | Открыт полноэкранный плеер |
 | `pwa_install` | Установка PWA (outcome: accepted/dismissed) |

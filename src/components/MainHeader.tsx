@@ -9,8 +9,6 @@ type Props = {
   onInstall: () => void;
   showIosInstallHint: boolean;
   onDismissIosHint: () => void;
-  loadingCatalog: boolean;
-  onRefreshCatalog: () => void;
   skin: AppSkin;
   onSkinChange: (skin: AppSkin) => void;
 };
@@ -21,8 +19,6 @@ export function MainHeader({
   onInstall,
   showIosInstallHint,
   onDismissIosHint,
-  loadingCatalog,
-  onRefreshCatalog,
   skin,
   onSkinChange,
 }: Props) {
@@ -56,9 +52,6 @@ export function MainHeader({
             iOS: Поделиться → На экран «Домой»
           </button>
         ) : null}
-        <button type="button" className="ghost" onClick={onRefreshCatalog}>
-          {loadingCatalog ? "Обновляю…" : "Обновить каталог"}
-        </button>
       </div>
     </header>
   );

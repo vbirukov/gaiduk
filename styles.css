@@ -140,11 +140,13 @@ html.has-player {
   align-items: center;
   margin-bottom: var(--space-6);
 }
-.sidebar-close,
 .menu-toggle,
 .nav-backdrop,
 .sidebar-source {
   display: none;
+}
+.sidebar-close {
+  display: none !important;
 }
 .sidebar-source {
   margin-top: var(--space-4);
@@ -1886,7 +1888,7 @@ input[type="range"]::-webkit-slider-thumb {
     transform: translateX(0);
   }
   .sidebar-close {
-    display: grid;
+    display: grid !important;
     margin-left: auto;
     flex-shrink: 0;
   }
@@ -1929,11 +1931,6 @@ input[type="range"]::-webkit-slider-thumb {
     grid-template-columns: minmax(0, 1fr);
   }
   .player-hints {
-    display: none;
-  }
-}
-@media (min-width: 1025px) {
-  .sidebar-close {
     display: none;
   }
 }

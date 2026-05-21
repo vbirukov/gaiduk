@@ -52,10 +52,7 @@ export function App() {
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
   const {
     catalog,
-    setCatalog,
     catalogLoading,
-    loadingCatalog,
-    refreshCatalog,
     resumeTrack,
     patchTrackUrl,
     trackMap,
@@ -166,15 +163,6 @@ export function App() {
     [toggleLike, isLiked],
   );
 
-  const handleRefreshCatalog = async () => {
-    const cat = await refreshCatalog();
-    if (cat) setCatalog(cat);
-    else {
-      ymGoal("catalog_refresh_fail");
-      pushToast("Не удалось обновить каталог. Проверьте сеть.");
-    }
-  };
-
   const showIosInstallHint =
     !iosHintDismissed &&
     typeof navigator !== "undefined" &&
@@ -261,8 +249,6 @@ export function App() {
             }}
             showIosInstallHint={showIosInstallHint}
             onDismissIosHint={() => setIosHintDismissed(true)}
-            loadingCatalog={loadingCatalog}
-            onRefreshCatalog={() => void handleRefreshCatalog()}
             skin={skin}
             onSkinChange={setSkin}
           />
