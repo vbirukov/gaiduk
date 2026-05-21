@@ -1540,6 +1540,13 @@ html.has-player.player-bar-collapsed {
   z-index: 2;
   pointer-events: none;
 }
+.card-badge--next {
+  color: var(--accent-teal);
+  background: color-mix(in oklab, var(--accent-teal) 16%, var(--surface-offset));
+  border-color: color-mix(in oklab, var(--accent-teal) 38%, transparent);
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
 .card-badge--live {
   color: var(--primary);
   background: color-mix(in oklab, var(--primary) 18%, var(--surface-offset));

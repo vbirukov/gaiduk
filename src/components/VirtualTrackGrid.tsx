@@ -50,6 +50,7 @@ type Props = {
   showFolderHeaders?: boolean;
   showFolderNames?: boolean;
   feedLayout?: FeedLayout;
+  nextTrackId?: string | null;
 };
 
 function useColumnCount(containerRef: RefObject<HTMLElement | null>) {
@@ -129,6 +130,7 @@ export function VirtualTrackGrid({
   showFolderHeaders = false,
   showFolderNames = false,
   feedLayout = "tiles",
+  nextTrackId = null,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const isRows = feedLayout === "rows";
@@ -235,6 +237,7 @@ export function VirtualTrackGrid({
         track={track}
         layout={feedLayout}
         showFolderName={showFolderNames}
+        isQueueNext={track.id === nextTrackId}
         isActive={isActive}
         isPlaying={isActive && isPlaying}
         progress={resolveTrackProgress(

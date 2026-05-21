@@ -12,6 +12,7 @@ export type TrackCardProps = {
   track: Track;
   layout?: "tiles" | "rows";
   showFolderName?: boolean;
+  isQueueNext?: boolean;
   progress: Progress;
   isActive: boolean;
   isPlaying: boolean;
@@ -26,6 +27,7 @@ function TrackCardInner({
   track,
   layout = "tiles",
   showFolderName = false,
+  isQueueNext = false,
   progress,
   isActive,
   isPlaying,
@@ -84,6 +86,13 @@ function TrackCardInner({
           aria-live="polite"
         >
           {isPlaying ? "Сейчас" : "Пауза"}
+        </span>
+      );
+    }
+    if (isQueueNext) {
+      return (
+        <span className="card-badge card-badge--next" title="Следующий в очереди">
+          Следующий
         </span>
       );
     }
@@ -213,6 +222,7 @@ export const TrackCard = memo(TrackCardInner, (prev, next) => {
   if (prev.track !== next.track) return false;
   if (prev.layout !== next.layout) return false;
   if (prev.showFolderName !== next.showFolderName) return false;
+  if (prev.isQueueNext !== next.isQueueNext) return false;
   if (prev.isActive !== next.isActive) return false;
   if (prev.isPlaying !== next.isPlaying) return false;
   if (prev.liked !== next.liked) return false;

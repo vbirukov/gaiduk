@@ -35,6 +35,7 @@ type Props = {
   onAddToPlaylist: TrackCardProps["onAddToPlaylist"];
   onOpenNav: () => void;
   onFeedLayoutChange: (layout: FeedLayout) => void;
+  nextTrackId: string | null;
   isJaipur: boolean;
   isRastamanLight: boolean;
 };
@@ -60,6 +61,7 @@ export function TrackList({
   onAddToPlaylist,
   onOpenNav,
   onFeedLayoutChange,
+  nextTrackId,
   isJaipur,
   isRastamanLight,
 }: Props) {
@@ -117,7 +119,7 @@ export function TrackList({
   const showContinueBanner =
     Boolean(resumeTrack) && view === "all" && !selectedFolder;
 
-  const showFolderHeaders = !selectedFolder;
+  const showFolderHeaders = !selectedFolder && !user.shuffle;
   const showFolderNames = user.shuffle && !selectedFolder;
 
   return (
@@ -179,6 +181,7 @@ export function TrackList({
           showFolderHeaders={showFolderHeaders}
           showFolderNames={showFolderNames}
           feedLayout={user.feedLayout ?? "tiles"}
+          nextTrackId={nextTrackId}
         />
       ) : tracks.length === 0 ? (
         <section className="cards">
@@ -205,6 +208,7 @@ export function TrackList({
           showFolderHeaders={showFolderHeaders}
           showFolderNames={showFolderNames}
           feedLayout={user.feedLayout ?? "tiles"}
+          nextTrackId={nextTrackId}
         />
       )}
       </div>

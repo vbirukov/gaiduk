@@ -10,7 +10,7 @@ import { fallbackCatalog } from "../data/fallbackCatalog";
 import { catalogWithServerMediaUrls } from "../lib/serverMediaCatalog";
 import { useServerMedia } from "../lib/mediaUrl";
 import { runCatalogWorker } from "../lib/catalogWorker";
-import { shuffleIds } from "../lib/queue";
+import { pickAdjacentId, shuffleIds } from "../lib/queue";
 import type { Catalog, Track } from "../types/catalog";
 import type { LibraryView, UserState } from "../types/user";
 
@@ -109,7 +109,7 @@ export function useCatalog(user: UserState, filters: Filters) {
     [catalog.tracks],
   );
 
-  const tracks = useMemo(() => {
+  const filteredTracks = useMemo(() => {
     let list: Track[] = [...catalog.tracks];
     if (filters.selectedFolder) {
       list = list.filter((t) => t.folder === filters.selectedFolder);
@@ -128,11 +128,7 @@ export function useCatalog(user: UserState, filters: Filters) {
       const ids = new Set(pl?.trackIds ?? []);
       list = list.filter((t) => ids.has(t.id));
     }
-    return list.sort(
-      (a, b) =>
-        a.folder.localeCompare(b.folder, "ru") ||
-        a.title.localeCompare(b.title, "ru"),
-    );
+    return list;
   }, [
     catalog.tracks,
     filters.selectedFolder,
@@ -143,11 +139,63 @@ export function useCatalog(user: UserState, filters: Filters) {
     user.playlists,
   ]);
 
-  const trackIds = useMemo(() => tracks.map((t) => t.id), [tracks]);
+  const sortTracks = useCallback(
+    (list: Track[]) =>
+      [...list].sort(
+        (a, b) =>
+          a.folder.localeCompare(b.folder, "ru") ||
+          a.title.localeCompare(b.title, "ru"),
+      ),
+    [],
+  );
 
+  const filteredIds = useMemo(
+    () => filteredTracks.map((t) => t.id),
+    [filteredTracks],
+  );
+
+  const filteredIdKey = filteredIds.join("\u0001");
+
+  const shuffleOnRef = useRef(user.shuffle);
   useEffect(() => {
-    setQueue(user.shuffle ? shuffleIds(trackIds) : trackIds);
-  }, [trackIds, user.shuffle]);
+    const wasShuffle = shuffleOnRef.current;
+    shuffleOnRef.current = user.shuffle;
+
+    if (!user.shuffle) {
+      setQueue(sortTracks(filteredTracks).map((t) => t.id));
+      return;
+    }
+
+    if (!wasShuffle && user.shuffle) {
+      setQueue(shuffleIds(filteredIds));
+      return;
+    }
+
+    setQueue((prev) => {
+      const allowed = new Set(filteredIds);
+      const kept = prev.filter((id) => allowed.has(id));
+      const added = filteredIds.filter((id) => !kept.includes(id));
+      if (!prev.length || kept.length !== prev.length) {
+        return shuffleIds(filteredIds);
+      }
+      if (!added.length) return kept;
+      return [...kept, ...shuffleIds(added)];
+    });
+  }, [filteredIdKey, filteredIds, sortTracks, user.shuffle]);
+
+  const trackById = useMemo(
+    () => new Map(filteredTracks.map((t) => [t.id, t])),
+    [filteredTracks],
+  );
+
+  const tracks = useMemo(() => {
+    if (!user.shuffle) return sortTracks(filteredTracks);
+    return queue
+      .map((id) => trackById.get(id))
+      .filter((t): t is Track => t != null);
+  }, [filteredTracks, queue, sortTracks, trackById, user.shuffle]);
+
+  const trackIds = useMemo(() => tracks.map((t) => t.id), [tracks]);
 
   const resumeCount = useMemo(
     () =>
@@ -192,6 +240,14 @@ export function useCatalog(user: UserState, filters: Filters) {
         ? "Живой индекс публичной папки Яндекс.Диска."
         : "Идет fallback-режим до полной индексации каталога.";
 
+  const nextTrackId = useCallback(
+    (currentTrackId: string | null) => {
+      if (!user.shuffle || !queue.length) return null;
+      return pickAdjacentId(queue, currentTrackId, 1, user.repeatMode);
+    },
+    [queue, user.repeatMode, user.shuffle],
+  );
+
   return {
     catalog,
     setCatalog,
@@ -201,6 +257,7 @@ export function useCatalog(user: UserState, filters: Filters) {
     tracks,
     trackIds,
     queue,
+    nextTrackId,
     resumeCount,
     resumeTrack,
     sectionTitle,

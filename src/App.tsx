@@ -60,6 +60,7 @@ export function App() {
     tracks,
     trackIds,
     queue,
+    nextTrackId,
     resumeCount,
     sectionTitle,
     sectionSub,
@@ -289,6 +290,7 @@ export function App() {
             onFeedLayoutChange={(feedLayout) =>
               setUser((prev) => ({ ...prev, feedLayout }))
             }
+            nextTrackId={nextTrackId(player.currentTrackId)}
           />
         </main>
       </div>
