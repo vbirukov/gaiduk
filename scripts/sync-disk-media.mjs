@@ -179,10 +179,13 @@ async function main() {
   const catalogPath = path.join(rootDir, "catalog.json");
   if (!dryRun) {
     await mkdir(rootDir, { recursive: true });
-    await writeFile(catalogPath, JSON.stringify(out, null, 2), "utf8");
+    const tmp = `${catalogPath}.tmp`;
+    await writeFile(tmp, JSON.stringify(out, null, 2), "utf8");
+    await rename(tmp, catalogPath);
   }
   console.error(`done: ok=${ok} skip=${skip} fail=${fail}`);
   console.error("catalog:", catalogPath);
+  if (fail > 0) process.exit(1);
 }
 
 main().catch((e) => {

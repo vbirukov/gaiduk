@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily Gayduk media sync from Yandex Disk
+
+[Timer]
+# 04:30 UTC ≈ 07:30 MSK; сдвиг до 1 ч — не биться с другими cron
+OnCalendar=*-*-* 04:30:00
+RandomizedDelaySec=3600
+Persistent=true
+
+[Install]
+WantedBy=timers.target

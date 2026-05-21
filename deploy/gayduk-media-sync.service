@@ -1,0 +1,16 @@
+[Unit]
+Description=Gayduk Yandex Disk → /var/media sync
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=www-data
+Group=www-data
+Environment=MEDIA_ROOT=/var/media
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+WorkingDirectory=/opt/gayduk-media-sync
+ExecStart=/opt/gayduk-media-sync/run-media-sync.sh
+StandardOutput=append:/var/log/gayduk/media-sync.log
+StandardError=append:/var/log/gayduk/media-sync.log
+SyslogIdentifier=gayduk-media-sync
