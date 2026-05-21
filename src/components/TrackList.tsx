@@ -114,7 +114,7 @@ export function TrackList({
   const showContinueBanner =
     Boolean(resumeTrack) && view === "all" && !selectedFolder;
 
-  const showFolderHeaders = !selectedFolder;
+  const showFolderHeaders = user.shuffle && !selectedFolder;
 
   return (
     <section className="library-feed">

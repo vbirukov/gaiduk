@@ -9,6 +9,7 @@ import type { Playlist, Progress } from "../types/user";
 
 export type TrackCardProps = {
   track: Track;
+  showFolderName?: boolean;
   progress: Progress;
   isActive: boolean;
   isPlaying: boolean;
@@ -21,6 +22,7 @@ export type TrackCardProps = {
 
 function TrackCardInner({
   track,
+  showFolderName = false,
   progress,
   isActive,
   isPlaying,
@@ -156,7 +158,7 @@ function TrackCardInner({
       <div className="card-top">
         <div className="card-main">
           <div className="card-pills">
-            <div className="pill">{track.folder}</div>
+            {showFolderName ? <div className="pill">{track.folder}</div> : null}
             {renderStatusBadge()}
           </div>
           <h4 className="card-title">{track.title}</h4>
@@ -216,6 +218,7 @@ function progressEqual(a: Progress, b: Progress) {
 
 export const TrackCard = memo(TrackCardInner, (prev, next) => {
   if (prev.track !== next.track) return false;
+  if (prev.showFolderName !== next.showFolderName) return false;
   if (prev.isActive !== next.isActive) return false;
   if (prev.isPlaying !== next.isPlaying) return false;
   if (prev.liked !== next.liked) return false;

@@ -225,6 +225,7 @@ export function VirtualTrackGrid({
       <TrackCard
         key={track.id}
         track={track}
+        showFolderName={showFolderHeaders}
         isActive={isActive}
         isPlaying={isActive && isPlaying}
         progress={resolveTrackProgress(
