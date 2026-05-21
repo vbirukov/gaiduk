@@ -299,7 +299,7 @@ export function App() {
           setUser((prev) => ({ ...prev, shuffle: !prev.shuffle }))
         }
         onCycleRepeat={cycleRepeat}
-        onPrev={() => player.nextTrack(-1)}
+        onPrev={() => player.prevTrack()}
         onNext={() => player.nextTrack(1)}
         onTogglePlay={() => void player.togglePlay()}
         onSeek={player.seek}

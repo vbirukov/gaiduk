@@ -275,6 +275,16 @@
   border: 2px solid var(--rl-ink);
 }
 
+[data-skin="rastaman-light"] .icon-button.btn-collapse-player {
+  color: var(--rl-green-stroke);
+  border-color: color-mix(in oklab, var(--rl-green) 55%, var(--rl-ink));
+  background: color-mix(in oklab, var(--rl-green) 18%, var(--rl-cloud));
+}
+[data-skin="rastaman-light"] .icon-button.btn-collapse-player:hover:not(:disabled) {
+  background: color-mix(in oklab, var(--rl-green) 32%, var(--rl-cloud));
+  box-shadow: 0 0 12px color-mix(in oklab, var(--rl-green) 35%, transparent);
+}
+
 [data-skin="rastaman-light"] .card {
   border: 2px solid color-mix(in oklab, var(--rl-ink) 72%, transparent);
   box-shadow: var(--shadow-sm);

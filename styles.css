@@ -1393,6 +1393,12 @@ html.has-player.player-bar-collapsed {
 .card-thumb {
   flex-shrink: 0;
 }
+.card-thumb-play {
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  border-radius: 16px;
+}
 .card-actions {
   align-items: center;
 }
@@ -1411,6 +1417,9 @@ html.has-player.player-bar-collapsed {
     display: grid;
     place-items: center;
     margin-left: 0;
+  }
+  .card--thumb-play .card-play {
+    display: none;
   }
   .card-actions {
     gap: var(--space-2);
@@ -1684,6 +1693,21 @@ html.player-bar-collapsed .player-bar {
 .center-box-head .player-controls {
   flex: 0 1 auto;
 }
+.icon-button.btn-collapse-player {
+  flex-shrink: 0;
+  color: var(--accent-teal);
+  border: 1px solid color-mix(in oklab, var(--accent-teal) 42%, var(--border));
+  background: color-mix(in oklab, var(--accent-teal) 14%, var(--surface));
+}
+.icon-button.btn-collapse-player:hover:not(:disabled) {
+  color: color-mix(in oklab, var(--accent-teal) 72%, var(--text));
+  background: color-mix(in oklab, var(--accent-teal) 24%, var(--surface));
+  border-color: color-mix(in oklab, var(--accent-teal) 58%, transparent);
+  box-shadow: 0 0 14px color-mix(in oklab, var(--accent-teal) 32%, transparent);
+}
+.icon-button.btn-collapse-player:focus-visible {
+  outline-color: var(--accent-teal);
+}
 .player-bar-bg {
   position: absolute;
   inset: 0;
@@ -1744,7 +1768,7 @@ html.player-bar-collapsed .player-bar {
 }
 .right-box {
   display: grid;
-  grid-template-columns: auto auto minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr);
   grid-template-rows: auto auto;
   align-items: center;
   column-gap: var(--space-3);
@@ -1762,12 +1786,8 @@ html.player-bar-collapsed .player-bar {
   grid-column: 1;
   grid-row: 1;
 }
-.right-box > .btn-share {
-  grid-column: 2;
-  grid-row: 1;
-}
 .right-box > .speed {
-  grid-column: 3;
+  grid-column: 2;
   grid-row: 1;
   display: flex;
   flex-direction: row;
@@ -2060,12 +2080,8 @@ input[type="range"]::-webkit-slider-thumb {
     grid-column: 2;
     grid-row: 1;
   }
-  .right-box > .btn-share {
-    grid-column: 3;
-    grid-row: 1;
-  }
   .right-box > .speed {
-    grid-column: 4;
+    grid-column: 3;
     grid-row: 1;
   }
 }

@@ -144,6 +144,14 @@ html.has-player .player-bar {
   height: 44px;
 }
 
+.icon-button.btn-collapse-player:hover:not(:disabled) {
+  transform: translateY(2px) scale(1.02);
+}
+
+.icon-button.btn-collapse-player:active:not(:disabled) {
+  transform: translateY(3px) scale(0.98);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .icon-button.round:hover:not(:disabled),
   .icon-button.round:active:not(:disabled) {

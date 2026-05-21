@@ -303,6 +303,17 @@
   color: var(--text-inverse);
 }
 
+[data-skin="jaipur"] .icon-button.btn-collapse-player {
+  color: var(--jaipur-turquoise);
+  border-color: color-mix(in oklab, var(--jaipur-turquoise) 55%, var(--jaipur-outline));
+  background: color-mix(in oklab, var(--jaipur-turquoise) 22%, var(--jaipur-clay));
+}
+[data-skin="jaipur"] .icon-button.btn-collapse-player:hover:not(:disabled) {
+  color: var(--jaipur-sky);
+  background: color-mix(in oklab, var(--jaipur-turquoise) 38%, var(--jaipur-clay));
+  box-shadow: 0 0 14px color-mix(in oklab, var(--jaipur-turquoise) 45%, transparent);
+}
+
 [data-skin="jaipur"] .now-playing-sheet {
   border: 1.5px solid var(--jaipur-outline);
   border-radius: var(--radius-arch);

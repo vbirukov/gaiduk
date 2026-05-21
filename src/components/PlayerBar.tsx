@@ -83,6 +83,18 @@ export function PlayerBar({
   const showCollapse =
     Boolean(currentTrackId) && !isPlaying && !audioBusy && !barCollapsed;
 
+  const handleShare = () => {
+    if (!currentTrack) return;
+    const pos = audioRef.current?.currentTime;
+    void shareTrack({
+      track: currentTrack,
+      positionSec: Number.isFinite(pos) ? pos : undefined,
+    }).then((r) => {
+      if (r === "copied") onShareToast("Ссылка скопирована");
+      if (r === "shared") ymGoal("track_share", { track_id: currentTrack.id });
+    });
+  };
+
   return (
     <>
       <audio
@@ -147,6 +159,8 @@ export function PlayerBar({
                   onPrev={onPrev}
                   onTogglePlay={onTogglePlay}
                   onNext={onNext}
+                  onShare={handleShare}
+                  shareDisabled={!currentTrack}
                 />
                 {showCollapse ? (
                   <IconButton
@@ -190,27 +204,6 @@ export function PlayerBar({
                 aria-label={liked ? "Убрать лайк" : "Лайк"}
               >
                 <Icon name={liked ? "heart" : "heart-outline"} size={20} />
-              </IconButton>
-              <IconButton
-                className="btn-share"
-                disabled={!currentTrack}
-                onClick={() => {
-                  if (!currentTrack) return;
-                  const pos = audioRef.current?.currentTime;
-                  void shareTrack({
-                    track: currentTrack,
-                    positionSec: Number.isFinite(pos) ? pos : undefined,
-                  }).then((r) => {
-                    if (r === "copied") onShareToast("Ссылка скопирована");
-                    if (r === "shared") {
-                      ymGoal("track_share", { track_id: currentTrack.id });
-                    }
-                  });
-                }}
-                aria-label="Поделиться сказкой"
-                title="Поделиться ссылкой"
-              >
-                <Icon name="share" size={20} />
               </IconButton>
               <label className="speed">
                 <span>Скорость</span>

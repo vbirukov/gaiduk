@@ -13,6 +13,8 @@ type Props = {
   onPrev: () => void;
   onTogglePlay: () => void;
   onNext: () => void;
+  onShare?: () => void;
+  shareDisabled?: boolean;
   size?: "md" | "lg";
 };
 
@@ -27,6 +29,8 @@ export function PlayerTransport({
   onPrev,
   onTogglePlay,
   onNext,
+  onShare,
+  shareDisabled = false,
   size = "md",
 }: Props) {
   const icon = size === "lg" ? 24 : 20;
@@ -75,6 +79,18 @@ export function PlayerTransport({
       <IconButton size={btnSize} onClick={onNext} aria-label="Следующий трек">
         <Icon name="skip-forward" size={icon} />
       </IconButton>
+      {onShare ? (
+        <IconButton
+          className="btn-share"
+          size={btnSize}
+          disabled={shareDisabled}
+          onClick={onShare}
+          aria-label="Поделиться сказкой"
+          title="Поделиться ссылкой"
+        >
+          <Icon name="share" size={icon} />
+        </IconButton>
+      ) : null}
     </div>
   );
 }

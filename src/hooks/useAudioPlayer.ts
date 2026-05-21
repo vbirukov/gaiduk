@@ -36,6 +36,10 @@ import {
   waitForLoadedMetadata,
   waitForSeeked,
 } from "../lib/audioBuffer";
+import {
+  PREV_DOUBLE_TAP_MS,
+  PREV_PREVIOUS_TRACK_MAX_SEC,
+} from "../constants/player";
 import { pickAdjacentId } from "../lib/queue";
 import type { LivePlayback } from "../lib/trackProgress";
 import type { Catalog, Track } from "../types/catalog";
@@ -97,6 +101,7 @@ export function useAudioPlayer({
   const persistProgressRef = useRef(
     (_audio: HTMLAudioElement, _trackId: string) => {},
   );
+  const lastPrevTapAtRef = useRef(0);
 
   const currentTrack = currentTrackId
     ? (trackMap.get(currentTrackId) ?? null)
@@ -462,6 +467,31 @@ export function useAudioPlayer({
     [currentTrackId, playTrack, playbackSource, trackMap, user.repeatMode],
   );
 
+  const prevTrack = useCallback(() => {
+    const audio = audioRef.current;
+    if (!audio || !currentTrackId) return;
+
+    const now = Date.now();
+    const sinceLastTap = now - lastPrevTapAtRef.current;
+    lastPrevTapAtRef.current = now;
+
+    if (sinceLastTap < PREV_DOUBLE_TAP_MS) {
+      void nextTrack(-1);
+      return;
+    }
+
+    const position = audio.currentTime || 0;
+    if (position < PREV_PREVIOUS_TRACK_MAX_SEC) {
+      void nextTrack(-1);
+      return;
+    }
+
+    audio.currentTime = 0;
+    const duration = audio.duration || 0;
+    setLivePlayback({ position: 0, duration });
+    persistProgressRef.current(audio, currentTrackId);
+  }, [currentTrackId, nextTrack]);
+
   const onTrackEnded = useCallback(() => {
     if (user.repeatMode === "one" && currentTrackId) {
       const audio = audioRef.current;
@@ -566,6 +596,7 @@ export function useAudioPlayer({
   const playerActionsRef = useRef({
     togglePlay: async () => {},
     nextTrack: (_step: number) => {},
+    prevTrack: () => {},
     onTrackEnded: () => {},
     seekBy: (_delta: number) => {},
     play: async () => {},
@@ -573,6 +604,7 @@ export function useAudioPlayer({
   });
   playerActionsRef.current.togglePlay = togglePlay;
   playerActionsRef.current.nextTrack = nextTrack;
+  playerActionsRef.current.prevTrack = prevTrack;
   playerActionsRef.current.onTrackEnded = onTrackEnded;
   playerActionsRef.current.seekBy = seekBy;
   playerActionsRef.current.play = async () => {
@@ -604,7 +636,7 @@ export function useAudioPlayer({
     onPlay: () => void playerActionsRef.current.play(),
     onPause: () => playerActionsRef.current.pause(),
     onNext: () => playerActionsRef.current.nextTrack(1),
-    onPrev: () => playerActionsRef.current.nextTrack(-1),
+    onPrev: () => playerActionsRef.current.prevTrack(),
     onSeekBackward: () => playerActionsRef.current.seekBy(-10),
     onSeekForward: () => playerActionsRef.current.seekBy(10),
   });
@@ -612,7 +644,7 @@ export function useAudioPlayer({
     onPlay: () => void playerActionsRef.current.play(),
     onPause: () => playerActionsRef.current.pause(),
     onNext: () => playerActionsRef.current.nextTrack(1),
-    onPrev: () => playerActionsRef.current.nextTrack(-1),
+    onPrev: () => playerActionsRef.current.prevTrack(),
     onSeekBackward: () => playerActionsRef.current.seekBy(-10),
     onSeekForward: () => playerActionsRef.current.seekBy(10),
   };
@@ -703,13 +735,13 @@ export function useAudioPlayer({
     onTogglePlay: () => void playerActionsRef.current.togglePlay(),
     onSeek: (d: number) => playerActionsRef.current.seekBy(d),
     onNext: () => playerActionsRef.current.nextTrack(1),
-    onPrev: () => playerActionsRef.current.nextTrack(-1),
+    onPrev: () => playerActionsRef.current.prevTrack(),
   });
   keyboardRef.current = {
     onTogglePlay: () => void playerActionsRef.current.togglePlay(),
     onSeek: (d) => playerActionsRef.current.seekBy(d),
     onNext: () => playerActionsRef.current.nextTrack(1),
-    onPrev: () => playerActionsRef.current.nextTrack(-1),
+    onPrev: () => playerActionsRef.current.prevTrack(),
   };
   usePlayerKeyboard(keyboardRef);
 
@@ -746,6 +778,7 @@ export function useAudioPlayer({
     playTrack,
     togglePlay,
     nextTrack,
+    prevTrack,
     seek,
   };
 }
