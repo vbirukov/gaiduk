@@ -47,18 +47,6 @@ function TrackCardInner({
     return () => mq.removeEventListener("change", sync);
   }, []);
 
-  const progressHint = isActive
-    ? isPlaying
-      ? progress.position > 0
-        ? `Сейчас играет · ${fmtTime(progress.position)}`
-        : "Сейчас играет"
-      : progress.position > 0
-        ? `На паузе · ${fmtTime(progress.position)}`
-        : "На паузе"
-    : progress.position > 0
-      ? `С последнего раза: ${fmtTime(progress.position)}`
-      : "Еще не запускали";
-
   const cardClass = [
     "card",
     `card-status-${status}`,
@@ -157,11 +145,6 @@ function TrackCardInner({
           </div>
           <h4 className="card-title">{track.title}</h4>
         </div>
-      </div>
-      <div className="mini-meta">
-        <span className={isActive ? "mini-meta-now" : undefined}>
-          {progressHint}
-        </span>
       </div>
       <div className="card-actions row-actions wrap">
         <div className="card-social row-actions">

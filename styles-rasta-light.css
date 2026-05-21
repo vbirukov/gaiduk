@@ -359,8 +359,7 @@
 }
 
 [data-skin="rastaman-light"] .card-badge--progress,
-[data-skin="rastaman-light"] .card-badge--live,
-[data-skin="rastaman-light"] .mini-meta-now {
+[data-skin="rastaman-light"] .card-badge--live {
   color: var(--rl-green-stroke);
 }
 

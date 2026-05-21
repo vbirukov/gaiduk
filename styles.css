@@ -1358,10 +1358,6 @@ html.has-player.player-bar-collapsed {
 .card-title {
   margin: 0.45rem 0 0;
 }
-.mini-meta-now {
-  color: var(--primary);
-  font-weight: 500;
-}
 @keyframes now-playing-dot {
   0%,
   100% {
@@ -1429,13 +1425,6 @@ html.has-player.player-bar-collapsed {
 .tag {
   min-height: auto;
   padding: 0.55rem 0.75rem;
-}
-.mini-meta {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--space-3);
-  font-size: var(--text-xs);
-  color: var(--text-faint);
 }
 .progress-line {
   height: 6px;
@@ -2140,9 +2129,6 @@ input[type="range"]::-webkit-slider-thumb {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-  }
-  .card .mini-meta {
-    display: none;
   }
   .card-main h4,
   .card-title {

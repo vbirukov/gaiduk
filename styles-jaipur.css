@@ -191,13 +191,8 @@
   border-bottom-color: color-mix(in oklab, var(--jaipur-outline) 55%, transparent);
 }
 
-[data-skin="jaipur"] .card h4,
-[data-skin="jaipur"] .card .mini-meta {
+[data-skin="jaipur"] .card h4 {
   color: var(--text-inverse);
-}
-
-[data-skin="jaipur"] .card .mini-meta {
-  color: color-mix(in oklab, var(--text-inverse) 78%, var(--jaipur-blush));
 }
 
 [data-skin="jaipur"] .pill {
@@ -228,8 +223,7 @@
 }
 
 [data-skin="jaipur"] .card-badge--progress,
-[data-skin="jaipur"] .card-badge--live,
-[data-skin="jaipur"] .mini-meta-now {
+[data-skin="jaipur"] .card-badge--live {
   color: var(--jaipur-saffron);
 }
 
