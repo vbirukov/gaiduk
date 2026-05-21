@@ -1,5 +1,4 @@
 import { memo, useEffect, useState } from "react";
-import { coverForTrack, DEFAULT_COVER_PATH } from "../lib/cover";
 import { fmtTime } from "../lib/format";
 import { isStubTrack } from "../lib/diskDownload";
 import { listenStatus, listenStatusLabel } from "../lib/listenStatus";
@@ -59,14 +58,11 @@ function TrackCardInner({
       ? `С последнего раза: ${fmtTime(progress.position)}`
       : "Еще не запускали";
 
-  const thumbPlay = coverForTrack(track) === DEFAULT_COVER_PATH;
-
   const cardClass = [
     "card",
     `card-status-${status}`,
     isActive && "is-active",
     isActive && isPlaying && "is-playing",
-    thumbPlay && "card--thumb-play",
   ]
     .filter(Boolean)
     .join(" ");
@@ -159,23 +155,7 @@ function TrackCardInner({
         <div className="card-bg__shade" />
       </div>
       <div className="card-top">
-        {thumbPlay ? (
-          <IconButton
-            variant="primary"
-            size="md"
-            className="card-thumb card-thumb-play"
-            onClick={handlePlayClick}
-            aria-label={playLabel}
-          >
-            <PlayPauseIcon
-              playing={isActive && isPlaying}
-              busy={false}
-              iconSize={22}
-            />
-          </IconButton>
-        ) : (
-          <TrackCover track={track} size="lg" className="card-thumb" />
-        )}
+        <TrackCover track={track} size="lg" className="card-thumb" />
         <div className="card-main">
           <div className="card-pills">
             <div className="pill">{track.folder}</div>

@@ -1380,12 +1380,6 @@ html.has-player.player-bar-collapsed {
 .card-thumb {
   flex-shrink: 0;
 }
-.card-thumb-play {
-  width: 56px;
-  height: 56px;
-  padding: 0;
-  border-radius: 16px;
-}
 .card-actions {
   align-items: center;
 }
@@ -1402,12 +1396,6 @@ html.has-player.player-bar-collapsed {
   margin-left: 0;
 }
 @media (min-width: 721px) {
-  .card-play {
-    display: none;
-  }
-  .card:not(.card--thumb-play) .card-play {
-    display: grid;
-  }
   .card-actions {
     gap: var(--space-2);
   }
