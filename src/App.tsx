@@ -166,6 +166,10 @@ export function App() {
     closeNav();
   }, []);
 
+  const handleClearFolder = useCallback(() => {
+    setSelectedFolder(null);
+  }, []);
+
   const handlePlayTrack = useCallback(
     (t: Track) => {
       if (player.currentTrackId === t.id) {
@@ -302,6 +306,7 @@ export function App() {
               setUser((prev) => ({ ...prev, feedLayout }))
             }
             onSelectFolder={handleSelectFolder}
+            onClearFolder={handleClearFolder}
             nextTrackId={nextTrackId(player.currentTrackId)}
           />
         </main>

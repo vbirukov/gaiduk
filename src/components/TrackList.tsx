@@ -34,6 +34,7 @@ type Props = {
   onToggleLike: TrackCardProps["onToggleLike"];
   onAddToPlaylist: TrackCardProps["onAddToPlaylist"];
   onSelectFolder: TrackCardProps["onSelectFolder"];
+  onClearFolder?: () => void;
   onOpenNav: () => void;
   onFeedLayoutChange: (layout: FeedLayout) => void;
   nextTrackId: string | null;
@@ -61,6 +62,7 @@ export function TrackList({
   onToggleLike,
   onAddToPlaylist,
   onSelectFolder,
+  onClearFolder,
   onOpenNav,
   onFeedLayoutChange,
   nextTrackId,
@@ -158,8 +160,30 @@ export function TrackList({
         </button>
         <p>{sectionSub}</p>
       </section>
-      <div className="feed-toolbar">
-        <p className="feed-toolbar__sub mini-text">{sectionSub}</p>
+      <div
+        className={
+          selectedFolder ? "feed-toolbar feed-toolbar--folder" : "feed-toolbar"
+        }
+      >
+        {selectedFolder ? (
+          <div className="feed-toolbar__lead">
+            <div className="feed-toolbar__heading">
+              <h2 className="feed-toolbar__title">{selectedFolder}</h2>
+              {onClearFolder ? (
+                <button
+                  type="button"
+                  className="ghost feed-toolbar__reset"
+                  onClick={onClearFolder}
+                >
+                  Сбросить
+                </button>
+              ) : null}
+            </div>
+            <p className="feed-toolbar__sub mini-text">{sectionSub}</p>
+          </div>
+        ) : (
+          <p className="feed-toolbar__sub mini-text">{sectionSub}</p>
+        )}
         <FeedLayoutSwitch
           value={user.feedLayout ?? "tiles"}
           onChange={onFeedLayoutChange}

@@ -1098,12 +1098,48 @@ html.has-player.player-bar-collapsed {
   gap: var(--space-3);
   margin: 0 0 var(--space-4);
 }
+.feed-toolbar--folder {
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+.feed-toolbar__lead {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin-right: auto;
+}
+.feed-toolbar__heading {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+}
+.feed-toolbar__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+.feed-toolbar__reset {
+  flex-shrink: 0;
+  min-height: 36px;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  font-size: var(--text-sm);
+}
 .feed-toolbar__sub {
   display: none;
   margin: 0;
   margin-right: auto;
   max-width: min(48ch, 100%);
   text-align: left;
+}
+.feed-toolbar--folder .feed-toolbar__sub {
+  display: block;
+  margin-top: var(--space-1);
+  margin-right: 0;
+  max-width: none;
 }
 @media (min-width: 721px) {
   .feed-toolbar__sub {
