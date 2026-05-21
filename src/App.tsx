@@ -286,6 +286,9 @@ export function App() {
             onToggleLike={handleToggleLike}
             onAddToPlaylist={addTrackToPlaylist}
             onOpenNav={() => setNavOpen(true)}
+            onFeedLayoutChange={(feedLayout) =>
+              setUser((prev) => ({ ...prev, feedLayout }))
+            }
           />
         </main>
       </div>

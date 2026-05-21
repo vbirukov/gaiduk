@@ -14,6 +14,8 @@ export type Progress = {
   updatedAt: string | null;
 };
 
+export type FeedLayout = "tiles" | "rows";
+
 export type UserState = {
   likes: Record<string, true>;
   playlists: Playlist[];
@@ -24,6 +26,7 @@ export type UserState = {
   shuffle: boolean;
   repeatMode: RepeatMode;
   wakeLock: boolean;
+  feedLayout: FeedLayout;
 };
 
 export type LibraryView = "all" | "resume" | "liked" | "playlist";

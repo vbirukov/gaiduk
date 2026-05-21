@@ -22,13 +22,14 @@ import {
 import { resolveTrackProgress } from "../lib/trackProgress";
 import type { LivePlayback } from "../lib/trackProgress";
 import type { Track } from "../types/catalog";
-import type { Playlist, Progress } from "../types/user";
+import type { FeedLayout, Playlist, Progress } from "../types/user";
 import { CatalogFolderHeading } from "./CatalogFolderHeading";
 import { TrackCard, type TrackCardProps } from "./TrackCard";
 import { TrackCardSkeleton } from "./TrackCardSkeleton";
 
 const VIRTUALIZE_MIN = 48;
-const ROW_ESTIMATE_PX = 340;
+const TILE_ROW_ESTIMATE_PX = 340;
+const LIST_ROW_ESTIMATE_PX = 76;
 const HEADER_ROW_ESTIMATE_PX = 52;
 const OVERSCAN_ROWS = 8;
 
@@ -48,6 +49,7 @@ type Props = {
   onScrolledToTrack?: () => void;
   showFolderHeaders?: boolean;
   showFolderNames?: boolean;
+  feedLayout?: FeedLayout;
 };
 
 function useColumnCount(containerRef: RefObject<HTMLElement | null>) {
@@ -126,10 +128,14 @@ export function VirtualTrackGrid({
   onScrolledToTrack,
   showFolderHeaders = false,
   showFolderNames = false,
+  feedLayout = "tiles",
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const cols = useColumnCount(containerRef);
+  const isRows = feedLayout === "rows";
+  const gridCols = useColumnCount(containerRef);
+  const cols = isRows ? 1 : gridCols;
   const scrollMargin = useScrollMargin(containerRef);
+  const rowEstimatePx = isRows ? LIST_ROW_ESTIMATE_PX : TILE_ROW_ESTIMATE_PX;
   const layoutRows = useMemo(
     () => buildFeedLayoutRows(tracks, cols, showFolderHeaders),
     [tracks, cols, showFolderHeaders],
@@ -145,7 +151,7 @@ export function VirtualTrackGrid({
     estimateSize: (index) =>
       layoutRows[index]?.kind === "header"
         ? HEADER_ROW_ESTIMATE_PX
-        : ROW_ESTIMATE_PX,
+        : rowEstimatePx,
     gap: GRID_GAP_PX,
     overscan: OVERSCAN_ROWS,
     scrollMargin,
@@ -227,6 +233,7 @@ export function VirtualTrackGrid({
       <TrackCard
         key={track.id}
         track={track}
+        layout={feedLayout}
         showFolderName={showFolderNames}
         isActive={isActive}
         isPlaying={isActive && isPlaying}
@@ -245,8 +252,15 @@ export function VirtualTrackGrid({
     );
   };
 
-  const feedGridStyle =
-    cols > 1 ? ({ "--feed-cols": cols } as CSSProperties) : undefined;
+  const feedGridStyle = {
+    "--feed-cols": cols,
+  } as CSSProperties;
+
+  const feedClass = isRows
+    ? "cards cards--rows"
+    : cols > 1
+      ? "cards"
+      : "cards";
 
   const renderRow = (rowTracks: Track[], className: string) => (
     <div className={className}>{rowTracks.map(renderCard)}</div>
@@ -255,13 +269,13 @@ export function VirtualTrackGrid({
   if (catalogLoading) {
     return (
       <section
-        className="cards"
+        className={feedClass}
         style={feedGridStyle}
         aria-busy="true"
         aria-label="Загрузка каталога"
       >
         {Array.from({ length: SKELETON_COUNT }, (_, i) => (
-          <TrackCardSkeleton key={i} />
+          <TrackCardSkeleton key={i} layout={feedLayout} />
         ))}
       </section>
     );
@@ -270,14 +284,23 @@ export function VirtualTrackGrid({
   if (!useVirtual) {
     if (showFolderHeaders) {
       return (
-        <div ref={containerRef} className="track-feed" style={feedGridStyle}>
+        <div
+          ref={containerRef}
+          className={isRows ? "track-feed track-feed--rows" : "track-feed"}
+          style={feedGridStyle}
+        >
           {folderGroups.map((group) => (
             <section
               key={group.folder}
               className="track-feed__section"
             >
               <CatalogFolderHeading folder={group.folder} />
-              <div className="cards cards--section" style={feedGridStyle}>
+              <div
+                className={
+                  isRows ? "cards cards--section cards--rows" : "cards cards--section"
+                }
+                style={feedGridStyle}
+              >
                 {group.tracks.map(renderCard)}
               </div>
             </section>
@@ -286,7 +309,7 @@ export function VirtualTrackGrid({
       );
     }
     return (
-      <section ref={containerRef} className="cards" style={feedGridStyle}>
+      <section ref={containerRef} className={feedClass} style={feedGridStyle}>
         {tracks.map(renderCard)}
       </section>
     );
@@ -295,7 +318,7 @@ export function VirtualTrackGrid({
   return (
     <section
       ref={containerRef}
-      className="cards cards--virtual"
+      className={`${feedClass} cards--virtual`}
       style={feedGridStyle}
     >
       <div

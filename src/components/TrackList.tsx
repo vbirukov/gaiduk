@@ -3,7 +3,8 @@ import { SPLASH_SEEN_KEY } from "../config";
 import { useHeroCollapsed } from "../hooks/useHeroCollapsed";
 import { emptyStateCopy } from "../lib/emptyState";
 import type { Catalog, Track } from "../types/catalog";
-import type { LibraryView, Progress, UserState } from "../types/user";
+import type { FeedLayout, LibraryView, Progress, UserState } from "../types/user";
+import { FeedLayoutSwitch } from "./FeedLayoutSwitch";
 import type { LivePlayback } from "../lib/trackProgress";
 import type { TrackCardProps } from "./TrackCard";
 import { ContinueBanner } from "./ContinueBanner";
@@ -33,6 +34,7 @@ type Props = {
   onToggleLike: TrackCardProps["onToggleLike"];
   onAddToPlaylist: TrackCardProps["onAddToPlaylist"];
   onOpenNav: () => void;
+  onFeedLayoutChange: (layout: FeedLayout) => void;
   isJaipur: boolean;
   isRastamanLight: boolean;
 };
@@ -57,6 +59,7 @@ export function TrackList({
   onToggleLike,
   onAddToPlaylist,
   onOpenNav,
+  onFeedLayoutChange,
   isJaipur,
   isRastamanLight,
 }: Props) {
@@ -151,6 +154,13 @@ export function TrackList({
         </button>
         <p>{sectionSub}</p>
       </section>
+      <div className="feed-toolbar">
+        <p className="feed-toolbar__sub mini-text">{sectionSub}</p>
+        <FeedLayoutSwitch
+          value={user.feedLayout ?? "tiles"}
+          onChange={onFeedLayoutChange}
+        />
+      </div>
       {catalogLoading ? (
         <VirtualTrackGrid
           tracks={[]}
@@ -168,6 +178,7 @@ export function TrackList({
           onScrolledToTrack={clearScrollToTrack}
           showFolderHeaders={showFolderHeaders}
           showFolderNames={showFolderNames}
+          feedLayout={user.feedLayout ?? "tiles"}
         />
       ) : tracks.length === 0 ? (
         <section className="cards">
@@ -193,6 +204,7 @@ export function TrackList({
           onScrolledToTrack={clearScrollToTrack}
           showFolderHeaders={showFolderHeaders}
           showFolderNames={showFolderNames}
+          feedLayout={user.feedLayout ?? "tiles"}
         />
       )}
       </div>

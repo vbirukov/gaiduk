@@ -10,6 +10,7 @@ import type { Playlist, Progress } from "../types/user";
 
 export type TrackCardProps = {
   track: Track;
+  layout?: "tiles" | "rows";
   showFolderName?: boolean;
   progress: Progress;
   isActive: boolean;
@@ -23,6 +24,7 @@ export type TrackCardProps = {
 
 function TrackCardInner({
   track,
+  layout = "tiles",
   showFolderName = false,
   progress,
   isActive,
@@ -48,8 +50,11 @@ function TrackCardInner({
     return () => mq.removeEventListener("change", sync);
   }, []);
 
+  const isRow = layout === "rows";
+
   const cardClass = [
     "card",
+    isRow && "card--row",
     `card-status-${status}`,
     isActive && "is-active",
     isActive && isPlaying && "is-playing",
@@ -125,6 +130,49 @@ function TrackCardInner({
     onPlayTrack(track);
   };
 
+  const actions = (
+    <div className="card-actions row-actions wrap">
+      <div className="card-social row-actions">
+        <button
+          type="button"
+          className={`ghost round${liked ? " active" : ""}`}
+          onClick={() => onToggleLike(track.id)}
+          aria-label={liked ? "Убрать лайк" : "Лайк"}
+        >
+          <Icon name={liked ? "heart" : "heart-outline"} size={20} />
+        </button>
+      </div>
+      <IconButton
+        variant="primary"
+        size="md"
+        className="card-play"
+        onClick={handlePlayClick}
+        aria-label={playLabel}
+      >
+        <PlayPauseIcon
+          playing={isActive && isPlaying}
+          busy={false}
+          iconSize={22}
+        />
+      </IconButton>
+      <CardPlaylistMenu
+        trackId={track.id}
+        playlists={playlistButtons}
+        onSelect={onAddToPlaylist}
+      />
+    </div>
+  );
+
+  const main = (
+    <div className="card-main">
+      <div className="card-pills">
+        {showFolderName ? <div className="pill">{track.folder}</div> : null}
+        {renderStatusBadge()}
+      </div>
+      <h4 className="card-title">{track.title}</h4>
+    </div>
+  );
+
   return (
     <article
       className={cardClass}
@@ -138,45 +186,17 @@ function TrackCardInner({
       <div className="card-bg" aria-hidden>
         <div className="card-bg__shade" />
       </div>
-      <div className="card-top">
-        <div className="card-main">
-          <div className="card-pills">
-            {showFolderName ? <div className="pill">{track.folder}</div> : null}
-            {renderStatusBadge()}
-          </div>
-          <h4 className="card-title">{track.title}</h4>
+      {isRow ? (
+        <div className="card-row-inner">
+          {main}
+          {actions}
         </div>
-      </div>
-      <div className="card-actions row-actions wrap">
-        <div className="card-social row-actions">
-          <button
-            type="button"
-            className={`ghost round${liked ? " active" : ""}`}
-            onClick={() => onToggleLike(track.id)}
-            aria-label={liked ? "Убрать лайк" : "Лайк"}
-          >
-            <Icon name={liked ? "heart" : "heart-outline"} size={20} />
-          </button>
-        </div>
-        <IconButton
-          variant="primary"
-          size="md"
-          className="card-play"
-          onClick={handlePlayClick}
-          aria-label={playLabel}
-        >
-          <PlayPauseIcon
-            playing={isActive && isPlaying}
-            busy={false}
-            iconSize={22}
-          />
-        </IconButton>
-        <CardPlaylistMenu
-          trackId={track.id}
-          playlists={playlistButtons}
-          onSelect={onAddToPlaylist}
-        />
-      </div>
+      ) : (
+        <>
+          <div className="card-top">{main}</div>
+          {actions}
+        </>
+      )}
       {renderProgressBadge()}
     </article>
   );
@@ -192,6 +212,7 @@ function progressEqual(a: Progress, b: Progress) {
 
 export const TrackCard = memo(TrackCardInner, (prev, next) => {
   if (prev.track !== next.track) return false;
+  if (prev.layout !== next.layout) return false;
   if (prev.showFolderName !== next.showFolderName) return false;
   if (prev.isActive !== next.isActive) return false;
   if (prev.isPlaying !== next.isPlaying) return false;

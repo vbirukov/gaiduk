@@ -1091,6 +1091,62 @@ html.has-player.player-bar-collapsed {
     display: none;
   }
 }
+.feed-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  margin: 0 0 var(--space-4);
+}
+.feed-toolbar__sub {
+  display: none;
+  margin: 0;
+  margin-right: auto;
+  max-width: min(48ch, 100%);
+  text-align: left;
+}
+@media (min-width: 721px) {
+  .feed-toolbar__sub {
+    display: block;
+  }
+}
+.feed-layout-switch {
+  display: inline-flex;
+  flex-shrink: 0;
+  padding: 3px;
+  gap: 3px;
+  border-radius: 12px;
+  border: 1px solid oklch(from var(--text) l c h / 0.1);
+  background: color-mix(in oklab, var(--surface) 88%, var(--bg));
+}
+.feed-layout-switch__btn {
+  min-height: 36px;
+  padding: 0.4rem 0.85rem;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+.feed-layout-switch__btn:hover {
+  color: var(--text);
+  background: color-mix(in oklab, var(--primary) 8%, var(--surface));
+}
+.feed-layout-switch__btn.is-active {
+  color: var(--text);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+.feed-layout-switch__btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
 .track-feed {
   display: grid;
   gap: var(--space-2);
@@ -1128,6 +1184,50 @@ html.has-player.player-bar-collapsed {
   display: grid;
   grid-template-columns: repeat(var(--feed-cols, 1), minmax(0, 1fr));
   gap: var(--space-4);
+}
+.cards--rows {
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2);
+}
+.card--row {
+  display: block;
+  padding: var(--space-3) var(--space-4);
+  gap: 0;
+}
+.card-row-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.card--row .card-main {
+  flex: 1;
+  min-width: 0;
+}
+.card--row .card-title {
+  margin: 0.2rem 0 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.card--row .card-pills {
+  flex-wrap: nowrap;
+  gap: var(--space-2);
+}
+.card--row .card-actions {
+  flex-shrink: 0;
+  flex-wrap: nowrap;
+  gap: var(--space-2);
+}
+.card--row .card-social {
+  margin-left: 0;
+}
+.card--row > .card-badge--corner {
+  bottom: 0.65rem;
+  left: var(--space-3);
 }
 @media (min-width: 721px) {
   .library-feed-content {

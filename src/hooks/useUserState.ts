@@ -14,6 +14,7 @@ const defaultUserState = (): UserState => ({
   shuffle: false,
   repeatMode: "off",
   wakeLock: true,
+  feedLayout: "tiles",
 });
 
 const loadUserState = (): UserState => {
@@ -24,7 +25,11 @@ const loadUserState = (): UserState => {
       favorites?: Record<string, true>;
     };
     const { favorites: _favorites, ...rest } = parsed;
-    return { ...defaultUserState(), ...rest };
+    const merged = { ...defaultUserState(), ...rest };
+    return {
+      ...merged,
+      feedLayout: merged.feedLayout === "rows" ? "rows" : "tiles",
+    };
   } catch {
     return defaultUserState();
   }
