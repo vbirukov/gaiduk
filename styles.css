@@ -1164,6 +1164,11 @@ html.has-player.player-bar-collapsed {
   initial-value: 0deg;
   inherits: false;
 }
+@property --card-pearl-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
 .card {
   position: relative;
   isolation: isolate;
@@ -1206,9 +1211,65 @@ html.has-player.player-bar-collapsed {
       color-mix(in oklab, var(--surface-2) 52%, transparent)
     );
 }
+.card-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0.5;
+  mix-blend-mode: soft-light;
+  background:
+    radial-gradient(
+      ellipse 95% 75% at 15% 12%,
+      color-mix(in oklab, var(--primary-hi) 55%, transparent),
+      transparent 58%
+    ),
+    radial-gradient(
+      ellipse 90% 70% at 88% 88%,
+      color-mix(in oklab, var(--accent-teal) 48%, transparent),
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse 70% 55% at 52% 48%,
+      color-mix(in oklab, var(--accent-mystic) 38%, transparent),
+      transparent 62%
+    ),
+    conic-gradient(
+      from var(--card-pearl-angle) at 50% 45%,
+      color-mix(in oklab, var(--primary) 28%, transparent),
+      color-mix(in oklab, var(--accent-teal) 32%, transparent),
+      color-mix(in oklab, var(--accent-mystic) 26%, transparent),
+      color-mix(in oklab, var(--primary-hi) 30%, transparent),
+      color-mix(in oklab, var(--primary) 28%, transparent)
+    );
+  background-size: 220% 220%, 220% 220%, 180% 180%, 240% 240%;
+  background-position: 0% 30%, 100% 70%, 50% 50%, 50% 50%;
+  background-attachment: fixed;
+  animation:
+    card-pearl-scroll linear both,
+    card-pearl-idle 24s linear infinite;
+  animation-timeline: view(block), auto;
+  animation-range: cover 0% cover 100%;
+}
+@keyframes card-pearl-scroll {
+  0% {
+    background-position: 0% 20%, 100% 80%, 35% 65%, 42% 58%;
+    opacity: 0.38;
+  }
+  50% {
+    opacity: 0.56;
+  }
+  100% {
+    background-position: 100% 75%, 0% 25%, 68% 38%, 58% 42%;
+    opacity: 0.48;
+  }
+}
 .card-bg__shade {
   position: absolute;
   inset: 0;
+  z-index: 1;
   background: linear-gradient(
     165deg,
     transparent 0%,
@@ -1333,6 +1394,11 @@ html.has-player.player-bar-collapsed {
   }
   50% {
     opacity: 0.52;
+  }
+}
+@keyframes card-pearl-idle {
+  to {
+    --card-pearl-angle: 360deg;
   }
 }
 .card-badge {
@@ -2281,6 +2347,10 @@ input[type="range"]::-webkit-slider-thumb {
   }
   .hero-art-slide {
     transition: none;
+  }
+  .card-bg::before {
+    animation: none;
+    opacity: 0.42;
   }
   .card.is-active::before,
   .card.is-active::after,
