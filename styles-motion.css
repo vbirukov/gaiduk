@@ -161,6 +161,11 @@ html.has-player .player-bar {
   --btn-focus-ring: color-mix(in oklab, var(--primary) 52%, transparent);
   --btn-elev-1: 0 1px 2px oklch(0 0 0 / 0.12), 0 4px 12px oklch(0 0 0 / 0.08);
   --btn-elev-2: 0 2px 6px oklch(0 0 0 / 0.14), 0 8px 20px oklch(0 0 0 / 0.12);
+  --btn-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='128'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='128' height='128' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+  --btn-rough-inset: inset 0 1px 0 oklch(1 0 0 / 0.14),
+    inset 0 -2px 4px oklch(0 0 0 / 0.1);
+  --btn-rough-inset-pressed: inset 0 2px 5px oklch(0 0 0 / 0.16),
+    inset 0 -1px 0 oklch(1 0 0 / 0.08);
 }
 
 :is(
@@ -443,7 +448,151 @@ a.chip.hero-author-cta.btn-shimmer::after {
   background-size: 220% 100%;
 }
 
+/* Шероховатость — плеер и карточки треков */
+:is(
+  .player-bar .icon-button.round,
+  .player-controls .icon-button.round,
+  .card-actions .icon-button.round,
+  .card-actions .card-social > button.ghost.round
+) {
+  border-radius: 52% 48% 51% 49% / 49% 52% 48% 51%;
+}
+
+.card-actions .card-playlist-menu__trigger {
+  border-radius: 13px 15px 14px 16px / 15px 13px 16px 14px;
+}
+
+:is(
+  .player-bar .icon-button,
+  .player-controls .icon-button,
+  .card-actions .icon-button,
+  .card-actions .card-social > button.ghost.round,
+  .card-actions .card-playlist-menu__trigger
+) {
+  background-image: var(--btn-grain),
+    linear-gradient(
+      168deg,
+      color-mix(in oklab, var(--surface) 94%, white),
+      color-mix(in oklab, var(--surface-offset) 90%, black)
+    );
+  background-size: 76px 76px, 100% 100%;
+  background-blend-mode: soft-light, normal;
+  box-shadow: var(--btn-rough-inset);
+}
+
+:is(
+  .player-bar .icon-button,
+  .player-controls .icon-button,
+  .card-actions .icon-button,
+  .card-actions .card-social > button.ghost.round,
+  .card-actions .card-playlist-menu__trigger
+).primary {
+  background-image: var(--btn-grain),
+    linear-gradient(
+      168deg,
+      color-mix(in oklab, var(--primary) 88%, white),
+      color-mix(in oklab, var(--primary-hover) 92%, black)
+    );
+  background-size: 76px 76px, 100% 100%;
+  background-blend-mode: overlay, normal;
+  box-shadow: var(--btn-rough-inset), var(--btn-elev-1);
+}
+
+:is(
+  .player-bar .icon-button,
+  .player-controls .icon-button,
+  .card-actions .icon-button,
+  .card-actions .card-social > button.ghost.round,
+  .card-actions .card-playlist-menu__trigger
+).ghost.round.active {
+  background-image: var(--btn-grain),
+    linear-gradient(
+      168deg,
+      color-mix(in oklab, var(--primary) 22%, var(--surface)),
+      color-mix(in oklab, var(--primary) 14%, var(--surface-offset))
+    );
+}
+
+:is(
+  .player-bar .icon-button,
+  .player-controls .icon-button,
+  .card-actions .icon-button,
+  .card-actions .card-social > button.ghost.round,
+  .card-actions .card-playlist-menu__trigger
+):active:not(:disabled) {
+  box-shadow: var(--btn-rough-inset-pressed);
+}
+
+:is(
+  .player-bar .icon-button.primary,
+  .player-controls .icon-button.primary,
+  .card-actions .icon-button.primary
+):active:not(:disabled) {
+  box-shadow: var(--btn-rough-inset-pressed), 0 1px 2px oklch(0 0 0 / 0.1);
+}
+
+:is(
+  .player-bar .icon-button.primary,
+  .player-controls .icon-button.primary,
+  .card-actions .icon-button.primary
+):hover:not(:disabled) {
+  box-shadow: var(--btn-rough-inset), var(--btn-elev-2), var(--glow-primary);
+}
+
+:is(
+  .player-bar .icon-button .icon,
+  .player-bar .icon-button .icon-swap,
+  .player-controls .icon-button .icon,
+  .player-controls .icon-button .icon-swap,
+  .card-actions .icon-button .icon,
+  .card-actions .icon-button .icon-swap,
+  .card-actions .card-social > button.ghost.round > .icon
+) {
+  position: relative;
+  z-index: 2;
+}
+
+[data-skin="rastaman-light"] :is(
+  .player-bar .icon-button,
+  .player-controls .icon-button,
+  .card-actions .icon-button,
+  .card-actions .card-social > button.ghost.round,
+  .card-actions .card-playlist-menu__trigger
+):not(.primary) {
+  background-image: var(--btn-grain),
+    linear-gradient(
+      168deg,
+      color-mix(in oklab, var(--rl-cloud) 96%, white),
+      color-mix(in oklab, var(--rl-sunny) 35%, var(--rl-cloud))
+    );
+}
+
+[data-skin="rastaman-light"] :is(
+  .player-bar .icon-button.primary,
+  .player-controls .icon-button.primary,
+  .card-actions .icon-button.primary
+):hover:not(:disabled) {
+  box-shadow: var(--btn-rough-inset), var(--btn-elev-2), 0 0 16px rgba(249, 199, 79, 0.55);
+}
+
+[data-skin="jaipur"] :is(
+  .player-bar .icon-button,
+  .player-controls .icon-button,
+  .card-actions .icon-button,
+  .card-actions .card-social > button.ghost.round,
+  .card-actions .card-playlist-menu__trigger
+):not(.primary) {
+  background-image: var(--btn-grain),
+    linear-gradient(
+      168deg,
+      color-mix(in oklab, var(--jaipur-clay) 92%, white),
+      color-mix(in oklab, var(--jaipur-facade) 88%, black)
+    );
+}
+
 button.scroll-top {
+  position: fixed !important;
+  left: auto !important;
   overflow: visible;
   isolation: auto;
 }
@@ -499,5 +648,35 @@ button.scroll-top.scroll-top--visible {
   a.chip.hero-author-cta.btn-shimmer::after {
     animation: none;
     opacity: 0;
+  }
+
+  :is(
+    .player-bar .icon-button,
+    .player-controls .icon-button,
+    .card-actions .icon-button,
+    .card-actions .card-social > button.ghost.round,
+    .card-actions .card-playlist-menu__trigger
+  ) {
+    background-blend-mode: normal, normal;
+    background-image: linear-gradient(
+      168deg,
+      color-mix(in oklab, var(--surface) 96%, white),
+      color-mix(in oklab, var(--surface-offset) 94%, black)
+    );
+    background-size: 100% 100%;
+  }
+
+  :is(
+    .player-bar .icon-button,
+    .player-controls .icon-button,
+    .card-actions .icon-button,
+    .card-actions .card-social > button.ghost.round,
+    .card-actions .card-playlist-menu__trigger
+  ).primary {
+    background-image: linear-gradient(
+      168deg,
+      var(--primary),
+      color-mix(in oklab, var(--primary-hover) 90%, black)
+    );
   }
 }

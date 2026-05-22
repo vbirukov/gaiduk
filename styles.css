@@ -1904,15 +1904,18 @@ html.has-player.player-bar-collapsed {
 }
 .scroll-top {
   position: fixed;
+  left: auto;
   right: max(var(--space-4), env(safe-area-inset-right, 0px));
   bottom: calc(
-    var(--player-bar-height, 0px) + var(--space-5) + env(safe-area-inset-bottom, 0px)
+    var(--player-bar-offset, 0px) + var(--space-5) + env(safe-area-inset-bottom, 0px)
   );
   z-index: 45;
   display: grid;
   place-items: center;
   width: 44px;
   height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   padding: 0;
   border: 1px solid oklch(from var(--text) l c h / 0.14);
   border-radius: var(--radius-full);
@@ -2485,6 +2488,12 @@ input[type="range"]::-webkit-slider-thumb {
     width: 100%;
     max-width: 100%;
     justify-self: stretch;
+  }
+  html.has-player:not(.player-bar-collapsed) .scroll-top {
+    bottom: calc(7rem + var(--space-5) + env(safe-area-inset-bottom, 0px));
+  }
+  html.has-player.player-bar-collapsed .scroll-top {
+    bottom: calc(3.75rem + var(--space-5) + env(safe-area-inset-bottom, 0px));
   }
   .scroll-top {
     right: max(var(--space-3), env(safe-area-inset-right, 0px));
