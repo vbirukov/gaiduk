@@ -5,6 +5,7 @@ export const ASSETS = {
   hero: "/images/hero.webp",
   splash: "/images/splash.webp",
   rastaBikeVideo: "/haiduk-rasta-bike.mp4",
+  rastaDarkBgVideo: "/rasta-dark-bg.mp4",
 } as const;
 
 export function assetUrl(path: string): string {

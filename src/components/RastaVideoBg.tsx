@@ -1,7 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { ASSETS } from "../lib/assets";
 
-export function RastaVideoBg() {
+type Props = {
+  src: string;
+  variant?: "light" | "dark";
+};
+
+export function RastaVideoBg({ src, variant = "dark" }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [active, setActive] = useState(false);
 
@@ -21,16 +25,16 @@ export function RastaVideoBg() {
       return;
     }
     el.play().catch(() => {});
-  }, [active]);
+  }, [active, src]);
 
   if (!active) return null;
 
   return (
-    <div className="rasta-video-bg">
+    <div className={`rasta-video-bg rasta-video-bg--${variant}`}>
       <video
         ref={videoRef}
         className="rasta-video-bg__media"
-        src={ASSETS.rastaBikeVideo}
+        src={src}
         muted
         loop
         playsInline

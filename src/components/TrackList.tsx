@@ -9,6 +9,7 @@ import type { LivePlayback } from "../lib/trackProgress";
 import type { TrackCardProps } from "./TrackCard";
 import { ContinueBanner } from "./ContinueBanner";
 import { HookahSmoke } from "./HookahSmoke";
+import { ASSETS } from "../lib/assets";
 import { RastaVideoBg } from "./RastaVideoBg";
 import { RastaSunLight } from "./RastaSunLight";
 import { JaipurClouds } from "./JaipurClouds";
@@ -155,7 +156,16 @@ export function TrackList({
   return (
     <section className="library-feed">
       <div className="library-feed-bg" aria-hidden>
-        {isRastamanLight ? <RastaVideoBg /> : null}
+        {!isJaipur ? (
+          <RastaVideoBg
+            src={
+              isRastamanLight
+                ? ASSETS.rastaBikeVideo
+                : ASSETS.rastaDarkBgVideo
+            }
+            variant={isRastamanLight ? "light" : "dark"}
+          />
+        ) : null}
       </div>
       {isRastamanLight ? <RastaSunLight /> : null}
       {isJaipur ? (

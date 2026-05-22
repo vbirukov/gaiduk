@@ -717,6 +717,68 @@ html.has-player.player-bar-collapsed {
   z-index: 1;
   pointer-events: none;
 }
+
+[data-skin="rastaman"] .library-feed-bg,
+[data-skin="moon-dub"] .library-feed-bg {
+  overflow: hidden;
+  background: var(--bg);
+}
+
+[data-skin="rastaman"] .library-feed-bg::after,
+[data-skin="moon-dub"] .library-feed-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse 60% 45% at 50% 0%,
+      color-mix(in oklab, var(--primary) 18%, transparent),
+      transparent 62%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(12, 17, 21, 0.35) 0%,
+      rgba(12, 17, 21, 0.55) 45%,
+      rgba(12, 17, 21, 0.72) 100%
+    );
+}
+
+[data-skin="rastaman"] .rasta-video-bg__media,
+[data-skin="moon-dub"] .rasta-video-bg__media {
+  opacity: 0.52;
+  object-position: center 40%;
+  filter: saturate(0.95) contrast(1.08) brightness(0.82);
+}
+
+[data-skin="rastaman"] .rasta-video-bg__veil,
+[data-skin="moon-dub"] .rasta-video-bg__veil {
+  background: linear-gradient(
+    180deg,
+    rgba(12, 16, 20, 0.38) 0%,
+    rgba(18, 22, 26, 0.58) 42%,
+    rgba(12, 16, 20, 0.74) 100%
+  );
+}
+
+@media (max-width: 720px) {
+  [data-skin="rastaman"] .rasta-video-bg__media,
+  [data-skin="moon-dub"] .rasta-video-bg__media {
+    opacity: 0.42;
+    object-position: center 45%;
+  }
+
+  [data-skin="rastaman"] .rasta-video-bg__veil,
+  [data-skin="moon-dub"] .rasta-video-bg__veil {
+    background: linear-gradient(
+      180deg,
+      rgba(12, 16, 20, 0.48) 0%,
+      rgba(12, 16, 20, 0.78) 100%
+    );
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .rasta-video-bg {
     display: none;

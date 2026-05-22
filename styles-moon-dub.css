@@ -76,23 +76,42 @@
 }
 
 [data-skin="moon-dub"] .library-feed-bg {
+  overflow: hidden;
+  background: var(--bg);
+}
+
+[data-skin="moon-dub"] .library-feed-bg::after {
   background:
     radial-gradient(
       ellipse 58% 42% at 72% 18%,
-      rgba(215, 154, 59, 0.16),
+      rgba(215, 154, 59, 0.14),
       transparent 68%
     ),
     radial-gradient(
       ellipse 50% 38% at 18% 82%,
-      rgba(47, 95, 99, 0.14),
+      rgba(47, 95, 99, 0.12),
       transparent 65%
     ),
-    radial-gradient(
-      ellipse 70% 50% at 50% 0%,
-      rgba(90, 107, 75, 0.1),
-      transparent 58%
-    ),
-    linear-gradient(180deg, #234f55 0%, #1a2d2d 28%, #12100e 72%, #0e0c0a 100%);
+    linear-gradient(
+      180deg,
+      rgba(35, 79, 85, 0.32) 0%,
+      rgba(18, 16, 14, 0.58) 45%,
+      rgba(18, 16, 14, 0.76) 100%
+    );
+}
+
+[data-skin="moon-dub"] .rasta-video-bg__media {
+  opacity: 0.48;
+  filter: saturate(0.88) contrast(1.06) brightness(0.78) sepia(0.08);
+}
+
+[data-skin="moon-dub"] .rasta-video-bg__veil {
+  background: linear-gradient(
+    180deg,
+    rgba(18, 16, 14, 0.42) 0%,
+    rgba(28, 33, 25, 0.62) 40%,
+    rgba(18, 16, 14, 0.78) 100%
+  );
 }
 
 [data-skin="moon-dub"] .hero {
@@ -346,6 +365,20 @@
 
 [data-skin="moon-dub"] .jaipur-clouds {
   display: none;
+}
+
+@media (max-width: 720px) {
+  [data-skin="moon-dub"] .rasta-video-bg__media {
+    opacity: 0.38;
+  }
+
+  [data-skin="moon-dub"] .rasta-video-bg__veil {
+    background: linear-gradient(
+      180deg,
+      rgba(18, 16, 14, 0.5) 0%,
+      rgba(18, 16, 14, 0.82) 100%
+    );
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
