@@ -701,7 +701,8 @@ html.has-player.player-bar-collapsed {
 }
 .hero {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(240px, 320px);
+  grid-template-columns: minmax(0, 500px) minmax(240px, 320px);
+  justify-content: start;
   align-items: start;
   gap: var(--space-6);
   padding: var(--space-6);
@@ -891,7 +892,7 @@ html.has-player.player-bar-collapsed {
   margin: 0.4rem 0 1rem;
 }
 .hero p {
-  max-width: 60ch;
+  max-width: 100%;
   color: var(--text-muted);
 }
 .hero--compact {
@@ -915,6 +916,7 @@ html.has-player.player-bar-collapsed {
   display: grid;
   gap: var(--space-3);
   min-width: 0;
+  max-width: 500px;
   scroll-margin-top: var(--space-4);
   border-radius: 0 0 24px 24px;
   overflow: hidden;
