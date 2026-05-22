@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { coverForTrack, DEFAULT_COVER_PATH } from "../lib/cover";
+import { coverForTrack, isDefaultCoverPath } from "../lib/cover";
 import type { Track } from "../types/catalog";
 import { Icon } from "./icons/Icon";
 
@@ -19,7 +19,6 @@ const sizeClass: Record<NonNullable<Props["size"]>, string> = {
 export function TrackCover({ track, size = "md", className }: Props) {
   const [failed, setFailed] = useState(false);
   const src = coverForTrack(track);
-  const useCssDefault = src === DEFAULT_COVER_PATH;
   const rootClass = ["cover", sizeClass[size], className].filter(Boolean).join(" ");
 
   if (!track || failed) {
@@ -30,10 +29,17 @@ export function TrackCover({ track, size = "md", className }: Props) {
     );
   }
 
-  if (useCssDefault) {
+  if (isDefaultCoverPath(src)) {
     return (
       <div className={rootClass}>
-        <span className="cover-default-art" aria-hidden />
+        <img
+          src={src}
+          alt=""
+          className="cover-default-img"
+          loading="lazy"
+          decoding="async"
+          onError={() => setFailed(true)}
+        />
       </div>
     );
   }

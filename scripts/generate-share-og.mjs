@@ -107,7 +107,7 @@ async function main() {
   const catalogPath = resolveCatalogPath();
   const outDir = join(root, "dist", "share");
   const origin = resolveSiteOrigin();
-  const coverPath = "/covers/default.webp";
+  const coverPath = "/images/cover-default.png";
 
   const FALLBACK_TRACKS = [
     {

@@ -129,6 +129,7 @@ export function PlayerBar({
               .join(" ")}
           >
             <div className="player-bar-bg" aria-hidden>
+              <div className="player-bar-bg__ambient" />
               <div className="player-bar-bg__shade" />
             </div>
             <div className="now-box">

@@ -1,6 +1,5 @@
 import { useCallback, useRef } from "react";
 import { useFeedGridDesktop } from "../hooks/useFeedGridDesktop";
-import { useHeroParallax } from "../hooks/useHeroParallax";
 import { AuthorPhotoSlideshow } from "./AuthorPhotoSlideshow";
 import { AUTHOR_SUPPORT_URL, AUTHOR_VK_URL } from "../config";
 import type { Catalog } from "../types/catalog";
@@ -20,12 +19,10 @@ export function LibraryHero({
 }: Props) {
   const isDesktop = useFeedGridDesktop();
   const isCompact = collapsed && !isDesktop;
-  const mainRef = useRef<HTMLDivElement>(null);
-  const heroVisualRef = useRef<HTMLDivElement>(null);
-  useHeroParallax(heroVisualRef);
+  const stackRef = useRef<HTMLDivElement>(null);
 
-  const scrollMainIntoView = useCallback(() => {
-    const el = mainRef.current;
+  const scrollIntoView = useCallback(() => {
+    const el = stackRef.current;
     if (!el) return;
     const instant = window.matchMedia("(prefers-reduced-motion: reduce)")
       .matches;
@@ -40,79 +37,75 @@ export function LibraryHero({
     if (collapsed) {
       onExpand();
       requestAnimationFrame(() => {
-        requestAnimationFrame(() => scrollMainIntoView());
+        requestAnimationFrame(() => scrollIntoView());
       });
     } else {
       onCollapse();
     }
-  }, [collapsed, isDesktop, onCollapse, onExpand, scrollMainIntoView]);
+  }, [collapsed, isDesktop, onCollapse, onExpand, scrollIntoView]);
 
   return (
     <section className={isCompact ? "hero hero--compact" : "hero"}>
-      <div className="hero-main" ref={mainRef}>
-        <div className="hero-head">
-          <div className="hero-expandable" aria-hidden={isCompact}>
-            <div className="hero-expandable-inner">
-              <p className="hero-author-bio">
-                Автор и рассказчик, который умеет превращать
-                сказку в живое, душевное и очень человеческое пространство. В его
-                историях чувствуется любовь к свободе, юмору, странствиям и
-                мудрости народной речи. Он пишет так, будто ведёт неспешный,
-                доверительный разговор у костра: легко, ярко, с иронией и теплом.
-                Его сказки запоминаются особой интонацией — немного озорной,
-                немного волшебной, но всегда искренней и близкой читателю.
-              </p>
-            </div>
+      <div className="hero-stack" ref={stackRef}>
+        <AuthorPhotoSlideshow />
+        <a
+          className="hero-author-link"
+          href={AUTHOR_VK_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Дмитрий Гайдук
+        </a>
+        {!isDesktop ? (
+          <button
+            type="button"
+            className="hero-toggle"
+            onClick={handleToggle}
+            aria-expanded={!isCompact}
+          >
+            {collapsed ? "Об авторе" : "Свернуть"}
+          </button>
+        ) : null}
+        <div
+          className="hero-expandable"
+          aria-hidden={isCompact}
+          id="hero-author-bio"
+        >
+          <div className="hero-expandable-inner">
+            <p className="hero-author-bio">
+              Автор и рассказчик, который умеет превращать сказку в живое,
+              душевное и очень человеческое пространство. В его историях
+              чувствуется любовь к свободе, юмору, странствиям и мудрости
+              народной речи. Он пишет так, будто ведёт неспешный, доверительный
+              разговор у костра: легко, ярко, с иронией и теплом. Его сказки
+              запоминаются особой интонацией — немного озорной, немного
+              волшебной, но всегда искренней и близкой читателю.
+            </p>
           </div>
-          {!isDesktop ? (
-            <button
-              type="button"
-              className="hero-toggle"
-              onClick={handleToggle}
-            >
-              {collapsed ? "Об авторе" : "Свернуть"}
-            </button>
-          ) : null}
+        </div>
+        <div className="hero-author-ctas">
+          <a
+            className="chip hero-author-cta btn-shimmer"
+            href={AUTHOR_VK_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Концерты
+          </a>
+          <a
+            className="chip hero-author-cta btn-shimmer"
+            href={AUTHOR_SUPPORT_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Поддержать автора
+          </a>
         </div>
         {isCompact ? (
           <p className="hero-compact-stats mini-text">
             {catalog.tracks.length} треков
           </p>
         ) : null}
-      </div>
-      <div className="hero-side hero-side--parallax" ref={heroVisualRef}>
-        <div className="hero-author-block">
-          <p className="hero-catalog-label">Каталог аудиосказок</p>
-          <AuthorPhotoSlideshow />
-          <div className="hero-author-actions">
-            <a
-              className="hero-author-link"
-              href={AUTHOR_VK_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Дмитрий Гайдук
-            </a>
-            <div className="hero-author-ctas">
-              <a
-                className="chip hero-author-cta btn-shimmer"
-                href={AUTHOR_VK_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Концерты
-              </a>
-              <a
-                className="chip hero-author-cta btn-shimmer"
-                href={AUTHOR_SUPPORT_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Поддержать автора
-              </a>
-            </div>
-          </div>
-        </div>
       </div>
     </section>
   );

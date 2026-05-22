@@ -1,7 +1,8 @@
 /* Material effects — gayduk-material-effects-spec.md */
 
 :root {
-  --material-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='128'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='128' height='128' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  --glass-noise: url("/images/modal-glass-noise-dark.png");
+  --material-grain: var(--glass-noise);
   --glass-blur: blur(18px) saturate(1.1);
   --glass-blur-mobile: blur(10px) saturate(1.05);
   --glass-surface: color-mix(in oklab, var(--bg) 72%, var(--surface));
@@ -63,37 +64,9 @@
   background-size: 128px 128px;
 }
 
-.hero-main,
-.hero-side {
+.hero-stack {
   position: relative;
   z-index: 1;
-}
-
-.hero-main::before {
-  content: "";
-  position: absolute;
-  left: calc(-1 * var(--space-6));
-  right: calc(-1 * var(--space-6));
-  bottom: calc(-1 * var(--space-4));
-  top: 30%;
-  z-index: 0;
-  pointer-events: none;
-  border-radius: inherit;
-  background: linear-gradient(
-    to top,
-    color-mix(in oklab, var(--bg) 94%, transparent),
-    transparent 72%
-  );
-}
-
-.hero-main > * {
-  position: relative;
-  z-index: 1;
-}
-
-.hero-side--parallax {
-  will-change: transform;
-  transition: transform 0.35s ease-out;
 }
 
 .hero-art {
@@ -253,7 +226,12 @@
 }
 
 .player-bar-bg {
-  background: var(--glass-surface);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--bg) 48%, transparent),
+      color-mix(in oklab, var(--surface) 55%, transparent)
+    );
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
 }
@@ -262,6 +240,7 @@
   content: "";
   position: absolute;
   inset: 0;
+  z-index: 2;
   pointer-events: none;
   opacity: 0.1;
   mix-blend-mode: soft-light;
@@ -312,8 +291,12 @@
 
 /* --- Now playing / modal glass --- */
 .now-playing-backdrop {
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.now-playing-backdrop::after {
+  opacity: 0.05;
 }
 
 .now-playing-sheet {
@@ -322,11 +305,49 @@
   -webkit-backdrop-filter: var(--glass-blur);
 }
 
+.now-playing-sheet::before {
+  opacity: 0.07;
+}
+
 .modal-card {
   background: color-mix(in oklab, var(--surface) 90%, transparent);
   backdrop-filter: var(--glass-blur-mobile);
   -webkit-backdrop-filter: var(--glass-blur-mobile);
   border-color: var(--glass-border);
+}
+
+.modal-card::before {
+  opacity: 0.07;
+}
+
+.player-bar-bg::after {
+  opacity: 0.06;
+  background-image: var(--glass-noise);
+  background-size: 192px 192px;
+}
+
+.player-bar-restore {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.player-bar-restore::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: soft-light;
+  background-image: var(--glass-noise);
+  background-size: 192px 192px;
+  z-index: 0;
+}
+
+.player-bar-restore > * {
+  position: relative;
+  z-index: 1;
 }
 
 /* --- Splash --- */
@@ -384,9 +405,6 @@
     animation: none;
   }
 
-  .hero-side--parallax {
-    transform: none !important;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -395,10 +413,5 @@
   .card.is-active.is-playing .cover,
   [data-theme="dark"] .player-bar .icon-button.primary {
     animation: none;
-  }
-
-  .hero-side--parallax {
-    transform: none !important;
-    transition: none;
   }
 }

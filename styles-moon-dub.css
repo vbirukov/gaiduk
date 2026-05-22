@@ -49,7 +49,17 @@
 }
 
 [data-skin="moon-dub"] .sidebar {
-  background: linear-gradient(180deg, #1f1813, var(--moon-surface));
+  background-color: var(--moon-surface);
+  background-image:
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--moon-surface) 72%, transparent) 0%,
+      color-mix(in oklab, var(--moon-soot) 86%, transparent) 100%
+    ),
+    url("/images/library-background-soft-dark.png");
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
   border-right-color: oklch(from var(--text) l c h / 0.1);
 }
 
@@ -117,18 +127,6 @@
 }
 
 [data-skin="moon-dub"] .hero {
-  background:
-    radial-gradient(
-      circle at 65% 35%,
-      rgba(215, 154, 59, 0.28),
-      transparent 36%
-    ),
-    radial-gradient(
-      circle at 78% 22%,
-      rgba(47, 95, 99, 0.2),
-      transparent 30%
-    ),
-    linear-gradient(180deg, #1c1612 0%, #12100e 100%);
   border-color: oklch(from var(--moon-amber) l c h / 0.18);
   box-shadow: var(--shadow-md), var(--glow-primary);
 }
@@ -137,12 +135,12 @@
   background:
     radial-gradient(
       ellipse 50% 40% at 85% 30%,
-      color-mix(in oklab, var(--moon-amber) 24%, transparent),
+      color-mix(in oklab, var(--moon-amber) 20%, transparent),
       transparent 68%
     ),
     radial-gradient(
       ellipse 45% 35% at 15% 70%,
-      color-mix(in oklab, var(--moon-teal) 16%, transparent),
+      color-mix(in oklab, var(--moon-teal) 12%, transparent),
       transparent 70%
     );
 }
@@ -267,9 +265,18 @@
 }
 
 [data-skin="moon-dub"] .player-bar-bg {
-  background: color-mix(in oklab, var(--moon-surface) 78%, transparent);
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in oklab, var(--moon-teal) 8%, transparent),
+      color-mix(in oklab, var(--moon-surface) 52%, transparent)
+    );
   backdrop-filter: blur(18px) saturate(1.08);
   -webkit-backdrop-filter: blur(18px) saturate(1.08);
+}
+
+[data-skin="moon-dub"] .player-bar-bg__ambient {
+  opacity: 0.68;
 }
 
 [data-skin="moon-dub"] .player-bar-bg__shade {
@@ -300,11 +307,6 @@
 [data-skin="moon-dub"] .now-playing-sheet {
   background: color-mix(in oklab, var(--moon-surface) 90%, transparent);
   border-color: color-mix(in oklab, var(--moon-amber) 18%, transparent);
-}
-
-[data-skin="moon-dub"] .cover-default-art {
-  background-image: none;
-  background: linear-gradient(180deg, #2b1d14 0%, #9c5b2e 38%, #d79a3b 100%);
 }
 
 [data-skin="moon-dub"] .hookah-smoke__plume {

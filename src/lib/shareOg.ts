@@ -1,5 +1,5 @@
 import type { Track } from "../types/catalog";
-import { artworkUrlForTrack } from "./cover";
+import { artworkUrlForTrack, defaultCoverPath } from "./cover";
 
 const SITE_NAME = "Haiduk — аудиосказки Дмитрия Гайдука";
 
@@ -156,8 +156,8 @@ export function applySiteOgDefaults() {
   const origin = resolveSiteOrigin();
   const pageUrl = origin ? `${origin}/` : "/";
   const image = origin
-    ? `${origin}/covers/default.webp`
-    : "/covers/default.webp";
+    ? `${origin}${defaultCoverPath()}`
+    : defaultCoverPath();
   const title = SITE_NAME;
   const description =
     "Аудиосказки и сказочные записи Дмитрия Гайдука — слушайте в браузере или установите как приложение.";
