@@ -69,8 +69,16 @@
 
 [data-skin="jaipur"] .nav.active,
 [data-skin="jaipur"] .ghost.round.active {
-  background: color-mix(in oklab, var(--jaipur-emerald) 28%, var(--jaipur-clay));
+  background: color-mix(in oklab, var(--jaipur-emerald) 42%, var(--jaipur-clay));
   color: var(--text-inverse);
+  border-color: color-mix(in oklab, var(--jaipur-emerald) 55%, var(--jaipur-outline));
+}
+
+[data-skin="jaipur"] .card-social .ghost.round.active,
+[data-skin="jaipur"] .icon-button.ghost.active.btn-like {
+  background: color-mix(in oklab, var(--jaipur-saffron) 52%, var(--jaipur-clay));
+  color: var(--text-inverse);
+  border-color: color-mix(in oklab, var(--jaipur-saffron) 65%, var(--jaipur-outline));
 }
 
 [data-skin="jaipur"] .eyebrow,

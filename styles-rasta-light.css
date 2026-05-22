@@ -69,9 +69,16 @@
 
 [data-skin="rastaman-light"] .nav.active,
 [data-skin="rastaman-light"] .ghost.round.active {
-  background: color-mix(in oklab, var(--rl-green) 18%, var(--rl-cloud));
+  background: color-mix(in oklab, var(--rl-green) 32%, var(--rl-cloud));
   color: var(--rl-green-stroke);
   border-color: var(--rl-green);
+}
+
+[data-skin="rastaman-light"] .card-social .ghost.round.active,
+[data-skin="rastaman-light"] .icon-button.ghost.active.btn-like {
+  background: color-mix(in oklab, var(--rl-red) 38%, var(--rl-cloud));
+  color: var(--rl-red);
+  border-color: var(--rl-red);
 }
 
 [data-skin="rastaman-light"] .library-feed-bg {

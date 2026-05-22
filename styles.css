@@ -156,8 +156,16 @@ html.has-player.player-bar-collapsed {
   word-break: break-all;
 }
 .ghost.round.active {
-  background: color-mix(in oklab, var(--primary) 16%, var(--surface));
+  background: color-mix(in oklab, var(--primary) 28%, var(--surface));
   color: var(--primary);
+  border-color: color-mix(in oklab, var(--primary) 42%, transparent);
+}
+
+.card-social .ghost.round.active,
+.icon-button.ghost.active.btn-like {
+  background: color-mix(in oklab, var(--accent-ember) 32%, var(--surface));
+  color: var(--accent-ember);
+  border-color: color-mix(in oklab, var(--accent-ember) 48%, transparent);
 }
 .player-controls {
   flex-wrap: wrap;
