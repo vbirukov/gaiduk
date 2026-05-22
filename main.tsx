@@ -3,6 +3,7 @@ import { App } from "./src/App";
 import { initButtonRipple } from "./src/lib/buttonRipple";
 import "./styles.css";
 import "./styles-motion.css";
+import "./styles-material.css";
 import "./styles-rasta-light.css";
 import "./styles-jaipur.css";
 

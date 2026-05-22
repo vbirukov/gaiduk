@@ -120,7 +120,14 @@ export function PlayerBar({
               <Icon name="chevron-up" size={20} aria-hidden />
             </button>
           ) : null}
-          <footer className="player-bar">
+          <footer
+            className={[
+              "player-bar",
+              isPlaying && currentTrackId ? "player-bar--playing" : "",
+            ]
+              .filter(Boolean)
+              .join(" ")}
+          >
             <div className="player-bar-bg" aria-hidden>
               <div className="player-bar-bg__shade" />
             </div>

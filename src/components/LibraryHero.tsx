@@ -1,5 +1,6 @@
 import { useCallback, useRef } from "react";
 import { useFeedGridDesktop } from "../hooks/useFeedGridDesktop";
+import { useHeroParallax } from "../hooks/useHeroParallax";
 import { AuthorPhotoSlideshow } from "./AuthorPhotoSlideshow";
 import { AUTHOR_SUPPORT_URL, AUTHOR_VK_URL } from "../config";
 import type { Catalog } from "../types/catalog";
@@ -20,6 +21,8 @@ export function LibraryHero({
   const isDesktop = useFeedGridDesktop();
   const isCompact = collapsed && !isDesktop;
   const mainRef = useRef<HTMLDivElement>(null);
+  const heroVisualRef = useRef<HTMLDivElement>(null);
+  useHeroParallax(heroVisualRef);
 
   const scrollMainIntoView = useCallback(() => {
     const el = mainRef.current;
@@ -77,7 +80,7 @@ export function LibraryHero({
           </p>
         ) : null}
       </div>
-      <div className="hero-side">
+      <div className="hero-side hero-side--parallax" ref={heroVisualRef}>
         <div className="hero-author-block">
           <p className="hero-catalog-label">Каталог аудиосказок</p>
           <AuthorPhotoSlideshow />

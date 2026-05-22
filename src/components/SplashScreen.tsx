@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { ASSETS } from "../lib/assets";
 import { SPLASH_SEEN_KEY } from "../config";
 
-const SPLASH_MS = 1600;
+const SPLASH_MS = 1100;
 
 function readSeen(): boolean {
   try {

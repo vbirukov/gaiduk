@@ -1,0 +1,403 @@
+/* Material effects — gayduk-material-effects-spec.md */
+
+:root {
+  --material-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='128'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='128' height='128' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  --glass-blur: blur(18px) saturate(1.1);
+  --glass-blur-mobile: blur(10px) saturate(1.05);
+  --glass-surface: color-mix(in oklab, var(--bg) 72%, var(--surface));
+  --glass-border: oklch(from var(--text) l c h / 0.14);
+}
+
+/* --- Hero --- */
+.hero {
+  position: relative;
+  isolation: isolate;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  background: linear-gradient(
+    155deg,
+    color-mix(in oklab, var(--bg) 88%, var(--surface)),
+    color-mix(in oklab, var(--surface) 92%, var(--primary) 8%)
+  );
+  box-shadow:
+    var(--shadow-md),
+    inset 0 1px 0 oklch(from var(--text) l c h / 0.06);
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    radial-gradient(
+      ellipse 55% 45% at 88% 28%,
+      color-mix(in oklab, var(--primary) 22%, transparent),
+      transparent 68%
+    ),
+    radial-gradient(
+      ellipse 50% 40% at 12% 78%,
+      color-mix(in oklab, var(--accent-teal) 14%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 80% 60% at 50% 100%,
+      color-mix(in oklab, var(--accent-mystic) 10%, transparent),
+      transparent 55%
+    );
+  animation: material-hero-breathe 16s ease-in-out infinite;
+}
+
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  opacity: 0.12;
+  mix-blend-mode: soft-light;
+  background-image: var(--material-grain);
+  background-size: 128px 128px;
+}
+
+.hero-main,
+.hero-side {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-main::before {
+  content: "";
+  position: absolute;
+  left: calc(-1 * var(--space-6));
+  right: calc(-1 * var(--space-6));
+  bottom: calc(-1 * var(--space-4));
+  top: 30%;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(
+    to top,
+    color-mix(in oklab, var(--bg) 94%, transparent),
+    transparent 72%
+  );
+}
+
+.hero-main > * {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-side--parallax {
+  will-change: transform;
+  transition: transform 0.35s ease-out;
+}
+
+.hero-art {
+  border-radius: 16px;
+  box-shadow:
+    var(--shadow-md),
+    0 0 28px color-mix(in oklab, var(--primary) 18%, transparent);
+}
+
+.hero-art::after {
+  background:
+    radial-gradient(
+      ellipse 70% 55% at 72% 32%,
+      color-mix(in oklab, var(--primary-hi) 25%, transparent),
+      transparent 58%
+    ),
+    radial-gradient(
+      ellipse 90% 90% at 50% 50%,
+      transparent 40%,
+      oklch(0 0 0 / 0.22) 100%
+    );
+}
+
+@keyframes material-hero-breathe {
+  0%,
+  100% {
+    opacity: 0.88;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+}
+
+/* --- Sidebar (quiet) --- */
+.brand-logo {
+  box-shadow:
+    0 0 0 1px oklch(from var(--text) l c h / 0.08),
+    0 0 18px color-mix(in oklab, var(--primary) 28%, transparent);
+}
+
+.nav.active {
+  box-shadow: none;
+}
+
+/* --- Track cards (catalog: calm) --- */
+.card {
+  transition:
+    transform var(--motion-fast) var(--motion-ease-spring),
+    box-shadow var(--motion-fast) ease,
+    border-color 0.2s ease;
+}
+
+@media (hover: hover) {
+  .card:not(.card--row):hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+}
+
+.card-bg::before {
+  animation: none;
+  background-attachment: scroll;
+  opacity: 0.32;
+}
+
+.card.is-active::before,
+.card.is-active::after {
+  display: none;
+}
+
+.card.is-active {
+  border-color: color-mix(in oklab, var(--primary) 32%, transparent);
+  background: color-mix(in oklab, var(--primary) 6%, transparent);
+  box-shadow: var(--shadow-sm);
+}
+
+.card.is-active .card-bg {
+  background: linear-gradient(
+    165deg,
+    color-mix(in oklab, var(--surface) 70%, transparent),
+    color-mix(in oklab, var(--primary) 10%, transparent)
+  );
+}
+
+.card.is-active .card-bg__shade::after {
+  animation: none;
+  opacity: 0;
+}
+
+.card.is-active .cover,
+.card.is-active.is-playing .cover {
+  box-shadow:
+    0 0 0 2px color-mix(in oklab, var(--primary) 45%, transparent),
+    0 0 14px color-mix(in oklab, var(--primary) 30%, transparent);
+}
+
+.card.is-active.is-playing .cover {
+  animation: material-cover-halo 2.6s ease-in-out infinite;
+}
+
+@keyframes material-cover-halo {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 2px color-mix(in oklab, var(--primary) 40%, transparent),
+      0 0 12px color-mix(in oklab, var(--primary) 24%, transparent);
+  }
+  50% {
+    box-shadow:
+      0 0 0 2px color-mix(in oklab, var(--primary) 55%, transparent),
+      0 0 20px color-mix(in oklab, var(--primary) 38%, transparent);
+  }
+}
+
+/* --- Continue (featured) --- */
+.continue-banner-btn {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+
+.continue-banner-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0.35;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    oklch(1 0 0 / 0.22) 50%,
+    transparent 60%
+  );
+  background-size: 200% 100%;
+  animation: material-glint 4s ease-in-out infinite;
+}
+
+@keyframes material-glint {
+  0% {
+    background-position: 130% center;
+  }
+  100% {
+    background-position: -130% center;
+  }
+}
+
+/* --- Player bar (frosted glass) --- */
+.player-bar {
+  border-top-color: var(--glass-border);
+  box-shadow:
+    0 -4px 24px oklch(0 0 0 / 0.12),
+    inset 0 1px 0 oklch(1 0 0 / 0.08);
+}
+
+.player-bar-bg {
+  background: var(--glass-surface);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+}
+
+.player-bar-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.1;
+  mix-blend-mode: soft-light;
+  background-image: var(--material-grain);
+  background-size: 96px 96px;
+}
+
+.player-bar-restore {
+  background: color-mix(in oklab, var(--bg) 78%, var(--surface));
+  backdrop-filter: var(--glass-blur-mobile);
+  -webkit-backdrop-filter: var(--glass-blur-mobile);
+  border-color: var(--glass-border);
+}
+
+.now-box .cover--md,
+.player-bar .cover--md {
+  border-radius: 14px;
+  box-shadow:
+    var(--shadow-sm),
+    inset 0 1px 0 oklch(1 0 0 / 0.12);
+}
+
+[data-theme="dark"] .player-bar .icon-button.primary:not(:disabled),
+[data-theme="dark"] .player-controls .icon-button.primary:not(:disabled) {
+  box-shadow:
+    var(--btn-rough-inset, var(--btn-elev-1)),
+    0 0 18px color-mix(in oklab, var(--primary) 42%, transparent);
+}
+
+[data-theme="dark"] .player-bar--playing .icon-button.primary:not(:disabled) {
+  animation: material-play-glow 2.8s ease-in-out infinite;
+}
+
+@keyframes material-play-glow {
+  0%,
+  100% {
+    box-shadow:
+      var(--btn-elev-1),
+      0 0 14px color-mix(in oklab, var(--primary) 32%, transparent);
+  }
+  50% {
+    box-shadow:
+      var(--btn-elev-2),
+      0 0 22px color-mix(in oklab, var(--primary) 48%, transparent);
+  }
+}
+
+/* --- Now playing / modal glass --- */
+.now-playing-backdrop {
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.now-playing-sheet {
+  background: color-mix(in oklab, var(--surface) 88%, transparent);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+}
+
+.modal-card {
+  background: color-mix(in oklab, var(--surface) 90%, transparent);
+  backdrop-filter: var(--glass-blur-mobile);
+  -webkit-backdrop-filter: var(--glass-blur-mobile);
+  border-color: var(--glass-border);
+}
+
+/* --- Splash --- */
+.splash-screen {
+  background:
+    radial-gradient(
+      ellipse 55% 45% at 50% 42%,
+      color-mix(in oklab, var(--primary) 28%, transparent),
+      transparent 70%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--bg) 96%, black),
+      color-mix(in oklab, var(--surface-2) 88%, var(--primary) 12%)
+    );
+}
+
+.splash-screen::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.14;
+  mix-blend-mode: soft-light;
+  background-image: var(--material-grain);
+  background-size: 128px 128px;
+}
+
+.splash-screen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at 50% 45%,
+    oklch(1 0 0 / 0.06),
+    transparent 55%
+  );
+}
+
+.splash-screen img {
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 720px) {
+  .player-bar-bg,
+  .player-bar-restore,
+  .now-playing-sheet {
+    backdrop-filter: var(--glass-blur-mobile);
+    -webkit-backdrop-filter: var(--glass-blur-mobile);
+  }
+
+  .hero::before {
+    animation: none;
+  }
+
+  .hero-side--parallax {
+    transform: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero::before,
+  .continue-banner-btn::after,
+  .card.is-active.is-playing .cover,
+  [data-theme="dark"] .player-bar .icon-button.primary {
+    animation: none;
+  }
+
+  .hero-side--parallax {
+    transform: none !important;
+    transition: none;
+  }
+}
