@@ -697,6 +697,31 @@ html.has-player.player-bar-collapsed {
     ),
     linear-gradient(180deg, #111a14 0%, var(--bg) 42%, var(--surface) 100%);
 }
+.rasta-video-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+.rasta-video-bg__media {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 42%;
+}
+.rasta-video-bg__veil {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .rasta-video-bg {
+    display: none;
+  }
+}
 .topbar,
 .section-head,
 .side-head,

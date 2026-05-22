@@ -26,6 +26,7 @@ export function useAppTheme() {
     skin,
     setSkin: setSkinAndPersist,
     isJaipur: skin === "jaipur",
+    isRastaman: skin === "rastaman",
     isRastamanLight: skin === "rastaman-light",
   };
 }
