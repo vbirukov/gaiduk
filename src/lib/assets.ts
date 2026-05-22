@@ -23,6 +23,7 @@ export const ASSETS = {
     "/rasta-dark-bg.mp4",
     "/rasta-dark-alternate-bg.mp4",
   ] as const,
+  jaipurBgVideo: "/jaipur-bg.mp4",
 } as const;
 
 export function assetUrl(path: string): string {

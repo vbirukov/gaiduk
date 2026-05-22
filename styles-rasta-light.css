@@ -329,8 +329,6 @@
 }
 
 [data-skin="rastaman-light"] .hero-author-link {
-  color: var(--rl-green-stroke);
-  text-shadow: none;
   animation: none;
 }
 

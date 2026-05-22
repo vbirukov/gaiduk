@@ -140,43 +140,24 @@ html.has-player.player-bar-collapsed {
   --sidebar-bg-scrim-bottom: color-mix(in oklab, var(--surface-2) 34%, transparent);
   position: sticky;
   top: 0;
-  height: 100vh;
+  min-height: 100vh;
+  min-height: 100dvh;
   overflow: auto;
   padding: var(--space-6);
   isolation: isolate;
   border-right: 1px solid oklch(from var(--text) l c h / 0.12);
   background-color: var(--surface);
-}
-
-.sidebar::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background-image: var(--sidebar-bg-image);
-  background-size: cover;
-  background-position: center 20%;
-  background-repeat: no-repeat;
-  filter: saturate(1.12) contrast(1.06);
-  pointer-events: none;
-}
-
-.sidebar::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background: linear-gradient(
-    180deg,
-    var(--sidebar-bg-scrim-top) 0%,
-    var(--sidebar-bg-scrim-bottom) 100%
-  );
-  pointer-events: none;
-}
-
-.sidebar > * {
-  position: relative;
-  z-index: 1;
+  background-image:
+    linear-gradient(
+      180deg,
+      var(--sidebar-bg-scrim-top) 0%,
+      var(--sidebar-bg-scrim-bottom) 100%
+    ),
+    var(--sidebar-bg-image);
+  background-size: 100% 100%, 100% auto;
+  background-position: center top, center top;
+  background-repeat: no-repeat, repeat-y;
+  background-attachment: scroll, local;
 }
 
 [data-skin="rastaman-light"],
@@ -910,9 +891,10 @@ html.has-player.player-bar-collapsed {
   background-image:
     linear-gradient(
       180deg,
-      rgba(255, 250, 242, 0.78) 0%,
-      rgba(255, 245, 228, 0.52) 48%,
-      rgba(18, 22, 18, 0.38) 100%
+      rgba(255, 252, 248, 0.42) 0%,
+      rgba(255, 252, 248, 0.68) 38%,
+      rgba(255, 250, 242, 0.78) 62%,
+      rgba(18, 22, 18, 0.22) 100%
     ),
     var(--hero-author-bg-image);
   background-size: cover;
@@ -958,6 +940,53 @@ html.has-player.player-bar-collapsed {
   max-width: 420px;
   margin-inline: auto;
   scroll-margin-top: var(--space-4);
+}
+
+[data-skin="rastaman-light"] .hero-stack,
+[data-skin="jaipur"] .hero-stack {
+  padding: var(--space-4) var(--space-5);
+  border-radius: 20px;
+  background: oklch(0.99 0.008 95 / 0.86);
+  box-shadow:
+    0 4px 20px oklch(0 0 0 / 0.1),
+    inset 0 1px 0 oklch(1 0 0 / 0.65);
+  -webkit-backdrop-filter: blur(12px) saturate(1.08);
+  backdrop-filter: blur(12px) saturate(1.08);
+}
+
+[data-skin="jaipur"] .hero-stack {
+  background: color-mix(in oklab, var(--jaipur-facade) 90%, transparent);
+  box-shadow:
+    0 4px 20px var(--jaipur-shadow),
+    inset 0 1px 0 oklch(1 0 0 / 0.45);
+}
+
+[data-skin="rastaman-light"] .hero-author-link,
+[data-skin="rastaman-light"] .hero-author-bio,
+[data-skin="rastaman-light"] .hero-toggle {
+  color: var(--rl-ink);
+}
+
+[data-skin="rastaman-light"] .hero-author-link {
+  color: var(--rl-green-stroke);
+  font-weight: 600;
+  text-shadow: 0 1px 0 oklch(1 0 0 / 0.85);
+}
+
+[data-skin="rastaman-light"] .hero-author-bio {
+  color: color-mix(in oklab, var(--rl-ink) 88%, var(--text-muted));
+  font-weight: 450;
+}
+
+[data-skin="jaipur"] .hero-author-link,
+[data-skin="jaipur"] .hero-author-bio,
+[data-skin="jaipur"] .hero-toggle {
+  color: var(--jaipur-outline);
+  text-shadow: 0 1px 0 color-mix(in oklab, var(--jaipur-facade) 75%, transparent);
+}
+
+[data-skin="jaipur"] .hero-author-link {
+  font-weight: 600;
 }
 .hero-author-ctas {
   display: flex;

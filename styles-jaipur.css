@@ -91,18 +91,86 @@
 }
 
 [data-skin="jaipur"] .library-feed-bg {
+  overflow: hidden;
+  background: var(--jaipur-facade);
+}
+
+[data-skin="jaipur"] .library-feed-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
   background:
     radial-gradient(
       ellipse 70% 45% at 50% 0%,
-      color-mix(in oklab, var(--jaipur-sky) 55%, transparent),
+      color-mix(in oklab, var(--jaipur-sky) 48%, transparent),
       transparent 62%
     ),
     radial-gradient(
       ellipse 55% 40% at 12% 88%,
-      color-mix(in oklab, var(--jaipur-blush) 40%, transparent),
+      color-mix(in oklab, var(--jaipur-blush) 36%, transparent),
       transparent 58%
     ),
-    linear-gradient(180deg, #b6ddf4 0%, #f5bcb9 28%, #c5796d 72%, #b65c4a 100%);
+    linear-gradient(
+      180deg,
+      rgba(182, 221, 244, 0.22) 0%,
+      rgba(245, 188, 185, 0.32) 38%,
+      rgba(197, 121, 109, 0.48) 100%
+    );
+}
+
+[data-skin="jaipur"] .rasta-video-bg__layer.is-active {
+  opacity: 0.5;
+}
+
+[data-skin="jaipur"] .rasta-video-bg__layer.is-active .rasta-video-bg__media {
+  object-position: center 40%;
+  filter: saturate(1.12) contrast(1.06) brightness(1.06);
+}
+
+[data-skin="jaipur"] .rasta-video-bg__veil {
+  background: linear-gradient(
+    180deg,
+    rgba(182, 221, 244, 0.2) 0%,
+    rgba(245, 188, 185, 0.28) 42%,
+    rgba(182, 92, 74, 0.45) 100%
+  );
+}
+
+[data-skin="jaipur"] .library-feed:has(.rasta-video-bg) .jaipur-clouds {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  [data-skin="jaipur"] .rasta-video-bg__layer.is-active {
+    opacity: 0.38;
+  }
+
+  [data-skin="jaipur"] .rasta-video-bg__veil {
+    background: linear-gradient(
+      180deg,
+      rgba(182, 221, 244, 0.28) 0%,
+      rgba(197, 121, 109, 0.55) 100%
+    );
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-skin="jaipur"] .library-feed-bg::after {
+    background:
+      radial-gradient(
+        ellipse 70% 45% at 50% 0%,
+        color-mix(in oklab, var(--jaipur-sky) 55%, transparent),
+        transparent 62%
+      ),
+      radial-gradient(
+        ellipse 55% 40% at 12% 88%,
+        color-mix(in oklab, var(--jaipur-blush) 40%, transparent),
+        transparent 58%
+      ),
+      linear-gradient(180deg, #b6ddf4 0%, #f5bcb9 28%, #c5796d 72%, #b65c4a 100%);
+  }
 }
 
 [data-skin="jaipur"] .hero {
@@ -110,24 +178,11 @@
   border-radius: 24px;
   box-shadow: var(--shadow-md);
 }
-[data-skin="jaipur"] .hero h2,
-[data-skin="jaipur"] .hero p,
-[data-skin="jaipur"] .hero-author-bio {
-  color: var(--text-inverse);
-}
-
 [data-skin="jaipur"] .hero-toggle {
-  color: var(--text-inverse);
   text-decoration-color: color-mix(in oklab, var(--jaipur-emerald) 55%, var(--jaipur-outline));
 }
 
-[data-skin="jaipur"] .hero-toggle:hover {
-  color: var(--jaipur-outline);
-}
-
 [data-skin="jaipur"] .hero-author-link {
-  color: var(--text-inverse);
-  text-shadow: 0 1px 8px var(--jaipur-shadow);
   animation: none;
 }
 

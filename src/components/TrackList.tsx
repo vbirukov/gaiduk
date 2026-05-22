@@ -155,16 +155,16 @@ export function TrackList({
   return (
     <section className="library-feed">
       <div className="library-feed-bg" aria-hidden>
-        {!isJaipur ? (
-          <RastaVideoBg
-            src={
-              isRastamanLight
+        <RastaVideoBg
+          src={
+            isJaipur
+              ? ASSETS.jaipurBgVideo
+              : isRastamanLight
                 ? ASSETS.rastaBikeVideo
                 : ASSETS.rastaDarkBgVideos
-            }
-            variant={isRastamanLight ? "light" : "dark"}
-          />
-        ) : null}
+          }
+          variant={isJaipur || isRastamanLight ? "light" : "dark"}
+        />
       </div>
       {isRastamanLight ? <RastaSunLight /> : null}
       {isJaipur ? <JaipurClouds active={isPlaying} /> : null}
