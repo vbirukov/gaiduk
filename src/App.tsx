@@ -24,6 +24,7 @@ import {
   clearTrackShareParams,
   parseTrackShareParams,
 } from "./lib/shareTrack";
+import { preloadThemeImages } from "./lib/preloadThemeAssets";
 import { registerAppSW } from "./pwa/register";
 import type { LibraryView } from "./types/user";
 
@@ -45,6 +46,11 @@ export function App() {
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [selectedPlaylist, setSelectedPlaylist] = useState<string | null>(null);
   const { skin, setSkin, isJaipur, isRastamanLight } = useAppTheme();
+
+  useEffect(() => {
+    preloadThemeImages(skin);
+  }, [skin]);
+
   const [swNeedRefresh, setSwNeedRefresh] = useState(false);
   const [installPrompt, setInstallPrompt] =
     useState<BeforeInstallPromptEvent | null>(null);

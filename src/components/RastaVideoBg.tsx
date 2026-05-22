@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useDeferredVideoLoad } from "../hooks/useDeferredVideoLoad";
 
 type Props = {
   src: string | readonly string[];
@@ -19,6 +20,8 @@ export function RastaVideoBg({ src, variant = "dark" }: Props) {
   const sessionSrc = useMemo(() => pickSessionSource(sources), [sources]);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [motionOk, setMotionOk] = useState(false);
+  const [mediaReady, setMediaReady] = useState(false);
+  const shouldLoad = useDeferredVideoLoad(motionOk);
 
   useEffect(() => {
     const reduceMq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -29,27 +32,37 @@ export function RastaVideoBg({ src, variant = "dark" }: Props) {
   }, []);
 
   useEffect(() => {
+    setMediaReady(false);
+  }, [sessionSrc, shouldLoad]);
+
+  useEffect(() => {
     const el = videoRef.current;
-    if (!el || !motionOk) return;
+    if (!el || !motionOk || !shouldLoad) return;
     void el.play().catch(() => {});
-  }, [motionOk, sessionSrc]);
+  }, [motionOk, shouldLoad, sessionSrc, mediaReady]);
 
   if (!motionOk || !sessionSrc) return null;
 
   return (
     <div className={`rasta-video-bg rasta-video-bg--${variant}`}>
       <div className="rasta-video-bg__layer is-active">
-        <video
-          ref={videoRef}
-          className="rasta-video-bg__media"
-          src={sessionSrc}
-          muted
-          loop
-          playsInline
-          autoPlay
-          preload="auto"
-          aria-hidden
-        />
+        {shouldLoad ? (
+          <video
+            ref={videoRef}
+            className={
+              mediaReady
+                ? "rasta-video-bg__media is-loaded"
+                : "rasta-video-bg__media"
+            }
+            src={sessionSrc}
+            muted
+            loop
+            playsInline
+            preload="auto"
+            onLoadedData={() => setMediaReady(true)}
+            aria-hidden
+          />
+        ) : null}
       </div>
       <div className="rasta-video-bg__veil" aria-hidden />
     </div>
