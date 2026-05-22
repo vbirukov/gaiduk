@@ -1,0 +1,355 @@
+[data-skin="moon-dub"] {
+  --moon-soot: #12100e;
+  --moon-surface: #1b1612;
+  --moon-surface-2: #241a14;
+  --moon-surface-offset: #2c2119;
+  --moon-paper: #e8d6a8;
+  --moon-amber: #d79a3b;
+  --moon-amber-hi: #e8b56a;
+  --moon-smoked: #9c5b2e;
+  --moon-moss: #5a6b4b;
+  --moon-teal: #2f5f63;
+  --moon-shadow: rgba(0, 0, 0, 0.45);
+
+  --bg: var(--moon-soot);
+  --surface: var(--moon-surface);
+  --surface-2: var(--moon-surface-2);
+  --surface-offset: var(--moon-surface-offset);
+  --border: #3a2e24;
+  --divider: #2e241c;
+  --text: #f1e5c9;
+  --text-muted: #bdaf90;
+  --text-faint: #8a7d68;
+  --text-inverse: #12100e;
+  --primary: var(--moon-amber);
+  --primary-hover: #b87f2f;
+  --primary-hi: var(--moon-amber-hi);
+  --accent-teal: var(--moon-teal);
+  --accent-mystic: var(--moon-moss);
+  --accent-ember: #c46a3a;
+  --glow-primary: 0 0 22px rgba(215, 154, 59, 0.38);
+  --progress-accent: var(--moon-amber);
+  --shadow-sm: 0 2px 8px var(--moon-shadow);
+  --shadow-md: 0 6px 18px var(--moon-shadow);
+  --shadow-lg: 0 14px 36px var(--moon-shadow);
+}
+
+[data-skin="moon-dub"][data-theme="dark"] {
+  color-scheme: dark;
+}
+
+[data-skin="moon-dub"] body {
+  background: linear-gradient(
+    180deg,
+    #1a1511 0%,
+    var(--moon-soot) 38%,
+    #0e0c0a 100%
+  );
+  color: var(--text);
+}
+
+[data-skin="moon-dub"] .sidebar {
+  background: linear-gradient(180deg, #1f1813, var(--moon-surface));
+  border-right-color: oklch(from var(--text) l c h / 0.1);
+}
+
+[data-skin="moon-dub"] .nav,
+[data-skin="moon-dub"] .ghost,
+[data-skin="moon-dub"] .chip {
+  background: color-mix(in oklab, var(--moon-surface-2) 88%, transparent);
+  border-color: oklch(from var(--text) l c h / 0.12);
+}
+
+[data-skin="moon-dub"] .nav.active,
+[data-skin="moon-dub"] .ghost.round.active {
+  background: color-mix(in oklab, var(--moon-amber) 14%, var(--moon-surface-2));
+  color: var(--moon-paper);
+  border-color: color-mix(in oklab, var(--moon-amber) 35%, transparent);
+  box-shadow: inset 0 0 12px color-mix(in oklab, var(--moon-amber) 18%, transparent);
+}
+
+[data-skin="moon-dub"] .card-social .ghost.round.active,
+[data-skin="moon-dub"] .icon-button.ghost.active.btn-like {
+  background: color-mix(in oklab, var(--moon-amber) 22%, var(--moon-surface-2));
+  color: var(--moon-paper);
+  border-color: color-mix(in oklab, var(--moon-amber) 45%, transparent);
+}
+
+[data-skin="moon-dub"] .library-feed-bg {
+  background:
+    radial-gradient(
+      ellipse 58% 42% at 72% 18%,
+      rgba(215, 154, 59, 0.16),
+      transparent 68%
+    ),
+    radial-gradient(
+      ellipse 50% 38% at 18% 82%,
+      rgba(47, 95, 99, 0.14),
+      transparent 65%
+    ),
+    radial-gradient(
+      ellipse 70% 50% at 50% 0%,
+      rgba(90, 107, 75, 0.1),
+      transparent 58%
+    ),
+    linear-gradient(180deg, #234f55 0%, #1a2d2d 28%, #12100e 72%, #0e0c0a 100%);
+}
+
+[data-skin="moon-dub"] .hero {
+  background:
+    radial-gradient(
+      circle at 65% 35%,
+      rgba(215, 154, 59, 0.28),
+      transparent 36%
+    ),
+    radial-gradient(
+      circle at 78% 22%,
+      rgba(47, 95, 99, 0.2),
+      transparent 30%
+    ),
+    linear-gradient(180deg, #1c1612 0%, #12100e 100%);
+  border-color: oklch(from var(--moon-amber) l c h / 0.18);
+  box-shadow: var(--shadow-md), var(--glow-primary);
+}
+
+[data-skin="moon-dub"] .hero::before {
+  background:
+    radial-gradient(
+      ellipse 50% 40% at 85% 30%,
+      color-mix(in oklab, var(--moon-amber) 24%, transparent),
+      transparent 68%
+    ),
+    radial-gradient(
+      ellipse 45% 35% at 15% 70%,
+      color-mix(in oklab, var(--moon-teal) 16%, transparent),
+      transparent 70%
+    );
+}
+
+[data-skin="moon-dub"] .hero-author-link {
+  color: var(--moon-paper);
+  text-shadow:
+    0 0 12px rgba(215, 154, 59, 0.55),
+    0 0 24px rgba(47, 95, 99, 0.35),
+    0 1px 2px rgba(0, 0, 0, 0.4);
+  animation: moon-author-glow 3.2s ease-in-out infinite;
+}
+
+@keyframes moon-author-glow {
+  0%,
+  100% {
+    text-shadow:
+      0 0 10px rgba(215, 154, 59, 0.45),
+      0 0 20px rgba(47, 95, 99, 0.28),
+      0 1px 2px rgba(0, 0, 0, 0.4);
+  }
+  50% {
+    text-shadow:
+      0 0 16px rgba(215, 154, 59, 0.65),
+      0 0 28px rgba(47, 95, 99, 0.4),
+      0 1px 2px rgba(0, 0, 0, 0.35);
+  }
+}
+
+[data-skin="moon-dub"] .hero-art {
+  border-color: color-mix(in oklab, var(--moon-amber) 28%, transparent);
+  box-shadow:
+    var(--shadow-md),
+    0 0 32px rgba(215, 154, 59, 0.22);
+}
+
+[data-skin="moon-dub"] .card {
+  border-color: oklch(from var(--text) l c h / 0.1);
+}
+
+[data-skin="moon-dub"] .card-bg {
+  background: linear-gradient(
+    165deg,
+    color-mix(in oklab, var(--moon-surface-2) 75%, transparent),
+    color-mix(in oklab, var(--moon-surface) 65%, transparent)
+  );
+}
+
+[data-skin="moon-dub"] .card-bg__shade {
+  background: linear-gradient(
+    165deg,
+    transparent,
+    color-mix(in oklab, var(--moon-soot) 28%, transparent) 100%
+  );
+}
+
+[data-skin="moon-dub"] .card.is-active {
+  border-color: color-mix(in oklab, var(--moon-amber) 40%, transparent);
+  background: color-mix(in oklab, var(--moon-amber) 8%, transparent);
+}
+
+[data-skin="moon-dub"] .card.is-active .card-bg {
+  background: linear-gradient(
+    165deg,
+    color-mix(in oklab, var(--moon-surface-2) 80%, transparent),
+    color-mix(in oklab, var(--moon-amber) 12%, transparent)
+  );
+}
+
+[data-skin="moon-dub"] .catalog-folder-heading {
+  color: var(--moon-paper);
+  border-bottom-color: color-mix(in oklab, var(--moon-amber) 25%, transparent);
+}
+
+[data-skin="moon-dub"] .pill {
+  background: color-mix(in oklab, var(--moon-surface-offset) 70%, transparent);
+  border-color: oklch(from var(--text) l c h / 0.14);
+}
+
+[data-skin="moon-dub"] .card-badge--progress,
+[data-skin="moon-dub"] .card-badge--live {
+  color: var(--moon-amber-hi);
+  border-color: color-mix(in oklab, var(--moon-amber) 40%, transparent);
+  background: color-mix(in oklab, var(--moon-amber) 12%, var(--moon-surface-2));
+}
+
+[data-skin="moon-dub"] .card-badge--progress::before,
+[data-skin="moon-dub"] .card-badge--live::before {
+  background: var(--moon-amber);
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--moon-amber) 28%, transparent);
+}
+
+[data-skin="moon-dub"] .progress-line span,
+[data-skin="moon-dub"] .timeline-fill,
+[data-skin="moon-dub"] .timeline-thumb,
+[data-skin="moon-dub"] input[type="range"]::-webkit-slider-thumb {
+  background: var(--progress-accent);
+}
+
+[data-skin="moon-dub"] .timeline-fill {
+  background: linear-gradient(90deg, var(--moon-smoked), var(--moon-amber));
+}
+
+[data-skin="moon-dub"] .primary {
+  border-color: color-mix(in oklab, var(--moon-amber) 45%, transparent);
+  box-shadow: var(--shadow-sm), var(--glow-primary);
+}
+
+[data-skin="moon-dub"] .icon-button.btn-collapse-player {
+  color: var(--moon-teal);
+  border-color: color-mix(in oklab, var(--moon-teal) 48%, transparent);
+  background: color-mix(in oklab, var(--moon-teal) 16%, var(--moon-surface));
+}
+
+[data-skin="moon-dub"] .icon-button.btn-collapse-player:hover:not(:disabled) {
+  color: color-mix(in oklab, var(--moon-teal) 80%, var(--moon-paper));
+  box-shadow: 0 0 14px color-mix(in oklab, var(--moon-teal) 32%, transparent);
+}
+
+[data-skin="moon-dub"] .player-bar {
+  border-top-color: color-mix(in oklab, var(--moon-amber) 22%, transparent);
+}
+
+[data-skin="moon-dub"] .player-bar-bg {
+  background: color-mix(in oklab, var(--moon-surface) 78%, transparent);
+  backdrop-filter: blur(18px) saturate(1.08);
+  -webkit-backdrop-filter: blur(18px) saturate(1.08);
+}
+
+[data-skin="moon-dub"] .player-bar-bg__shade {
+  background: linear-gradient(
+    90deg,
+    color-mix(in oklab, var(--moon-teal) 10%, transparent),
+    transparent 40%,
+    color-mix(in oklab, var(--moon-amber) 12%, transparent) 100%
+  );
+}
+
+[data-skin="moon-dub"] .continue-banner-btn {
+  background:
+    radial-gradient(
+      ellipse 80% 70% at 100% 0%,
+      rgba(215, 154, 59, 0.22),
+      transparent 55%
+    ),
+    linear-gradient(135deg, var(--moon-surface-2), var(--moon-surface));
+  border-color: color-mix(in oklab, var(--moon-amber) 30%, transparent);
+  box-shadow: var(--shadow-md), 0 0 24px rgba(215, 154, 59, 0.12);
+}
+
+[data-skin="moon-dub"] .continue-banner-kicker {
+  color: color-mix(in oklab, var(--moon-amber) 75%, var(--text-muted));
+}
+
+[data-skin="moon-dub"] .now-playing-sheet {
+  background: color-mix(in oklab, var(--moon-surface) 90%, transparent);
+  border-color: color-mix(in oklab, var(--moon-amber) 18%, transparent);
+}
+
+[data-skin="moon-dub"] .cover-default-art {
+  background-image: none;
+  background: linear-gradient(180deg, #2b1d14 0%, #9c5b2e 38%, #d79a3b 100%);
+}
+
+[data-skin="moon-dub"] .hookah-smoke__plume {
+  background: radial-gradient(
+    ellipse 70% 50% at 50% 100%,
+    rgba(215, 154, 59, 0.28),
+    rgba(47, 95, 99, 0.2) 42%,
+    rgba(90, 107, 75, 0.12) 58%,
+    transparent 72%
+  );
+}
+
+[data-skin="moon-dub"] .hookah-smoke::before {
+  background: radial-gradient(
+    ellipse 85% 70% at 50% 100%,
+    rgba(215, 154, 59, 0.12),
+    transparent 68%
+  );
+}
+
+[data-skin="moon-dub"] .splash-screen {
+  background:
+    radial-gradient(
+      ellipse 50% 42% at 50% 44%,
+      rgba(215, 154, 59, 0.32),
+      transparent 68%
+    ),
+    linear-gradient(180deg, #1c1612, #12100e);
+}
+
+[data-skin="moon-dub"] .brand-logo {
+  box-shadow:
+    0 0 0 1px oklch(from var(--text) l c h / 0.08),
+    0 0 20px rgba(215, 154, 59, 0.35);
+}
+
+[data-skin="moon-dub"] .modal-card,
+[data-skin="moon-dub"] .empty {
+  background: var(--moon-surface-2);
+  border-color: oklch(from var(--text) l c h / 0.12);
+}
+
+[data-skin="moon-dub"] .scroll-top {
+  border-color: color-mix(in oklab, var(--moon-amber) 35%, transparent);
+  color: var(--moon-amber);
+  background: color-mix(in oklab, var(--moon-surface-2) 88%, transparent);
+}
+
+[data-skin="moon-dub"] .theme-switcher {
+  background: color-mix(in oklab, var(--moon-surface-2) 75%, transparent);
+  border-color: oklch(from var(--text) l c h / 0.12);
+}
+
+[data-skin="moon-dub"] .theme-switcher__btn.is-active {
+  background: color-mix(in oklab, var(--moon-amber) 22%, var(--moon-surface-2));
+  border-color: color-mix(in oklab, var(--moon-amber) 45%, transparent);
+  color: var(--moon-paper);
+  box-shadow: var(--glow-primary);
+}
+
+[data-skin="moon-dub"] .jaipur-clouds {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-skin="moon-dub"] .hero-author-link {
+    animation: none;
+  }
+}

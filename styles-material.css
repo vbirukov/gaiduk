@@ -285,7 +285,8 @@
 }
 
 [data-theme="dark"] .player-bar .icon-button.primary:not(:disabled),
-[data-theme="dark"] .player-controls .icon-button.primary:not(:disabled) {
+[data-theme="dark"] .player-controls .icon-button.primary:not(:disabled),
+[data-skin="moon-dub"] .player-bar .icon-button.primary:not(:disabled) {
   box-shadow:
     var(--btn-rough-inset, var(--btn-elev-1)),
     0 0 18px color-mix(in oklab, var(--primary) 42%, transparent);

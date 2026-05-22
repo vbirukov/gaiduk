@@ -139,6 +139,10 @@ html.has-player .player-bar {
   box-shadow: var(--shadow-sm), var(--glow-primary);
 }
 
+[data-skin="moon-dub"] .icon-button.primary:hover:not(:disabled) {
+  box-shadow: var(--shadow-sm), var(--glow-primary);
+}
+
 .menu-toggle.icon-button {
   width: 44px;
   height: 44px;
@@ -445,6 +449,26 @@ a.chip.hero-author-cta.btn-shimmer::after {
     transparent 38%,
     oklch(0.98 0.04 95 / 0.45) 50%,
     transparent 62%
+  );
+  background-size: 220% 100%;
+}
+
+[data-skin="moon-dub"] {
+  --btn-focus-ring: color-mix(in oklab, var(--moon-amber) 55%, transparent);
+}
+
+[data-skin="moon-dub"] button.icon-button.primary:hover:not(:disabled),
+[data-skin="moon-dub"] button.primary:hover:not(:disabled) {
+  box-shadow: var(--btn-elev-2), var(--glow-primary);
+}
+
+[data-skin="moon-dub"] a.chip.hero-author-cta.btn-shimmer::after {
+  background: linear-gradient(
+    105deg,
+    transparent 38%,
+    rgba(215, 154, 59, 0.45) 50%,
+    rgba(47, 95, 99, 0.28) 54%,
+    transparent 64%
   );
   background-size: 220% 100%;
 }

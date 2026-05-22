@@ -4,6 +4,7 @@ const THEME_MARKS: Record<AppSkin, string> = {
   rastaman: "☽",
   "rastaman-light": "☀",
   jaipur: "◆",
+  "moon-dub": "◎",
 };
 
 type Props = {

@@ -6,6 +6,7 @@ import "./styles-motion.css";
 import "./styles-material.css";
 import "./styles-rasta-light.css";
 import "./styles-jaipur.css";
+import "./styles-moon-dub.css";
 
 initButtonRipple();
 createRoot(document.getElementById("root")!).render(<App />);

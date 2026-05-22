@@ -2,6 +2,7 @@ import type { AppSkin, Appearance, ThemeMeta } from "./types";
 
 export type { AppSkin, Appearance, ThemeMeta } from "./types";
 export { jaipurTheme } from "./jaipur";
+export { moonDubTheme } from "./moon-dub";
 export { rastamanTheme } from "./rastaman";
 export { rastamanLightTheme } from "./rastaman-light";
 export { motion, motionMs } from "./motion";
@@ -28,12 +29,23 @@ export const THEME_OPTIONS: ThemeMeta[] = [
     shortLabel: "Джайпур",
     description: "Розовый город, jali, арки",
   },
+  {
+    id: "moon-dub",
+    label: "Лунная даб-библиотека",
+    shortLabel: "Луна",
+    description: "Ночной архив, янтарь, дым",
+  },
 ];
 
 export function readStoredSkin(): AppSkin {
   try {
     const v = localStorage.getItem(SKIN_STORAGE_KEY);
-    if (v === "jaipur" || v === "rastaman" || v === "rastaman-light") {
+    if (
+      v === "jaipur" ||
+      v === "rastaman" ||
+      v === "rastaman-light" ||
+      v === "moon-dub"
+    ) {
       return v;
     }
   } catch {
@@ -63,6 +75,7 @@ const THEME_COLOR: Record<AppSkin, string> = {
   rastaman: "#0c1115",
   "rastaman-light": "#fff5bf",
   jaipur: "#c5796d",
+  "moon-dub": "#12100e",
 };
 
 export function applyDocumentTheme(skin: AppSkin) {
