@@ -70,7 +70,32 @@ export function TrackList({
   isRastamanLight,
 }: Props) {
   const feedRef = useRef<HTMLDivElement>(null);
+  const shuffleOnRef = useRef(user.shuffle);
   const { collapsed, collapse, expand } = useHeroCollapsed();
+
+  const scrollFeedListTop = useCallback(() => {
+    const root = feedRef.current;
+    if (!root) return;
+    const instant = window.matchMedia("(prefers-reduced-motion: reduce)")
+      .matches;
+    const anchor =
+      root.querySelector<HTMLElement>(".feed-toolbar") ??
+      root.querySelector<HTMLElement>(".cards--virtual, .cards") ??
+      root;
+    anchor.scrollIntoView({
+      block: "start",
+      behavior: instant ? "auto" : "smooth",
+    });
+  }, []);
+
+  useEffect(() => {
+    const wasOn = shuffleOnRef.current;
+    shuffleOnRef.current = user.shuffle;
+    if (wasOn || !user.shuffle) return;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => scrollFeedListTop());
+    });
+  }, [user.shuffle, scrollFeedListTop]);
 
   useEffect(() => {
     const el = feedRef.current;
@@ -154,11 +179,10 @@ export function TrackList({
           type="button"
           className="ghost section-head-catalog-btn"
           onClick={onOpenNav}
-          aria-label={`Каталог: ${sectionTitle}. ${sectionSub}`}
+          aria-label={`Каталог: ${sectionTitle}`}
         >
           Каталог
         </button>
-        <p>{sectionSub}</p>
       </section>
       <div
         className={
@@ -181,9 +205,7 @@ export function TrackList({
             </div>
             <p className="feed-toolbar__sub mini-text">{sectionSub}</p>
           </div>
-        ) : (
-          <p className="feed-toolbar__sub mini-text">{sectionSub}</p>
-        )}
+        ) : null}
         <FeedLayoutSwitch
           value={user.feedLayout ?? "tiles"}
           onChange={onFeedLayoutChange}

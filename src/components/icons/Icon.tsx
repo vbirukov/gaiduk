@@ -25,6 +25,8 @@ export type IconName =
   | "chevron-up"
   | "chevron-down"
   | "list-plus"
+  | "layout-grid"
+  | "layout-rows"
   | "leaf"
   | "sun-portal"
   | "cloud";
@@ -153,6 +155,19 @@ const paths: Record<IconName, ReactNode> = {
     <>
       <path d="M11 6H3M11 12H3M11 18H3" />
       <path d="M16 12v6M13 15h6" />
+    </>
+  ),
+  "layout-grid": (
+    <>
+      <rect x="4" y="4" width="7" height="7" rx="1.5" />
+      <rect x="13" y="4" width="7" height="7" rx="1.5" />
+      <rect x="4" y="13" width="7" height="7" rx="1.5" />
+      <rect x="13" y="13" width="7" height="7" rx="1.5" />
+    </>
+  ),
+  "layout-rows": (
+    <>
+      <path d="M4 7h16M4 11h16M4 15h16M4 19h16" />
     </>
   ),
   leaf: (
