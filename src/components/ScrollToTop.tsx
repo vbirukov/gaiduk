@@ -1,10 +1,17 @@
 import { useEffect, useState } from "react";
+import { usePlayerBarHeight } from "../hooks/usePlayerBarHeight";
 import { Icon } from "./icons/Icon";
 
 const SHOW_AFTER_PX = 480;
 
-export function ScrollToTop() {
+type Props = {
+  hasPlayer?: boolean;
+};
+
+export function ScrollToTop({ hasPlayer = false }: Props) {
   const [visible, setVisible] = useState(false);
+
+  usePlayerBarHeight(hasPlayer);
 
   useEffect(() => {
     const onScroll = () => setVisible(window.scrollY > SHOW_AFTER_PX);

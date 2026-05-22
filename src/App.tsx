@@ -311,7 +311,7 @@ export function App() {
           />
         </main>
       </div>
-      <ScrollToTop />
+      <ScrollToTop hasPlayer={Boolean(player.currentTrackId)} />
       <PlayerBar
         currentTrack={player.currentTrack}
         currentTrackId={player.currentTrackId}

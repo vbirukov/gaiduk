@@ -443,6 +443,24 @@ a.chip.hero-author-cta.btn-shimmer::after {
   background-size: 220% 100%;
 }
 
+button.scroll-top {
+  overflow: visible;
+  isolation: auto;
+}
+
+button.scroll-top::before {
+  display: none;
+}
+
+button.scroll-top.icon-button.round:hover:not(:disabled),
+button.scroll-top.icon-button.round:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+button.scroll-top.scroll-top--visible {
+  transform: translateY(0);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .icon-button.round:hover:not(:disabled),
   .icon-button.round:active:not(:disabled) {
