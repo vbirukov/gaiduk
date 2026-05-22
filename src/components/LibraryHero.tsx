@@ -92,7 +92,7 @@ export function LibraryHero({
             </a>
             <div className="hero-author-ctas">
               <a
-                className="chip hero-author-cta"
+                className="chip hero-author-cta btn-shimmer"
                 href={AUTHOR_VK_URL}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -100,7 +100,7 @@ export function LibraryHero({
                 Концерты
               </a>
               <a
-                className="chip hero-author-cta"
+                className="chip hero-author-cta btn-shimmer"
                 href={AUTHOR_SUPPORT_URL}
                 target="_blank"
                 rel="noopener noreferrer"

@@ -152,9 +152,305 @@ html.has-player .player-bar {
   transform: translateY(3px) scale(0.98);
 }
 
+/* --- Material-style buttons: state layer, ripple, elevation, focus, shimmer --- */
+
+:root {
+  --btn-state-hover: 0.08;
+  --btn-state-focus: 0.12;
+  --btn-state-pressed: 0.12;
+  --btn-focus-ring: color-mix(in oklab, var(--primary) 52%, transparent);
+  --btn-elev-1: 0 1px 2px oklch(0 0 0 / 0.12), 0 4px 12px oklch(0 0 0 / 0.08);
+  --btn-elev-2: 0 2px 6px oklch(0 0 0 / 0.14), 0 8px 20px oklch(0 0 0 / 0.12);
+}
+
+:is(
+  button.nav,
+  button.ghost,
+  button.chip,
+  button.tag,
+  button.primary,
+  button.icon-button,
+  button.hero-toggle,
+  button.feed-toolbar__reset,
+  button.section-head-catalog-btn,
+  button.card-playlist-menu__trigger,
+  button.card-folder-btn,
+  button.card-playlist-menu__item,
+  a.chip.hero-author-cta
+) {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+:is(
+  button.nav,
+  button.ghost,
+  button.chip,
+  button.tag,
+  button.primary,
+  button.icon-button,
+  button.hero-toggle,
+  button.feed-toolbar__reset,
+  button.section-head-catalog-btn,
+  button.card-playlist-menu__trigger,
+  button.card-folder-btn,
+  button.card-playlist-menu__item,
+  a.chip.hero-author-cta
+)::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity var(--motion-fast) ease;
+  pointer-events: none;
+  z-index: 0;
+}
+
+button.primary::before,
+button.icon-button.primary::before {
+  background: var(--text-inverse);
+}
+
+:is(
+  button.nav,
+  button.ghost,
+  button.chip,
+  button.tag,
+  button.primary,
+  button.icon-button,
+  button.hero-toggle,
+  button.feed-toolbar__reset,
+  button.section-head-catalog-btn,
+  button.card-playlist-menu__trigger,
+  button.card-folder-btn,
+  button.card-playlist-menu__item,
+  a.chip.hero-author-cta
+):hover:not(:disabled)::before {
+  opacity: var(--btn-state-hover);
+}
+
+:is(
+  button.nav,
+  button.ghost,
+  button.chip,
+  button.tag,
+  button.primary,
+  button.icon-button,
+  button.hero-toggle,
+  button.feed-toolbar__reset,
+  button.section-head-catalog-btn,
+  button.card-playlist-menu__trigger,
+  button.card-folder-btn,
+  button.card-playlist-menu__item,
+  a.chip.hero-author-cta
+):focus-visible::before {
+  opacity: var(--btn-state-focus);
+}
+
+:is(
+  button.nav,
+  button.ghost,
+  button.chip,
+  button.tag,
+  button.primary,
+  button.icon-button,
+  button.hero-toggle,
+  button.feed-toolbar__reset,
+  button.section-head-catalog-btn,
+  button.card-playlist-menu__trigger,
+  button.card-folder-btn,
+  button.card-playlist-menu__item,
+  a.chip.hero-author-cta
+):active:not(:disabled)::before {
+  opacity: var(--btn-state-pressed);
+}
+
+.icon-button .icon,
+.icon-button .icon-swap,
+button.icon-button > svg,
+button.ghost.round > svg,
+button.ghost.round > .icon {
+  position: relative;
+  z-index: 1;
+}
+
+button.primary,
+button.icon-button.primary {
+  box-shadow: var(--btn-elev-1);
+  transition:
+    transform var(--motion-fast) var(--motion-ease-spring),
+    box-shadow var(--motion-fast) var(--motion-ease-spring),
+    background var(--motion-fast) ease,
+    border-color var(--motion-fast) ease,
+    color var(--motion-fast) ease;
+}
+
+button.primary:hover:not(:disabled),
+button.icon-button.primary:hover:not(:disabled) {
+  box-shadow: var(--btn-elev-2), var(--glow-primary);
+}
+
+button.primary:active:not(:disabled),
+button.icon-button.primary:active:not(:disabled) {
+  box-shadow: 0 1px 2px oklch(0 0 0 / 0.1);
+  transform: translateY(1px) scale(0.98);
+}
+
+.icon-button.ghost.active::before,
+.ghost.round.active::before {
+  opacity: var(--btn-state-focus);
+}
+
+.icon-button.ghost.active,
+.ghost.round.active {
+  transition:
+    transform var(--motion-fast) var(--motion-ease-spring),
+    box-shadow var(--motion-fast) var(--motion-ease-spring),
+    background var(--motion-fast) ease,
+    border-color var(--motion-fast) ease,
+    color var(--motion-fast) ease;
+}
+
+:is(
+  button.nav,
+  button.ghost,
+  button.chip,
+  button.tag,
+  button.primary,
+  button.icon-button,
+  button.hero-toggle,
+  button.feed-toolbar__reset,
+  button.section-head-catalog-btn,
+  button.card-playlist-menu__trigger,
+  button.card-folder-btn,
+  button.card-playlist-menu__item
+):focus-visible {
+  outline: 2px solid var(--btn-focus-ring);
+  outline-offset: 2px;
+}
+
+a.chip.hero-author-cta:focus-visible {
+  outline: 2px solid var(--btn-focus-ring);
+  outline-offset: 2px;
+}
+
+:is(
+  button.icon-button.primary,
+  button.icon-button.card-play,
+  .card-social > button.ghost.round,
+  button.feed-toolbar__reset
+)::after {
+  content: "";
+  position: absolute;
+  left: var(--ripple-x, 50%);
+  top: var(--ripple-y, 50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.22;
+  transform: translate(-50%, -50%) scale(0);
+  pointer-events: none;
+  z-index: 0;
+}
+
+button.icon-button.primary::after {
+  background: var(--text-inverse);
+  opacity: 0.28;
+}
+
+:is(
+  button.icon-button.primary,
+  button.icon-button.card-play,
+  .card-social > button.ghost.round,
+  button.feed-toolbar__reset
+).is-rippling::after {
+  animation: btn-ripple-spread 520ms ease-out forwards;
+}
+
+@keyframes btn-ripple-spread {
+  to {
+    transform: translate(-50%, -50%) scale(16);
+    opacity: 0;
+  }
+}
+
+a.chip.hero-author-cta.btn-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    105deg,
+    transparent 38%,
+    oklch(1 0 0 / 0.38) 50%,
+    transparent 62%
+  );
+  background-size: 220% 100%;
+  animation: btn-shimmer 2.8s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes btn-shimmer {
+  0% {
+    background-position: 120% center;
+  }
+  100% {
+    background-position: -120% center;
+  }
+}
+
+[data-skin="rastaman-light"] {
+  --btn-focus-ring: color-mix(in oklab, var(--rl-green) 65%, transparent);
+}
+
+[data-skin="rastaman-light"] button.icon-button.primary:hover:not(:disabled),
+[data-skin="rastaman-light"] button.primary:hover:not(:disabled) {
+  box-shadow: var(--btn-elev-2), 0 0 16px rgba(249, 199, 79, 0.55);
+}
+
+[data-skin="rastaman-light"] a.chip.hero-author-cta.btn-shimmer::after {
+  background: linear-gradient(
+    105deg,
+    transparent 35%,
+    oklch(0.98 0.12 95 / 0.55) 48%,
+    oklch(0.92 0.16 145 / 0.4) 52%,
+    transparent 65%
+  );
+  background-size: 220% 100%;
+}
+
+[data-skin="jaipur"] {
+  --btn-focus-ring: color-mix(in oklab, var(--jaipur-emerald) 55%, var(--jaipur-outline));
+}
+
+[data-skin="jaipur"] button.icon-button.primary:hover:not(:disabled),
+[data-skin="jaipur"] button.primary:hover:not(:disabled) {
+  box-shadow: var(--btn-elev-2), var(--glow-primary);
+}
+
+[data-skin="jaipur"] a.chip.hero-author-cta.btn-shimmer::after {
+  background: linear-gradient(
+    105deg,
+    transparent 38%,
+    oklch(0.98 0.04 95 / 0.45) 50%,
+    transparent 62%
+  );
+  background-size: 220% 100%;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .icon-button.round:hover:not(:disabled),
   .icon-button.round:active:not(:disabled) {
+    transform: none;
+  }
+
+  button.primary:active:not(:disabled),
+  button.icon-button.primary:active:not(:disabled) {
     transform: none;
   }
 
@@ -170,5 +466,20 @@ html.has-player .player-bar {
 
   .progress-line.is-live span {
     animation: none;
+  }
+
+  :is(
+    button.icon-button.primary,
+    button.icon-button.card-play,
+    .card-social > button.ghost.round,
+    button.feed-toolbar__reset
+  ).is-rippling::after {
+    animation: none;
+    opacity: 0;
+  }
+
+  a.chip.hero-author-cta.btn-shimmer::after {
+    animation: none;
+    opacity: 0;
   }
 }
