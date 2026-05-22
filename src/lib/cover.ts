@@ -8,6 +8,10 @@ export const LIBRARY_BG_LIGHT = "/images/library-background-soft.png";
 export const LIBRARY_BG_DARK = "/images/library-background-soft-dark.png";
 export const GLASS_NOISE_LIGHT = "/images/modal-glass-noise.png";
 export const GLASS_NOISE_DARK = "/images/modal-glass-noise-dark.png";
+export const HERO_AUTHOR_BG_DARK = "/images/hero.png";
+export const HERO_AUTHOR_BG_LIGHT = "/images/hero-palm-moon.png";
+export const CONTINUE_BG_LIGHT = "/images/continue-listening.png";
+export const CONTINUE_BG_DARK = "/images/continue-listening-dark.png";
 
 /** @deprecated используй defaultCoverPath() */
 export const DEFAULT_COVER_PATH = DEFAULT_COVER_LIGHT;

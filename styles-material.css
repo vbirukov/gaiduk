@@ -195,6 +195,7 @@
   content: "";
   position: absolute;
   inset: 0;
+  z-index: 2;
   border-radius: inherit;
   pointer-events: none;
   opacity: 0.35;
@@ -327,7 +328,6 @@
 }
 
 .player-bar-restore {
-  position: relative;
   isolation: isolate;
   overflow: hidden;
 }

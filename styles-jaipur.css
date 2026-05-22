@@ -47,16 +47,8 @@
 
 [data-skin="jaipur"] .sidebar {
   background-color: var(--jaipur-facade);
-  background-image:
-    linear-gradient(
-      180deg,
-      color-mix(in oklab, var(--jaipur-clay) 58%, transparent) 0%,
-      color-mix(in oklab, var(--jaipur-facade) 72%, transparent) 100%
-    ),
-    url("/images/library-background-soft.png");
-  background-size: cover;
-  background-position: center top;
-  background-repeat: no-repeat;
+  --sidebar-bg-scrim-top: color-mix(in oklab, var(--jaipur-clay) 14%, transparent);
+  --sidebar-bg-scrim-bottom: color-mix(in oklab, var(--jaipur-facade) 28%, transparent);
   border-right-color: var(--jaipur-outline);
   color: var(--text-inverse);
 }
@@ -114,12 +106,6 @@
 }
 
 [data-skin="jaipur"] .hero {
-  background: radial-gradient(
-    ellipse 90% 80% at 50% 100%,
-    var(--jaipur-blush),
-    var(--jaipur-facade) 55%,
-    color-mix(in oklab, var(--jaipur-clay) 80%, var(--jaipur-facade))
-  );
   border: 1.5px solid var(--jaipur-outline);
   border-radius: 24px;
   box-shadow: var(--shadow-md);
@@ -353,11 +339,6 @@
 }
 
 [data-skin="jaipur"] .continue-banner-btn {
-  background: radial-gradient(
-    ellipse 100% 80% at 50% 0%,
-    var(--jaipur-blush),
-    var(--jaipur-facade)
-  );
   border: 1.5px solid var(--jaipur-outline);
   color: var(--text-inverse);
 }

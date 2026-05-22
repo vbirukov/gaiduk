@@ -8,7 +8,6 @@ import { FeedLayoutSwitch } from "./FeedLayoutSwitch";
 import type { LivePlayback } from "../lib/trackProgress";
 import type { TrackCardProps } from "./TrackCard";
 import { ContinueBanner } from "./ContinueBanner";
-import { HookahSmoke } from "./HookahSmoke";
 import { ASSETS } from "../lib/assets";
 import { RastaVideoBg } from "./RastaVideoBg";
 import { RastaSunLight } from "./RastaSunLight";
@@ -168,11 +167,7 @@ export function TrackList({
         ) : null}
       </div>
       {isRastamanLight ? <RastaSunLight /> : null}
-      {isJaipur ? (
-        <JaipurClouds active={isPlaying} />
-      ) : (
-        <HookahSmoke active={isPlaying} dense={isRastamanLight} />
-      )}
+      {isJaipur ? <JaipurClouds active={isPlaying} /> : null}
       <div className="library-feed-content" ref={feedRef}>
       <LibraryHero
         catalog={catalog}

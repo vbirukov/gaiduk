@@ -50,16 +50,8 @@
 
 [data-skin="moon-dub"] .sidebar {
   background-color: var(--moon-surface);
-  background-image:
-    linear-gradient(
-      180deg,
-      color-mix(in oklab, var(--moon-surface) 72%, transparent) 0%,
-      color-mix(in oklab, var(--moon-soot) 86%, transparent) 100%
-    ),
-    url("/images/library-background-soft-dark.png");
-  background-size: cover;
-  background-position: center top;
-  background-repeat: no-repeat;
+  --sidebar-bg-scrim-top: color-mix(in oklab, var(--moon-surface) 16%, transparent);
+  --sidebar-bg-scrim-bottom: color-mix(in oklab, var(--moon-soot) 32%, transparent);
   border-right-color: oklch(from var(--text) l c h / 0.1);
 }
 
@@ -289,13 +281,6 @@
 }
 
 [data-skin="moon-dub"] .continue-banner-btn {
-  background:
-    radial-gradient(
-      ellipse 80% 70% at 100% 0%,
-      rgba(215, 154, 59, 0.22),
-      transparent 55%
-    ),
-    linear-gradient(135deg, var(--moon-surface-2), var(--moon-surface));
   border-color: color-mix(in oklab, var(--moon-amber) 30%, transparent);
   box-shadow: var(--shadow-md), 0 0 24px rgba(215, 154, 59, 0.12);
 }

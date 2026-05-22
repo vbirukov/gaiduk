@@ -51,16 +51,8 @@
 
 [data-skin="rastaman-light"] .sidebar {
   background-color: var(--rl-cloud);
-  background-image:
-    linear-gradient(
-      180deg,
-      color-mix(in oklab, var(--rl-cloud) 68%, transparent) 0%,
-      color-mix(in oklab, var(--rl-sunny) 76%, transparent) 100%
-    ),
-    url("/images/library-background-soft.png");
-  background-size: cover;
-  background-position: center top;
-  background-repeat: no-repeat;
+  --sidebar-bg-scrim-top: color-mix(in oklab, var(--rl-cloud) 12%, transparent);
+  --sidebar-bg-scrim-bottom: color-mix(in oklab, var(--rl-sunny) 26%, transparent);
   border-right: 2px solid var(--rl-ink);
   box-shadow: 4px 0 0 color-mix(in oklab, var(--rl-yellow) 35%, transparent);
 }
@@ -309,12 +301,6 @@
 [data-skin="rastaman-light"] .hero {
   position: relative;
   overflow: hidden;
-  background: radial-gradient(
-    circle at top left,
-    #ffe66d 0%,
-    var(--rl-sunset) 42%,
-    var(--rl-sunny) 100%
-  );
   border: 2px solid var(--rl-ink);
   box-shadow: var(--shadow-md);
 }
@@ -547,11 +533,6 @@
 }
 
 [data-skin="rastaman-light"] .continue-banner-btn {
-  background: linear-gradient(
-    135deg,
-    color-mix(in oklab, var(--rl-yellow) 55%, var(--rl-cloud)),
-    var(--rl-cloud)
-  );
   border: 2px solid var(--rl-ink);
   color: var(--text);
 }
