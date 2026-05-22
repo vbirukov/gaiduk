@@ -80,8 +80,7 @@ export function PlayerBar({
   }, [currentTrackId, barCollapsed]);
 
   const liked = currentTrackId ? isLiked(currentTrackId) : false;
-  const showCollapse =
-    Boolean(currentTrackId) && !isPlaying && !audioBusy && !barCollapsed;
+  const showCollapse = Boolean(currentTrackId) && !barCollapsed;
 
   const handleShare = () => {
     if (!currentTrack) return;

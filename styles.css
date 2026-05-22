@@ -2529,11 +2529,41 @@ input[type="range"]::-webkit-slider-thumb {
   .card-actions .tag {
     flex-basis: 100%;
   }
-  .card-social {
-    display: none;
-  }
-  .card {
+  .card:not(.card--row) {
+    padding-bottom: 4.5rem;
     cursor: pointer;
+  }
+  .card:not(.card--row) .card-top {
+    margin-bottom: 0;
+  }
+  .card:not(.card--row) .card-actions {
+    position: absolute;
+    right: var(--space-3);
+    bottom: var(--space-3);
+    z-index: 3;
+    margin: 0;
+    gap: var(--space-2);
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+    align-items: center;
+  }
+  .card:not(.card--row) .card-playlist-menu {
+    order: 1;
+  }
+  .card:not(.card--row) .card-social {
+    display: flex;
+    order: 2;
+    margin-left: 0;
+  }
+  .card:not(.card--row) .card-play {
+    order: 3;
+  }
+  .card:not(.card--row) > .card-badge--corner {
+    bottom: var(--space-3);
+    left: var(--space-3);
+  }
+  .card--row {
+    cursor: default;
   }
   .card-actions button,
   .card-actions .tag {
