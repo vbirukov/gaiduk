@@ -1,16 +1,16 @@
 import type { Track } from "../types/catalog";
+import {
+  resolveSiteOrigin,
+  shareDescriptionForTrack,
+  sharePageUrl,
+  shareTitleForTrack,
+} from "./shareOg";
 
 export function buildTrackShareUrl(
   trackId: string,
   positionSec?: number,
 ): string {
-  const url = new URL(window.location.href);
-  url.searchParams.set("track", trackId);
-  url.searchParams.delete("t");
-  if (positionSec != null && positionSec >= 3) {
-    url.searchParams.set("t", String(Math.floor(positionSec)));
-  }
-  return url.toString();
+  return sharePageUrl(trackId, resolveSiteOrigin(), positionSec);
 }
 
 export function parseTrackShareParams(): {
@@ -49,8 +49,8 @@ export async function shareTrack(opts: {
   positionSec?: number;
 }): Promise<ShareTrackResult> {
   const url = buildTrackShareUrl(opts.track.id, opts.positionSec);
-  const title = opts.track.title;
-  const text = `Сказка «${title}» — Дмитрий Гайдук`;
+  const title = shareTitleForTrack(opts.track);
+  const text = shareDescriptionForTrack(opts.track);
 
   if (typeof navigator.share === "function") {
     try {

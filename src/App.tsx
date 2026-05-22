@@ -19,6 +19,7 @@ import {
   ymGoal,
   ymHit,
 } from "./lib/metrika";
+import { applyOgMeta, applySiteOgDefaults } from "./lib/shareOg";
 import {
   clearTrackShareParams,
   parseTrackShareParams,
@@ -118,6 +119,15 @@ export function App() {
   }, [navOpen]);
 
   useEffect(() => {
+    const track = player.currentTrack;
+    if (track) {
+      applyOgMeta({ track });
+      return;
+    }
+    applySiteOgDefaults();
+  }, [player.currentTrack]);
+
+  useEffect(() => {
     if (catalogLoading || shareLinkHandled.current) return;
     const { trackId, startAtSec } = parseTrackShareParams();
     if (!trackId) return;
@@ -128,6 +138,7 @@ export function App() {
       pushToast("Сказка по ссылке не найдена в каталоге");
       return;
     }
+    applyOgMeta({ track, startAtSec });
     void player.playTrack(track, { startAtSec });
   }, [catalogLoading, trackMap, player.playTrack, pushToast]);
 

@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && node scripts/generate-share-og.mjs",
+    "share-og": "node scripts/generate-share-og.mjs",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
