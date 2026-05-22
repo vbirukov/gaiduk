@@ -1,17 +1,28 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type Props = {
-  src: string;
+  src: string | readonly string[];
   variant?: "light" | "dark";
 };
 
+function pickSessionSource(sources: readonly string[]): string {
+  if (sources.length <= 1) return sources[0] ?? "";
+  const i = Math.floor(Math.random() * sources.length);
+  return sources[i]!;
+}
+
 export function RastaVideoBg({ src, variant = "dark" }: Props) {
+  const sources = useMemo(
+    () => (typeof src === "string" ? [src] : [...src]),
+    [src],
+  );
+  const sessionSrc = useMemo(() => pickSessionSource(sources), [sources]);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [active, setActive] = useState(false);
+  const [motionOk, setMotionOk] = useState(false);
 
   useEffect(() => {
     const reduceMq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const sync = () => setActive(!reduceMq.matches);
+    const sync = () => setMotionOk(!reduceMq.matches);
     sync();
     reduceMq.addEventListener("change", sync);
     return () => reduceMq.removeEventListener("change", sync);
@@ -19,29 +30,27 @@ export function RastaVideoBg({ src, variant = "dark" }: Props) {
 
   useEffect(() => {
     const el = videoRef.current;
-    if (!el) return;
-    if (!active) {
-      el.pause();
-      return;
-    }
-    el.play().catch(() => {});
-  }, [active, src]);
+    if (!el || !motionOk) return;
+    void el.play().catch(() => {});
+  }, [motionOk, sessionSrc]);
 
-  if (!active) return null;
+  if (!motionOk || !sessionSrc) return null;
 
   return (
     <div className={`rasta-video-bg rasta-video-bg--${variant}`}>
-      <video
-        ref={videoRef}
-        className="rasta-video-bg__media"
-        src={src}
-        muted
-        loop
-        playsInline
-        autoPlay
-        preload="metadata"
-        aria-hidden
-      />
+      <div className="rasta-video-bg__layer is-active">
+        <video
+          ref={videoRef}
+          className="rasta-video-bg__media"
+          src={sessionSrc}
+          muted
+          loop
+          playsInline
+          autoPlay
+          preload="auto"
+          aria-hidden
+        />
+      </div>
       <div className="rasta-video-bg__veil" aria-hidden />
     </div>
   );

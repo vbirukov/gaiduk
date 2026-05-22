@@ -161,7 +161,7 @@ export function TrackList({
             src={
               isRastamanLight
                 ? ASSETS.rastaBikeVideo
-                : ASSETS.rastaDarkBgVideo
+                : ASSETS.rastaDarkBgVideos
             }
             variant={isRastamanLight ? "light" : "dark"}
           />
