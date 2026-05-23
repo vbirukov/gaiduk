@@ -30,7 +30,7 @@ import { TrackCardSkeleton } from "./TrackCardSkeleton";
 const VIRTUALIZE_MIN = 48;
 const TILE_ROW_ESTIMATE_PX = 340;
 const LIST_ROW_ESTIMATE_PX = 76;
-const HEADER_ROW_ESTIMATE_PX = 52;
+const HEADER_ROW_ESTIMATE_PX = 64;
 const OVERSCAN_ROWS = 8;
 
 type Props = {
@@ -46,6 +46,7 @@ type Props = {
   onToggleLike: TrackCardProps["onToggleLike"];
   onAddToPlaylist: TrackCardProps["onAddToPlaylist"];
   onSelectFolder?: TrackCardProps["onSelectFolder"];
+  onShareFolder?: (folder: string) => void;
   scrollToTrackId?: string | null;
   onScrolledToTrack?: () => void;
   showFolderHeaders?: boolean;
@@ -127,6 +128,7 @@ export function VirtualTrackGrid({
   onToggleLike,
   onAddToPlaylist,
   onSelectFolder,
+  onShareFolder,
   scrollToTrackId = null,
   onScrolledToTrack,
   showFolderHeaders = false,
@@ -300,7 +302,14 @@ export function VirtualTrackGrid({
               key={group.folder}
               className="track-feed__section"
             >
-              <CatalogFolderHeading folder={group.folder} />
+              <CatalogFolderHeading
+                folder={group.folder}
+                onShare={
+                  onShareFolder
+                    ? () => onShareFolder(group.folder)
+                    : undefined
+                }
+              />
               <div
                 className={
                   isRows ? "cards cards--section cards--rows" : "cards cards--section"
@@ -350,7 +359,14 @@ export function VirtualTrackGrid({
               }}
             >
               {layoutRow.kind === "header" ? (
-                <CatalogFolderHeading folder={layoutRow.folder} />
+                <CatalogFolderHeading
+                  folder={layoutRow.folder}
+                  onShare={
+                    onShareFolder
+                      ? () => onShareFolder(layoutRow.folder)
+                      : undefined
+                  }
+                />
               ) : (
                 renderRow(layoutRow.tracks, "cards-row")
               )}

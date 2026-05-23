@@ -1,0 +1,15 @@
+Install PWA — installPrompt в App есть; дожать iOS hint + «установить» после N прослушиваний, не на первом визите.
+
+Embed / виджет — iframe или oEmbed для VK-страницы автора: один трек + play без ухода с соцсети.
+
+Continue как first-class — не только баннер: при открытии — smart resume (последний трек + позиция), A/B «продолжить vs каталог».
+
+Синхронизация состояния — likes/progress/playlists только localStorage. Экспорт JSON / опциональный аккаунт (хотя бы magic link) — иначе смена телефона = потеря истории.
+
+Офлайн / «скачать серию» — diskDownload + audioCache уже в коде, UI почти нет. Для сказок в дороге/без сети — killer feature. SW cache policy под это же.
+
+Sleep timer — 15/30/60 мин, fade volume — типичный запрос для вечернего прослушивания (тема moon-dub буквально под это).
+
+Подсказка hotkeys — usePlayerKeyboard уже есть; один ? или tooltip в player bar снизит support-вопросы.
+
+Фильтры ленты — «не слушал» / «в процессе» / «дослушал» поверх progress — логичное продолжение «Продолжить» и resume-плейлиста.

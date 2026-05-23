@@ -108,28 +108,32 @@ export function Sidebar({
           <h2>Коллекция</h2>
           <div className="side-list">
             {catalog.folders.map((folder) => (
-              <div key={folder} className="nav-item nav-item--folder">
+              <div
+                key={folder}
+                className={
+                  selectedFolder === folder
+                    ? "nav-item nav-item--folder is-active"
+                    : "nav-item nav-item--folder"
+                }
+              >
                 <button
                   type="button"
-                  className={selectedFolder === folder ? "nav active" : "nav"}
+                  className="nav-folder-card__open"
                   onClick={() => onSelectFolder(folder)}
                 >
                   <span className="nav-item__label">{folder}</span>
                   <span className="nav-sublabel">
-                    {folderTrackCounts.get(folder) ?? 0}
+                    {folderTrackCounts.get(folder) ?? 0} сказок
                   </span>
                 </button>
                 <button
                   type="button"
-                  className="nav-item__share"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onShareFolder(folder);
-                  }}
+                  className="nav-item__share nav-item__share--stacked"
+                  onClick={() => onShareFolder(folder)}
                   aria-label={`Поделиться альбомом «${folder}»`}
-                  title="Поделиться альбомом"
                 >
-                  <Icon name="share" size={15} />
+                  <Icon name="share" size={15} aria-hidden />
+                  <span>Поделиться</span>
                 </button>
               </div>
             ))}

@@ -373,11 +373,7 @@ export function App() {
             }
             onSelectFolder={handleSelectFolder}
             onClearFolder={handleClearFolder}
-            onShareFolder={
-              selectedFolder
-                ? () => handleShareFolder(selectedFolder)
-                : undefined
-            }
+            onShareFolder={handleShareFolder}
             nextTrackId={nextTrackId(player.currentTrackId)}
           />
         </main>

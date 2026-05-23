@@ -39,7 +39,7 @@ type Props = {
   onClearFolder?: () => void;
   onOpenNav: () => void;
   onFeedLayoutChange: (layout: FeedLayout) => void;
-  onShareFolder?: () => void;
+  onShareFolder?: (folder: string) => void;
   nextTrackId: string | null;
   isJaipur: boolean;
   isRastamanLight: boolean;
@@ -224,7 +224,7 @@ export function TrackList({
             <button
               type="button"
               className="ghost feed-toolbar__share"
-              onClick={onShareFolder}
+              onClick={() => onShareFolder(selectedFolder)}
             >
               <Icon name="share" size={18} aria-hidden />
               <span>Поделиться альбомом</span>
@@ -256,6 +256,7 @@ export function TrackList({
           feedLayout={user.feedLayout ?? "tiles"}
           nextTrackId={nextTrackId}
           onSelectFolder={onSelectFolder}
+          onShareFolder={onShareFolder}
         />
       ) : tracks.length === 0 ? (
         <section className="cards">
@@ -284,6 +285,7 @@ export function TrackList({
           feedLayout={user.feedLayout ?? "tiles"}
           nextTrackId={nextTrackId}
           onSelectFolder={onSelectFolder}
+          onShareFolder={onShareFolder}
         />
       )}
       </div>
