@@ -17,14 +17,16 @@ import { fallbackCatalog } from "../data/fallbackCatalog";
 import { catalogWithServerMediaUrls } from "../lib/serverMediaCatalog";
 import { useServerMedia } from "../lib/mediaUrl";
 import { runCatalogWorker } from "../lib/catalogWorker";
+import { listenStatus, matchesFeedListenFilter } from "../lib/listenStatus";
 import { pickAdjacentId, shuffleIds, shuffleIdsLeading } from "../lib/queue";
 import type { Catalog, Track } from "../types/catalog";
-import type { LibraryView, UserState } from "../types/user";
+import type { FeedListenFilter, LibraryView, UserState } from "../types/user";
 
 type Filters = {
   view: LibraryView;
   selectedFolder: string | null;
   selectedPlaylist: string | null;
+  feedListenFilter: FeedListenFilter;
   /** Ref на текущий трек — при включении shuffle ставится первым в очереди */
   leadTrackIdRef?: RefObject<string | null>;
 };
@@ -138,19 +140,27 @@ export function useCatalog(user: UserState, filters: Filters) {
       list = list.filter((t) => user.likes[t.id]);
     }
     if (filters.view === "resume") {
-      list = list.filter((t) => {
-        const p = progressOf(t.id);
-        return p.position > 15 && !p.completed;
-      });
+      list = list.filter(
+        (t) => listenStatus(progressOf(t.id)) === "in-progress",
+      );
     }
     if (filters.view === "playlist" && filters.selectedPlaylist) {
       const pl = user.playlists.find((p) => p.id === filters.selectedPlaylist);
       const ids = new Set(pl?.trackIds ?? []);
       list = list.filter((t) => ids.has(t.id));
     }
+    if (
+      filters.feedListenFilter !== "all" &&
+      filters.view !== "resume"
+    ) {
+      list = list.filter((t) =>
+        matchesFeedListenFilter(progressOf(t.id), filters.feedListenFilter),
+      );
+    }
     return list;
   }, [
     catalog.tracks,
+    filters.feedListenFilter,
     filters.selectedFolder,
     filters.selectedPlaylist,
     filters.view,
@@ -229,10 +239,9 @@ export function useCatalog(user: UserState, filters: Filters) {
 
   const resumeCount = useMemo(
     () =>
-      catalog.tracks.filter((t) => {
-        const p = progressOf(t.id);
-        return p.position > 15 && !p.completed;
-      }).length,
+      catalog.tracks.filter(
+        (t) => listenStatus(progressOf(t.id)) === "in-progress",
+      ).length,
     [catalog.tracks, progressOf],
   );
 
@@ -241,14 +250,12 @@ export function useCatalog(user: UserState, filters: Filters) {
     for (const id of resume?.trackIds ?? []) {
       const track = trackMap.get(id);
       if (!track) continue;
-      const p = progressOf(id);
-      if (p.position > 15 && !p.completed) return track;
+      if (listenStatus(progressOf(id)) === "in-progress") return track;
     }
     return (
-      catalog.tracks.find((t) => {
-        const p = progressOf(t.id);
-        return p.position > 15 && !p.completed;
-      }) ?? null
+      catalog.tracks.find(
+        (t) => listenStatus(progressOf(t.id)) === "in-progress",
+      ) ?? null
     );
   }, [catalog.tracks, progressOf, trackMap, user.playlists]);
 

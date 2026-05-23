@@ -80,6 +80,7 @@ export function App() {
     view,
     selectedFolder,
     selectedPlaylist,
+    feedListenFilter: user.feedListenFilter,
     leadTrackIdRef,
   });
 
@@ -287,6 +288,9 @@ export function App() {
             setView(id);
             setSelectedFolder(null);
             setSelectedPlaylist(null);
+            if (id === "resume") {
+              setUser((prev) => ({ ...prev, feedListenFilter: "in-progress" }));
+            }
             closeNav();
           }}
           onSelectFolder={handleSelectFolder}
@@ -370,6 +374,9 @@ export function App() {
             onOpenNav={() => setNavOpen(true)}
             onFeedLayoutChange={(feedLayout) =>
               setUser((prev) => ({ ...prev, feedLayout }))
+            }
+            onFeedListenFilterChange={(feedListenFilter) =>
+              setUser((prev) => ({ ...prev, feedListenFilter }))
             }
             onSelectFolder={handleSelectFolder}
             onClearFolder={handleClearFolder}

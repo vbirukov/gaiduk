@@ -1,10 +1,12 @@
-import type { LibraryView } from "../types/user";
+import { feedListenFilterLabel } from "./listenStatus";
+import type { FeedListenFilter, LibraryView } from "../types/user";
 
 type Args = {
   view: LibraryView;
   selectedFolder: string | null;
   selectedPlaylist: string | null;
   playlistName: string;
+  feedListenFilter: FeedListenFilter;
 };
 
 export function emptyStateCopy({
@@ -12,7 +14,19 @@ export function emptyStateCopy({
   selectedFolder,
   selectedPlaylist,
   playlistName,
+  feedListenFilter,
 }: Args): { title: string; hint: string } {
+  if (
+    feedListenFilter !== "all" &&
+    view !== "resume" &&
+    feedListenFilter in feedListenFilterLabel
+  ) {
+    const label = feedListenFilterLabel[feedListenFilter as keyof typeof feedListenFilterLabel];
+    return {
+      title: `Нет сказок: «${label}»`,
+      hint: "Смените фильтр или откройте другой раздел каталога.",
+    };
+  }
   if (selectedFolder) {
     return {
       title: "В этой серии пусто",
@@ -22,7 +36,7 @@ export function emptyStateCopy({
   if (view === "resume") {
     return {
       title: "Нечего продолжать",
-      hint: "Здесь появятся сказки, которые вы слушали больше 15 секунд и не дослушали до конца.",
+      hint: "Здесь сказки, которые вы начали слушать (от минуты) и ещё не дослушали до конца.",
     };
   }
   if (view === "liked") {

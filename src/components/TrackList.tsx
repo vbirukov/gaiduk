@@ -3,8 +3,15 @@ import { SPLASH_SEEN_KEY } from "../config";
 import { useHeroCollapsed } from "../hooks/useHeroCollapsed";
 import { emptyStateCopy } from "../lib/emptyState";
 import type { Catalog, Track } from "../types/catalog";
-import type { FeedLayout, LibraryView, Progress, UserState } from "../types/user";
+import type {
+  FeedLayout,
+  FeedListenFilter,
+  LibraryView,
+  Progress,
+  UserState,
+} from "../types/user";
 import { FeedLayoutSwitch } from "./FeedLayoutSwitch";
+import { FeedListenFilter } from "./FeedListenFilter";
 import type { LivePlayback } from "../lib/trackProgress";
 import type { TrackCardProps } from "./TrackCard";
 import { ContinueBanner } from "./ContinueBanner";
@@ -39,6 +46,7 @@ type Props = {
   onClearFolder?: () => void;
   onOpenNav: () => void;
   onFeedLayoutChange: (layout: FeedLayout) => void;
+  onFeedListenFilterChange: (filter: FeedListenFilter) => void;
   onShareFolder?: (folder: string) => void;
   nextTrackId: string | null;
   isJaipur: boolean;
@@ -68,6 +76,7 @@ export function TrackList({
   onClearFolder,
   onOpenNav,
   onFeedLayoutChange,
+  onFeedListenFilterChange,
   onShareFolder,
   nextTrackId,
   isJaipur,
@@ -147,7 +156,10 @@ export function TrackList({
     selectedFolder,
     selectedPlaylist,
     playlistName,
+    feedListenFilter: user.feedListenFilter,
   });
+
+  const showListenFilter = view !== "resume";
 
   const showContinueBanner =
     Boolean(resumeTrack) && view === "all" && !selectedFolder;
@@ -197,6 +209,12 @@ export function TrackList({
           </button>
         </div>
       </section>
+      {showListenFilter ? (
+        <FeedListenFilter
+          value={user.feedListenFilter}
+          onChange={onFeedListenFilterChange}
+        />
+      ) : null}
       <div
         className={
           selectedFolder ? "feed-toolbar feed-toolbar--folder" : "feed-toolbar"

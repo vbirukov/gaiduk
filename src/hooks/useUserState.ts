@@ -15,6 +15,7 @@ const defaultUserState = (): UserState => ({
   repeatMode: "off",
   wakeLock: true,
   feedLayout: "tiles",
+  feedListenFilter: "all",
 });
 
 const loadUserState = (): UserState => {
@@ -29,6 +30,13 @@ const loadUserState = (): UserState => {
     return {
       ...merged,
       feedLayout: merged.feedLayout === "rows" ? "rows" : "tiles",
+      feedListenFilter:
+        merged.feedListenFilter === "unstarted" ||
+        merged.feedListenFilter === "in-progress" ||
+        merged.feedListenFilter === "completed" ||
+        merged.feedListenFilter === "all"
+          ? merged.feedListenFilter
+          : "all",
     };
   } catch {
     return defaultUserState();

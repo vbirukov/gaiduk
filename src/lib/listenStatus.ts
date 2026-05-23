@@ -1,4 +1,4 @@
-import type { Progress } from "../types/user";
+import type { FeedListenFilter, Progress } from "../types/user";
 
 export type ListenStatus = "unstarted" | "in-progress" | "completed";
 
@@ -16,3 +16,17 @@ export const listenStatusLabel: Record<ListenStatus, string> = {
   "in-progress": "В процессе",
   completed: "Прослушано",
 };
+
+export const feedListenFilterLabel: Record<ListenStatus, string> = {
+  unstarted: "Не слушал",
+  "in-progress": "В процессе",
+  completed: "Дослушал",
+};
+
+export function matchesFeedListenFilter(
+  progress: Progress,
+  filter: FeedListenFilter,
+): boolean {
+  if (filter === "all") return true;
+  return listenStatus(progress) === filter;
+}

@@ -16,6 +16,9 @@ export type Progress = {
 
 export type FeedLayout = "tiles" | "rows";
 
+/** Фильтр ленты по прогрессу прослушивания (поверх раздела / папки). */
+export type FeedListenFilter = "all" | "unstarted" | "in-progress" | "completed";
+
 export type UserState = {
   likes: Record<string, true>;
   playlists: Playlist[];
@@ -27,6 +30,7 @@ export type UserState = {
   repeatMode: RepeatMode;
   wakeLock: boolean;
   feedLayout: FeedLayout;
+  feedListenFilter: FeedListenFilter;
 };
 
 export type LibraryView = "all" | "resume" | "liked" | "playlist";
