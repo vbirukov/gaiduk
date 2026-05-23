@@ -435,12 +435,60 @@ html.has-player.player-bar-collapsed {
   display: grid;
   gap: var(--space-2);
 }
-.nav-item--playlist {
+.nav-item--playlist,
+.nav-item--folder {
   position: relative;
 }
-.nav-item--playlist > .nav {
+.nav-item--playlist > .nav,
+.nav-item--folder > .nav {
   width: 100%;
-  padding-right: 2rem;
+  padding-right: 2.5rem;
+}
+.nav-item--folder > .nav {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  text-align: left;
+}
+.nav-item__label {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.nav-item__share {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  color: var(--text-muted);
+  background: color-mix(in oklab, var(--surface) 92%, var(--bg));
+  box-shadow: 0 0 0 1px oklch(from var(--text) l c h / 0.12);
+  transform: translateY(-50%);
+  opacity: 0.82;
+  transition:
+    opacity 0.15s ease,
+    color 0.15s ease,
+    background 0.15s ease;
+}
+.nav-item--folder:hover .nav-item__share,
+.nav-item--folder:focus-within .nav-item__share {
+  opacity: 1;
+}
+.nav-item__share:hover {
+  color: var(--primary);
+  background: color-mix(in oklab, var(--primary) 12%, var(--surface));
+}
+.nav-item__share:focus-visible {
+  opacity: 1;
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 }
 .nav-item__delete {
   position: absolute;

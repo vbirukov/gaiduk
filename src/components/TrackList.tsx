@@ -39,8 +39,7 @@ type Props = {
   onClearFolder?: () => void;
   onOpenNav: () => void;
   onFeedLayoutChange: (layout: FeedLayout) => void;
-  onShareCatalog: () => void;
-  onShareFolder: () => void;
+  onShareFolder?: () => void;
   nextTrackId: string | null;
   isJaipur: boolean;
   isRastamanLight: boolean;
@@ -69,7 +68,6 @@ export function TrackList({
   onClearFolder,
   onOpenNav,
   onFeedLayoutChange,
-  onShareCatalog,
   onShareFolder,
   nextTrackId,
   isJaipur,
@@ -197,16 +195,6 @@ export function TrackList({
           >
             Каталог
           </button>
-          {!selectedFolder ? (
-            <button
-              type="button"
-              className="ghost section-head-catalog-share"
-              onClick={onShareCatalog}
-            >
-              <Icon name="share" size={18} aria-hidden />
-              <span>Поделиться</span>
-            </button>
-          ) : null}
         </div>
       </section>
       <div
@@ -232,14 +220,16 @@ export function TrackList({
           </div>
         ) : null}
         <div className="feed-toolbar__actions">
-          <button
-            type="button"
-            className="ghost feed-toolbar__share"
-            onClick={selectedFolder ? onShareFolder : onShareCatalog}
-          >
-            <Icon name="share" size={18} aria-hidden />
-            <span>{selectedFolder ? "Поделиться альбомом" : "Поделиться каталогом"}</span>
-          </button>
+          {selectedFolder && onShareFolder ? (
+            <button
+              type="button"
+              className="ghost feed-toolbar__share"
+              onClick={onShareFolder}
+            >
+              <Icon name="share" size={18} aria-hidden />
+              <span>Поделиться альбомом</span>
+            </button>
+          ) : null}
           <FeedLayoutSwitch
             value={user.feedLayout ?? "tiles"}
             onChange={onFeedLayoutChange}

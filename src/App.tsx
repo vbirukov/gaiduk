@@ -25,7 +25,7 @@ import {
   applyOgMeta,
   applySiteOgDefaults,
 } from "./lib/shareOg";
-import { shareCatalog, shareFolder } from "./lib/shareCatalog";
+import { shareFolder } from "./lib/shareCatalog";
 import { clearAppEntryParams, parseAppEntryParams } from "./lib/shareNavigation";
 import { preloadThemeImages } from "./lib/preloadThemeAssets";
 import { registerAppSW } from "./pwa/register";
@@ -224,26 +224,16 @@ export function App() {
     setSelectedFolder(null);
   }, []);
 
-  const handleShareCatalog = useCallback(() => {
-    void shareCatalog({
-      trackCount: catalog.tracks.length,
-      albumCount: catalog.folders.length,
-    }).then((r) => {
-      if (r === "copied") pushToast("Ссылка на каталог скопирована");
-      if (r === "shared") ymGoal("catalog_share");
-    });
-  }, [catalog.folders.length, catalog.tracks.length, pushToast]);
-
-  const handleShareFolder = useCallback(() => {
-    if (!selectedFolder) return;
-    const trackCount = catalog.tracks.filter(
-      (t) => t.folder === selectedFolder,
-    ).length;
-    void shareFolder({ folder: selectedFolder, trackCount }).then((r) => {
-      if (r === "copied") pushToast("Ссылка на альбом скопирована");
-      if (r === "shared") ymGoal("album_share", { folder: selectedFolder });
-    });
-  }, [catalog.tracks, pushToast, selectedFolder]);
+  const handleShareFolder = useCallback(
+    (folder: string) => {
+      const trackCount = catalog.tracks.filter((t) => t.folder === folder).length;
+      void shareFolder({ folder, trackCount }).then((r) => {
+        if (r === "copied") pushToast("Ссылка на альбом скопирована");
+        if (r === "shared") ymGoal("album_share", { folder });
+      });
+    },
+    [catalog.tracks, pushToast],
+  );
 
   const handlePlayTrack = useCallback(
     (t: Track) => {
@@ -314,7 +304,6 @@ export function App() {
               setSelectedPlaylist(null);
             }
           }}
-          onShareCatalog={handleShareCatalog}
           onShareFolder={handleShareFolder}
         />
         <main className="main">
@@ -384,8 +373,11 @@ export function App() {
             }
             onSelectFolder={handleSelectFolder}
             onClearFolder={handleClearFolder}
-            onShareCatalog={handleShareCatalog}
-            onShareFolder={handleShareFolder}
+            onShareFolder={
+              selectedFolder
+                ? () => handleShareFolder(selectedFolder)
+                : undefined
+            }
             nextTrackId={nextTrackId(player.currentTrackId)}
           />
         </main>

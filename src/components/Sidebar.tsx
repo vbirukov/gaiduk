@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import type { AppSkin } from "../themes";
 import { BrandLogo } from "./BrandLogo";
 import { Icon } from "./icons/Icon";
@@ -22,8 +23,7 @@ type Props = {
   onSelectPlaylist: (playlistId: string) => void;
   onOpenPlaylistModal: () => void;
   onDeletePlaylist: (playlistId: string) => void;
-  onShareCatalog: () => void;
-  onShareFolder: () => void;
+  onShareFolder: (folder: string) => void;
 };
 
 export function Sidebar({
@@ -42,7 +42,6 @@ export function Sidebar({
   onSelectPlaylist,
   onOpenPlaylistModal,
   onDeletePlaylist,
-  onShareCatalog,
   onShareFolder,
 }: Props) {
   const likeCount = Object.keys(user.likes).length;
@@ -50,6 +49,14 @@ export function Sidebar({
     resumeCount > 0 ? (["resume", `Продолжить · ${resumeCount}`] as const) : null,
     likeCount > 0 ? (["liked", `Лайки · ${likeCount}`] as const) : null,
   ].filter((item): item is readonly ["resume" | "liked", string] => item != null);
+
+  const folderTrackCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const track of catalog.tracks) {
+      counts.set(track.folder, (counts.get(track.folder) ?? 0) + 1);
+    }
+    return counts;
+  }, [catalog.tracks]);
 
   return (
     <>
@@ -96,36 +103,35 @@ export function Sidebar({
               {label}
             </button>
           ))}
-          <button
-            type="button"
-            className="nav nav-share"
-            onClick={onShareCatalog}
-          >
-            <Icon name="share" size={18} aria-hidden />
-            <span>Поделиться каталогом</span>
-          </button>
         </section>
         <section className="side-section">
           <h2>Коллекция</h2>
-          {selectedFolder ? (
-            <button
-              type="button"
-              className="nav nav-share nav-share--folder"
-              onClick={onShareFolder}
-            >
-              <Icon name="share" size={18} aria-hidden />
-              <span>Поделиться альбомом</span>
-            </button>
-          ) : null}
           <div className="side-list">
             {catalog.folders.map((folder) => (
-              <button
-                key={folder}
-                className={selectedFolder === folder ? "nav active" : "nav"}
-                onClick={() => onSelectFolder(folder)}
-              >
-                {folder}
-              </button>
+              <div key={folder} className="nav-item nav-item--folder">
+                <button
+                  type="button"
+                  className={selectedFolder === folder ? "nav active" : "nav"}
+                  onClick={() => onSelectFolder(folder)}
+                >
+                  <span className="nav-item__label">{folder}</span>
+                  <span className="nav-sublabel">
+                    {folderTrackCounts.get(folder) ?? 0}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  className="nav-item__share"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onShareFolder(folder);
+                  }}
+                  aria-label={`Поделиться альбомом «${folder}»`}
+                  title="Поделиться альбомом"
+                >
+                  <Icon name="share" size={15} />
+                </button>
+              </div>
             ))}
           </div>
         </section>
