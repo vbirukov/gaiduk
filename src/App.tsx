@@ -19,11 +19,14 @@ import {
   ymGoal,
   ymHit,
 } from "./lib/metrika";
-import { applyOgMeta, applySiteOgDefaults } from "./lib/shareOg";
 import {
-  clearTrackShareParams,
-  parseTrackShareParams,
-} from "./lib/shareTrack";
+  applyCatalogOgMeta,
+  applyFolderOgMeta,
+  applyOgMeta,
+  applySiteOgDefaults,
+} from "./lib/shareOg";
+import { shareCatalog, shareFolder } from "./lib/shareCatalog";
+import { clearAppEntryParams, parseAppEntryParams } from "./lib/shareNavigation";
 import { preloadThemeImages } from "./lib/preloadThemeAssets";
 import { registerAppSW } from "./pwa/register";
 import type { LibraryView } from "./types/user";
@@ -80,7 +83,7 @@ export function App() {
     leadTrackIdRef,
   });
 
-  const shareLinkHandled = useRef(false);
+  const entryLinkHandled = useRef(false);
 
   const player = useAudioPlayer({
     catalog,
@@ -134,19 +137,53 @@ export function App() {
   }, [player.currentTrack]);
 
   useEffect(() => {
-    if (catalogLoading || shareLinkHandled.current) return;
-    const { trackId, startAtSec } = parseTrackShareParams();
-    if (!trackId) return;
-    shareLinkHandled.current = true;
-    const track = trackMap.get(trackId);
-    clearTrackShareParams();
-    if (!track) {
-      pushToast("Сказка по ссылке не найдена в каталоге");
+    if (catalogLoading || entryLinkHandled.current) return;
+    const entry = parseAppEntryParams();
+    if (entry.kind === "none") return;
+    entryLinkHandled.current = true;
+    clearAppEntryParams();
+
+    if (entry.kind === "track") {
+      const track = trackMap.get(entry.trackId);
+      if (!track) {
+        pushToast("Сказка по ссылке не найдена в каталоге");
+        return;
+      }
+      applyOgMeta({ track, startAtSec: entry.startAtSec });
+      void player.playTrack(track, { startAtSec: entry.startAtSec });
       return;
     }
-    applyOgMeta({ track, startAtSec });
-    void player.playTrack(track, { startAtSec });
-  }, [catalogLoading, trackMap, player.playTrack, pushToast]);
+
+    if (entry.kind === "folder") {
+      if (!catalog.folders.includes(entry.folder)) {
+        pushToast("Альбом по ссылке не найден");
+        return;
+      }
+      setView("all");
+      setSelectedFolder(entry.folder);
+      setSelectedPlaylist(null);
+      const trackCount = catalog.tracks.filter(
+        (t) => t.folder === entry.folder,
+      ).length;
+      applyFolderOgMeta({ folder: entry.folder, trackCount });
+      return;
+    }
+
+    setView("all");
+    setSelectedFolder(null);
+    setSelectedPlaylist(null);
+    applyCatalogOgMeta({
+      trackCount: catalog.tracks.length,
+      albumCount: catalog.folders.length,
+    });
+  }, [
+    catalogLoading,
+    catalog.folders,
+    catalog.tracks,
+    trackMap,
+    player.playTrack,
+    pushToast,
+  ]);
 
   useEffect(() => {
     registerAppSW(() => setSwNeedRefresh(true));
@@ -186,6 +223,27 @@ export function App() {
   const handleClearFolder = useCallback(() => {
     setSelectedFolder(null);
   }, []);
+
+  const handleShareCatalog = useCallback(() => {
+    void shareCatalog({
+      trackCount: catalog.tracks.length,
+      albumCount: catalog.folders.length,
+    }).then((r) => {
+      if (r === "copied") pushToast("Ссылка на каталог скопирована");
+      if (r === "shared") ymGoal("catalog_share");
+    });
+  }, [catalog.folders.length, catalog.tracks.length, pushToast]);
+
+  const handleShareFolder = useCallback(() => {
+    if (!selectedFolder) return;
+    const trackCount = catalog.tracks.filter(
+      (t) => t.folder === selectedFolder,
+    ).length;
+    void shareFolder({ folder: selectedFolder, trackCount }).then((r) => {
+      if (r === "copied") pushToast("Ссылка на альбом скопирована");
+      if (r === "shared") ymGoal("album_share", { folder: selectedFolder });
+    });
+  }, [catalog.tracks, pushToast, selectedFolder]);
 
   const handlePlayTrack = useCallback(
     (t: Track) => {
@@ -256,6 +314,8 @@ export function App() {
               setSelectedPlaylist(null);
             }
           }}
+          onShareCatalog={handleShareCatalog}
+          onShareFolder={handleShareFolder}
         />
         <main className="main">
           {swNeedRefresh ? (
@@ -324,6 +384,8 @@ export function App() {
             }
             onSelectFolder={handleSelectFolder}
             onClearFolder={handleClearFolder}
+            onShareCatalog={handleShareCatalog}
+            onShareFolder={handleShareFolder}
             nextTrackId={nextTrackId(player.currentTrackId)}
           />
         </main>

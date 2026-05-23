@@ -5,6 +5,9 @@ import {
   sharePageUrl,
   shareTitleForTrack,
 } from "./shareOg";
+import { shareViaWebOrClipboard, type ShareLinkResult } from "./shareLink";
+
+export type { ShareLinkResult };
 
 export function buildTrackShareUrl(
   trackId: string,
@@ -13,6 +16,7 @@ export function buildTrackShareUrl(
   return sharePageUrl(trackId, resolveSiteOrigin(), positionSec);
 }
 
+/** @deprecated используй parseAppEntryParams */
 export function parseTrackShareParams(): {
   trackId: string | null;
   startAtSec: number | undefined;
@@ -29,6 +33,7 @@ export function parseTrackShareParams(): {
   };
 }
 
+/** @deprecated используй clearAppEntryParams */
 export function clearTrackShareParams() {
   const url = new URL(window.location.href);
   if (!url.searchParams.has("track")) return;
@@ -42,32 +47,17 @@ export function clearTrackShareParams() {
   );
 }
 
-export type ShareTrackResult = "shared" | "copied" | "cancelled" | "failed";
-
 export async function shareTrack(opts: {
   track: Track;
   positionSec?: number;
-}): Promise<ShareTrackResult> {
+}): Promise<ShareLinkResult> {
   const url = buildTrackShareUrl(opts.track.id, opts.positionSec);
   const title = shareTitleForTrack(opts.track);
   const text = shareDescriptionForTrack(opts.track);
-
-  if (typeof navigator.share === "function") {
-    try {
-      await navigator.share({ title, text, url });
-      return "shared";
-    } catch (e) {
-      if (e instanceof DOMException && e.name === "AbortError") {
-        return "cancelled";
-      }
-    }
-  }
-
-  try {
-    await navigator.clipboard.writeText(url);
-    return "copied";
-  } catch {
-    const ok = window.prompt("Ссылка на сказку:", url);
-    return ok === null ? "cancelled" : "copied";
-  }
+  return shareViaWebOrClipboard({
+    title,
+    text,
+    url,
+    promptLabel: "Ссылка на сказку:",
+  });
 }

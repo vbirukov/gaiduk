@@ -55,6 +55,12 @@
   border-right-color: oklch(from var(--text) l c h / 0.1);
 }
 
+[data-skin="moon-dub"] .sidebar .side-section h2,
+[data-skin="moon-dub"] .sidebar .side-head h2 {
+  color: color-mix(in oklab, var(--moon-paper) 88%, var(--moon-amber));
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+}
+
 [data-skin="moon-dub"] .nav,
 [data-skin="moon-dub"] .ghost,
 [data-skin="moon-dub"] .chip {

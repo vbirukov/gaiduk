@@ -10,6 +10,7 @@ import type { TrackCardProps } from "./TrackCard";
 import { ContinueBanner } from "./ContinueBanner";
 import { ASSETS } from "../lib/assets";
 import { RastaVideoBg } from "./RastaVideoBg";
+import { Icon } from "./icons/Icon";
 import { RastaSunLight } from "./RastaSunLight";
 import { JaipurClouds } from "./JaipurClouds";
 import { LibraryHero } from "./LibraryHero";
@@ -38,6 +39,8 @@ type Props = {
   onClearFolder?: () => void;
   onOpenNav: () => void;
   onFeedLayoutChange: (layout: FeedLayout) => void;
+  onShareCatalog: () => void;
+  onShareFolder: () => void;
   nextTrackId: string | null;
   isJaipur: boolean;
   isRastamanLight: boolean;
@@ -66,6 +69,8 @@ export function TrackList({
   onClearFolder,
   onOpenNav,
   onFeedLayoutChange,
+  onShareCatalog,
+  onShareFolder,
   nextTrackId,
   isJaipur,
   isRastamanLight,
@@ -183,14 +188,26 @@ export function TrackList({
         />
       ) : null}
       <section className="section-head section-head--catalog">
-        <button
-          type="button"
-          className="ghost section-head-catalog-btn"
-          onClick={onOpenNav}
-          aria-label={`Каталог: ${sectionTitle}`}
-        >
-          Каталог
-        </button>
+        <div className="section-head-catalog-row">
+          <button
+            type="button"
+            className="ghost section-head-catalog-btn"
+            onClick={onOpenNav}
+            aria-label={`Каталог: ${sectionTitle}`}
+          >
+            Каталог
+          </button>
+          {!selectedFolder ? (
+            <button
+              type="button"
+              className="ghost section-head-catalog-share"
+              onClick={onShareCatalog}
+            >
+              <Icon name="share" size={18} aria-hidden />
+              <span>Поделиться</span>
+            </button>
+          ) : null}
+        </div>
       </section>
       <div
         className={
@@ -214,10 +231,20 @@ export function TrackList({
             <p className="feed-toolbar__sub mini-text">{sectionSub}</p>
           </div>
         ) : null}
-        <FeedLayoutSwitch
-          value={user.feedLayout ?? "tiles"}
-          onChange={onFeedLayoutChange}
-        />
+        <div className="feed-toolbar__actions">
+          <button
+            type="button"
+            className="ghost feed-toolbar__share"
+            onClick={selectedFolder ? onShareFolder : onShareCatalog}
+          >
+            <Icon name="share" size={18} aria-hidden />
+            <span>{selectedFolder ? "Поделиться альбомом" : "Поделиться каталогом"}</span>
+          </button>
+          <FeedLayoutSwitch
+            value={user.feedLayout ?? "tiles"}
+            onChange={onFeedLayoutChange}
+          />
+        </div>
       </div>
       {catalogLoading ? (
         <VirtualTrackGrid

@@ -14,5 +14,7 @@
 | `playlist_created` | Создан плейлист |
 | `like_toggle` | Лайк вкл/выкл (liked: 0/1) |
 | `track_share` | Поделиться сказкой (Web Share) |
+| `catalog_share` | Поделиться каталогом |
+| `album_share` | Поделиться альбомом (папкой) |
 
 Воронка (пример): `/app/open` → `play_start` → `play_complete`.

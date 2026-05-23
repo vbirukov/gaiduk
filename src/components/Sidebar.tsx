@@ -22,6 +22,8 @@ type Props = {
   onSelectPlaylist: (playlistId: string) => void;
   onOpenPlaylistModal: () => void;
   onDeletePlaylist: (playlistId: string) => void;
+  onShareCatalog: () => void;
+  onShareFolder: () => void;
 };
 
 export function Sidebar({
@@ -40,6 +42,8 @@ export function Sidebar({
   onSelectPlaylist,
   onOpenPlaylistModal,
   onDeletePlaylist,
+  onShareCatalog,
+  onShareFolder,
 }: Props) {
   const likeCount = Object.keys(user.likes).length;
   const extraViews = [
@@ -92,9 +96,27 @@ export function Sidebar({
               {label}
             </button>
           ))}
+          <button
+            type="button"
+            className="nav nav-share"
+            onClick={onShareCatalog}
+          >
+            <Icon name="share" size={18} aria-hidden />
+            <span>Поделиться каталогом</span>
+          </button>
         </section>
         <section className="side-section">
           <h2>Коллекция</h2>
+          {selectedFolder ? (
+            <button
+              type="button"
+              className="nav nav-share nav-share--folder"
+              onClick={onShareFolder}
+            >
+              <Icon name="share" size={18} aria-hidden />
+              <span>Поделиться альбомом</span>
+            </button>
+          ) : null}
           <div className="side-list">
             {catalog.folders.map((folder) => (
               <button

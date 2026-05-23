@@ -55,11 +55,22 @@
 
 [data-skin="jaipur"] .brand h1,
 [data-skin="jaipur"] .brand p,
-[data-skin="jaipur"] .side-section h2,
 [data-skin="jaipur"] .nav,
 [data-skin="jaipur"] .ghost,
 [data-skin="jaipur"] .chip {
   color: var(--text-inverse);
+}
+
+[data-skin="jaipur"] .sidebar .side-section h2,
+[data-skin="jaipur"] .sidebar .side-head h2 {
+  color: var(--text);
+  text-shadow:
+    0 1px 0 color-mix(in oklab, var(--jaipur-outline) 85%, transparent),
+    0 0 12px color-mix(in oklab, var(--jaipur-outline) 35%, transparent);
+}
+
+[data-skin="jaipur"] .sidebar .mini-text {
+  color: color-mix(in oklab, var(--text) 72%, var(--jaipur-clay));
 }
 
 [data-skin="jaipur"] .nav,

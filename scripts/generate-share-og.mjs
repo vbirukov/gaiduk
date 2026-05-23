@@ -1,5 +1,5 @@
 /**
- * Генерирует /share/{slug}.html с Open Graph для VK, Telegram и др.
+ * Генерирует /share/*.html с Open Graph для VK, Telegram и др.
  * Источник: MEDIA_ROOT/catalog.json или data/media/catalog.json
  */
 import { mkdir, readFile, writeFile } from "node:fs/promises";
@@ -9,8 +9,8 @@ import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
-function trackShareSlug(trackId) {
-  return Buffer.from(trackId, "utf8")
+function utf8ShareSlug(value) {
+  return Buffer.from(value, "utf8")
     .toString("base64")
     .replace(/\+/g, "-")
     .replace(/\//g, "_")
@@ -25,16 +25,23 @@ function escapeHtml(s) {
     .replace(/"/g, "&quot;");
 }
 
-function shareTitle(track) {
-  return track.title;
-}
-
-function shareDescription(track) {
+function shareDescriptionTrack(track) {
   const series = track.folder?.trim();
   if (series) {
     return `Сказка «${track.title}» · ${series} — Дмитрий Гайдук`;
   }
   return `Сказка «${track.title}» — Дмитрий Гайдук`;
+}
+
+function shareDescriptionFolder(folder, trackCount) {
+  const n = trackCount > 0 ? `${trackCount} сказок` : "аудиосказки";
+  return `Альбом «${folder}» — ${n}. Дмитрий Гайдук`;
+}
+
+function shareDescriptionCatalog(trackCount, albumCount) {
+  const albums =
+    albumCount > 0 ? ` · ${albumCount} альбомов` : "";
+  return `Каталог Haiduk — ${trackCount} записей${albums}. Дмитрий Гайдук`;
 }
 
 function resolveCatalogPath() {
@@ -59,13 +66,8 @@ function resolveSiteOrigin() {
   return o.replace(/\/$/, "");
 }
 
-function renderShareHtml({ track, origin, coverPath }) {
-  const slug = trackShareSlug(track.id);
-  const title = shareTitle(track);
-  const description = shareDescription(track);
+function renderShareHtml({ title, description, shareUrl, appBase, origin, coverPath }) {
   const image = `${origin}${coverPath}`;
-  const shareUrl = `${origin}/share/${slug}.html`;
-  const appBase = `${origin}/?track=${encodeURIComponent(track.id)}`;
 
   return `<!DOCTYPE html>
 <html lang="ru" prefix="og: https://ogp.me/ns#">
@@ -106,6 +108,7 @@ function renderShareHtml({ track, origin, coverPath }) {
 async function main() {
   const catalogPath = resolveCatalogPath();
   const outDir = join(root, "dist", "share");
+  const albumDir = join(outDir, "album");
   const origin = resolveSiteOrigin();
   const coverPath = "/images/cover-default.png";
 
@@ -143,15 +146,77 @@ async function main() {
   }
 
   await mkdir(outDir, { recursive: true });
-  let n = 0;
+  await mkdir(albumDir, { recursive: true });
+
+  let trackPages = 0;
   for (const track of tracks) {
     if (!track?.id || !track?.title) continue;
-    const slug = trackShareSlug(track.id);
-    const html = renderShareHtml({ track, origin, coverPath });
+    const slug = utf8ShareSlug(track.id);
+    const title = track.title;
+    const description = shareDescriptionTrack(track);
+    const shareUrl = `${origin}/share/${slug}.html`;
+    const appBase = `${origin}/?track=${encodeURIComponent(track.id)}`;
+    const html = renderShareHtml({
+      title,
+      description,
+      shareUrl,
+      appBase,
+      origin,
+      coverPath,
+    });
     await writeFile(join(outDir, `${slug}.html`), html, "utf8");
-    n++;
+    trackPages++;
   }
-  console.error(`[share-og] ${n} страниц → dist/share/ (origin: ${origin})`);
+
+  const folderCounts = new Map();
+  for (const track of tracks) {
+    const folder = track?.folder?.trim();
+    if (!folder) continue;
+    folderCounts.set(folder, (folderCounts.get(folder) ?? 0) + 1);
+  }
+
+  let albumPages = 0;
+  for (const [folder, count] of folderCounts) {
+    const slug = utf8ShareSlug(folder);
+    const title = folder;
+    const description = shareDescriptionFolder(folder, count);
+    const shareUrl = `${origin}/share/album/${slug}.html`;
+    const appBase = `${origin}/?album=${encodeURIComponent(slug)}`;
+    const html = renderShareHtml({
+      title,
+      description,
+      shareUrl,
+      appBase,
+      origin,
+      coverPath,
+    });
+    await writeFile(join(albumDir, `${slug}.html`), html, "utf8");
+    albumPages++;
+  }
+
+  const catalogTitle = "Каталог аудиосказок";
+  const catalogDescription = shareDescriptionCatalog(
+    tracks.length,
+    folderCounts.size,
+  );
+  const catalogShareUrl = `${origin}/share/catalog.html`;
+  const catalogAppBase = `${origin}/?catalog=1`;
+  await writeFile(
+    join(outDir, "catalog.html"),
+    renderShareHtml({
+      title: catalogTitle,
+      description: catalogDescription,
+      shareUrl: catalogShareUrl,
+      appBase: catalogAppBase,
+      origin,
+      coverPath,
+    }),
+    "utf8",
+  );
+
+  console.error(
+    `[share-og] ${trackPages} треков, ${albumPages} альбомов, каталог → dist/share/ (origin: ${origin})`,
+  );
 }
 
 main().catch((e) => {
