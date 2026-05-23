@@ -3,14 +3,14 @@ import { artworkUrlForTrack, defaultCoverPath } from "./cover";
 
 const SITE_NAME = "Haiduk — аудиосказки Дмитрия Гайдука";
 
-export function trackShareSlug(trackId: string): string {
-  const bytes = new TextEncoder().encode(trackId);
+export function utf8ShareSlug(value: string): string {
+  const bytes = new TextEncoder().encode(value);
   let binary = "";
   for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]!);
   return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
 }
 
-export function trackIdFromShareSlug(slug: string): string | null {
+export function utf8FromShareSlug(slug: string): string | null {
   try {
     const b64 = slug.replace(/-/g, "+").replace(/_/g, "/");
     const pad = b64.length % 4 ? "=".repeat(4 - (b64.length % 4)) : "";
@@ -20,6 +20,23 @@ export function trackIdFromShareSlug(slug: string): string | null {
   } catch {
     return null;
   }
+}
+
+/** @deprecated используй utf8ShareSlug */
+export function trackShareSlug(trackId: string): string {
+  return utf8ShareSlug(trackId);
+}
+
+export function trackIdFromShareSlug(slug: string): string | null {
+  return utf8FromShareSlug(slug);
+}
+
+export function folderShareSlug(folder: string): string {
+  return utf8ShareSlug(folder);
+}
+
+export function folderFromShareSlug(slug: string): string | null {
+  return utf8FromShareSlug(slug);
 }
 
 export function shareTitleForTrack(track: Pick<Track, "title">): string {
@@ -50,6 +67,63 @@ export function resolveSiteOrigin(explicit?: string): string {
 
 export function sharePagePath(trackId: string): string {
   return `/share/${trackShareSlug(trackId)}.html`;
+}
+
+export function shareTitleForFolder(folder: string): string {
+  return folder;
+}
+
+export function shareDescriptionForFolder(
+  folder: string,
+  trackCount: number,
+): string {
+  const n = trackCount > 0 ? `${trackCount} сказок` : "аудиосказки";
+  return `Альбом «${folder}» — ${n}. Дмитрий Гайдук`;
+}
+
+export function shareTitleForCatalog(): string {
+  return "Каталог аудиосказок";
+}
+
+export function shareDescriptionForCatalog(
+  trackCount: number,
+  albumCount?: number,
+): string {
+  const albums =
+    albumCount != null && albumCount > 0
+      ? ` · ${albumCount} альбомов`
+      : "";
+  return `Каталог Haiduk — ${trackCount} записей${albums}. Дмитрий Гайдук`;
+}
+
+export function albumSharePagePath(folder: string): string {
+  return `/share/album/${folderShareSlug(folder)}.html`;
+}
+
+export function catalogSharePagePath(): string {
+  return "/share/catalog.html";
+}
+
+export function albumSharePageUrl(folder: string, origin: string): string {
+  const base = (origin || "http://localhost").replace(/\/$/, "");
+  return new URL(albumSharePagePath(folder), `${base}/`).href;
+}
+
+export function catalogSharePageUrl(origin: string): string {
+  const base = (origin || "http://localhost").replace(/\/$/, "");
+  return new URL(catalogSharePagePath(), `${base}/`).href;
+}
+
+export function appDeepLinkFolder(folder: string, origin: string): string {
+  const url = new URL("/", origin || "http://localhost");
+  url.searchParams.set("album", folderShareSlug(folder));
+  return url.pathname + url.search;
+}
+
+export function appDeepLinkCatalog(origin: string): string {
+  const url = new URL("/", origin || "http://localhost");
+  url.searchParams.set("catalog", "1");
+  return url.pathname + url.search;
 }
 
 export function appDeepLink(
@@ -83,6 +157,18 @@ export type OgMetaInput = {
   track: Pick<Track, "id" | "title" | "folder">;
   origin?: string;
   startAtSec?: number;
+};
+
+export type OgFolderMetaInput = {
+  folder: string;
+  trackCount: number;
+  origin?: string;
+};
+
+export type OgCatalogMetaInput = {
+  trackCount: number;
+  albumCount?: number;
+  origin?: string;
 };
 
 function upsertMeta(
@@ -136,6 +222,97 @@ export function applyOgMeta(input: OgMetaInput | null) {
     upsertMeta(`meta[property="${prop}"]`, { property: prop, content });
   }
 
+  upsertMeta('meta[name="twitter:card"]', {
+    name: "twitter:card",
+    content: "summary_large_image",
+  });
+  upsertMeta('meta[name="twitter:title"]', { name: "twitter:title", content: title });
+  upsertMeta('meta[name="twitter:description"]', {
+    name: "twitter:description",
+    content: description,
+  });
+  upsertMeta('meta[name="twitter:image"]', {
+    name: "twitter:image",
+    content: image,
+  });
+}
+
+export function applyFolderOgMeta(input: OgFolderMetaInput) {
+  if (typeof document === "undefined") return;
+  const origin = resolveSiteOrigin(input.origin);
+  const title = shareTitleForFolder(input.folder);
+  const description = shareDescriptionForFolder(input.folder, input.trackCount);
+  const image = origin
+    ? `${origin}${defaultCoverPath()}`
+    : defaultCoverPath();
+  const pageUrl = albumSharePageUrl(input.folder, origin);
+
+  document.title = `${title} — ${SITE_NAME}`;
+  upsertMeta('meta[name="description"]', {
+    name: "description",
+    content: description,
+  });
+  upsertMeta('link[rel="canonical"]', { rel: "canonical", href: pageUrl }, "link");
+
+  const ogPairs: [string, string][] = [
+    ["og:site_name", SITE_NAME],
+    ["og:type", "website"],
+    ["og:title", title],
+    ["og:description", description],
+    ["og:image", image],
+    ["og:url", pageUrl],
+    ["og:locale", "ru_RU"],
+  ];
+  for (const [prop, content] of ogPairs) {
+    upsertMeta(`meta[property="${prop}"]`, { property: prop, content });
+  }
+  upsertMeta('meta[name="twitter:card"]', {
+    name: "twitter:card",
+    content: "summary_large_image",
+  });
+  upsertMeta('meta[name="twitter:title"]', { name: "twitter:title", content: title });
+  upsertMeta('meta[name="twitter:description"]', {
+    name: "twitter:description",
+    content: description,
+  });
+  upsertMeta('meta[name="twitter:image"]', {
+    name: "twitter:image",
+    content: image,
+  });
+}
+
+export function applyCatalogOgMeta(input: OgCatalogMetaInput) {
+  if (typeof document === "undefined") return;
+  const origin = resolveSiteOrigin(input.origin);
+  const title = shareTitleForCatalog();
+  const description = shareDescriptionForCatalog(
+    input.trackCount,
+    input.albumCount,
+  );
+  const image = origin
+    ? `${origin}${defaultCoverPath()}`
+    : defaultCoverPath();
+  const pageUrl = catalogSharePageUrl(origin);
+
+  document.title = `${title} — ${SITE_NAME}`;
+  upsertMeta('meta[name="description"]', {
+    name: "description",
+    content: description,
+  });
+  upsertMeta('link[rel="canonical"]', { rel: "canonical", href: pageUrl }, "link");
+
+  const ogPairs: [string, string][] = [
+    ["og:site_name", SITE_NAME],
+    ["og:type", "website"],
+    ["og:title", title],
+    ["og:description", description],
+    ["og:image", image],
+    ["og:url", pageUrl],
+    ["og:locale", "ru_RU"],
+  ];
+  for (const [prop, content] of ogPairs) {
+    upsertMeta(`meta[property="${prop}"]`, { property: prop, content });
+  }
   upsertMeta('meta[name="twitter:card"]', {
     name: "twitter:card",
     content: "summary_large_image",

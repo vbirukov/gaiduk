@@ -942,7 +942,7 @@ html.has-player.player-bar-collapsed {
   text-align: center;
   gap: var(--space-4);
   width: 100%;
-  max-width: 420px;
+  max-width: 620px;
   margin-inline: auto;
   scroll-margin-top: var(--space-4);
 }
@@ -1325,6 +1325,15 @@ html.has-player.player-bar-collapsed {
   text-align: center;
   gap: var(--space-2);
 }
+.section-head-catalog-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+}
+.section-head-catalog-share {
+  flex-shrink: 0;
+}
 .section-head-catalog-btn {
   min-height: 44px;
   padding: 0.65rem 1.75rem;
@@ -1394,6 +1403,15 @@ html.has-player.player-bar-collapsed {
   margin-top: var(--space-1);
   margin-right: 0;
   max-width: none;
+}
+.feed-toolbar__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+.feed-toolbar__share {
+  flex-shrink: 0;
 }
 .feed-layout-toggle {
   flex-shrink: 0;
