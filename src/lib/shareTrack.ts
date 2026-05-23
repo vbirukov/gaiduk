@@ -1,4 +1,5 @@
 import type { Track } from "../types/catalog";
+import { embedIframeHtml, embedPageUrl } from "./embed";
 import {
   resolveSiteOrigin,
   shareDescriptionForTrack,
@@ -45,6 +46,21 @@ export function clearTrackShareParams() {
     "",
     qs ? `${url.pathname}?${qs}${url.hash}` : `${url.pathname}${url.hash}`,
   );
+}
+
+export async function copyTrackEmbedCode(track: Track): Promise<ShareLinkResult> {
+  const html = embedIframeHtml(track.id);
+  try {
+    await navigator.clipboard.writeText(html);
+    return "copied";
+  } catch {
+    const ok = window.prompt("Код для VK / iframe:", html);
+    return ok === null ? "cancelled" : "copied";
+  }
+}
+
+export function buildTrackEmbedUrl(trackId: string): string {
+  return embedPageUrl(trackId, resolveSiteOrigin());
 }
 
 export async function shareTrack(opts: {

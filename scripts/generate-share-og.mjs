@@ -6,6 +6,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { oembedDiscoveryHref } from "./oembed-core.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -66,8 +67,19 @@ function resolveSiteOrigin() {
   return o.replace(/\/$/, "");
 }
 
-function renderShareHtml({ title, description, shareUrl, appBase, origin, coverPath }) {
+function renderShareHtml({
+  title,
+  description,
+  shareUrl,
+  appBase,
+  origin,
+  coverPath,
+  oembedHref = null,
+}) {
   const image = `${origin}${coverPath}`;
+  const oembedLink = oembedHref
+    ? `  <link rel="alternate" type="application/json+oembed" href="${escapeHtml(oembedHref)}" title="oEmbed Profile" />\n`
+    : "";
 
   return `<!DOCTYPE html>
 <html lang="ru" prefix="og: https://ogp.me/ns#">
@@ -77,6 +89,7 @@ function renderShareHtml({ title, description, shareUrl, appBase, origin, coverP
   <title>${escapeHtml(title)} — Haiduk</title>
   <meta name="description" content="${escapeHtml(description)}" />
   <link rel="canonical" href="${escapeHtml(shareUrl)}" />
+${oembedLink}
   <meta property="og:site_name" content="Haiduk — аудиосказки Дмитрия Гайдука" />
   <meta property="og:type" content="website" />
   <meta property="og:title" content="${escapeHtml(title)}" />
@@ -163,6 +176,7 @@ async function main() {
       appBase,
       origin,
       coverPath,
+      oembedHref: oembedDiscoveryHref(origin, shareUrl),
     });
     await writeFile(join(outDir, `${slug}.html`), html, "utf8");
     trackPages++;

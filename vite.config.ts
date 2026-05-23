@@ -1,9 +1,26 @@
 import path from "node:path";
 import { createReadStream, existsSync, statSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
+const rootDir = path.dirname(fileURLToPath(import.meta.url));
 
 const mediaRoot = path.resolve("data/media");
+
+function oembedDevPlugin(): Plugin {
+  return {
+    name: "oembed-dev",
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        const url = req.url?.split("?")[0] ?? "";
+        if (url !== "/oembed") return next();
+        import("./scripts/oembed-core.mjs")
+          .then(({ handleOembedHttp }) => handleOembedHttp(req, res))
+          .catch(next);
+      });
+    },
+  };
+}
 
 function mediaDevPlugin(): Plugin {
   return {
@@ -42,5 +59,13 @@ function mediaDevPlugin(): Plugin {
 
 export default defineConfig({
   base: "./",
-  plugins: [react(), mediaDevPlugin()],
+  plugins: [react(), mediaDevPlugin(), oembedDevPlugin()],
+  build: {
+    rollupOptions: {
+      input: {
+        main: path.resolve(rootDir, "index.html"),
+        embed: path.resolve(rootDir, "embed.html"),
+      },
+    },
+  },
 });
