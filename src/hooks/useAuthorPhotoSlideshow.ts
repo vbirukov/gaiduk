@@ -14,7 +14,7 @@ export function useAuthorPhotoSlideshow() {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const count = AUTHOR_PHOTOS.length;
-  const activeSrc = AUTHOR_PHOTOS[order[pos]!]!;
+  const activeSrc = count > 0 ? AUTHOR_PHOTOS[order[pos]!]! : "";
 
   const goTo = useCallback(
     (nextPos: number) => {
@@ -44,7 +44,7 @@ export function useAuthorPhotoSlideshow() {
   }, []);
 
   useEffect(() => {
-    if (!motionOk) return;
+    if (!motionOk || count < 2) return;
 
     const tick = () => {
       if (pausedRef.current || document.visibilityState === "hidden") return;

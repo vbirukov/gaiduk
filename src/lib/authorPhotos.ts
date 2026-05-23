@@ -1,17 +1,19 @@
-export const AUTHOR_PHOTOS = [
-  "/gaiduk/gaiduk.jpg",
-  "/gaiduk/gaiduk1.jpg",
-  "/gaiduk/gaiduk2.jpg",
-  "/gaiduk/gaiduk3.jpg",
-  "/gaiduk/gaiduk4.jpg",
-  "/gaiduk/gaiduk5.jpg",
-  "/gaiduk/gaiduk6.jpg",
-  "/gaiduk/gaiduk7.jpg",
-  "/gaiduk/gaiduk8.jpg",
-  "/gaiduk/gaiduk9.jpg",
-  "/gaiduk/gaiduk10.jpg",
-  "/gaiduk/gaiduk11.jpg",
-] as const;
+const authorPhotoModules = import.meta.glob(
+  "../public/gaiduk/*.{jpg,jpeg,webp,png,JPG,JPEG,WEBP,PNG}",
+  { eager: true },
+);
+
+function publicAuthorPhotoPath(globKey: string): string {
+  const name = globKey.split("/").pop() ?? globKey;
+  return `/gaiduk/${name}`;
+}
+
+/** Список синхронизирован с файлами в public/gaiduk (пересборка при добавлении/удалении). */
+export const AUTHOR_PHOTOS: readonly string[] = Object.keys(authorPhotoModules)
+  .map(publicAuthorPhotoPath)
+  .sort((a, b) =>
+    a.localeCompare(b, "ru", { numeric: true, sensitivity: "base" }),
+  );
 
 export const AUTHOR_SLIDE_MS = 5200;
 
@@ -41,5 +43,6 @@ function shuffledIndices(length: number): number[] {
 }
 
 export function createAuthorSlideOrder(): number[] {
+  if (AUTHOR_PHOTOS.length === 0) return [];
   return shuffledIndices(AUTHOR_PHOTOS.length);
 }

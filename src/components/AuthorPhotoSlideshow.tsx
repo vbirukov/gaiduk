@@ -14,6 +14,12 @@ export function AuthorPhotoSlideshow() {
     setPaused,
   } = useAuthorPhotoSlideshow();
 
+  if (AUTHOR_PHOTOS.length === 0) {
+    return (
+      <div className="hero-art hero-art--slideshow hero-art--empty" aria-hidden />
+    );
+  }
+
   return (
     <div
       className="hero-art hero-art--slideshow"
