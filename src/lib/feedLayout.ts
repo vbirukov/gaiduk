@@ -79,3 +79,12 @@ export function layoutRowForTrackId(
     (row) => row.kind === "cards" && row.tracks.some((t) => t.id === trackId),
   );
 }
+
+export function layoutRowForFolderHeader(
+  rows: FeedLayoutRow[],
+  folder: string,
+): number {
+  return rows.findIndex(
+    (row) => row.kind === "header" && row.folder === folder,
+  );
+}

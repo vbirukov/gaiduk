@@ -18,6 +18,7 @@ import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import {
   buildFeedLayoutRows,
   groupTracksByFolder,
+  layoutRowForFolderHeader,
   layoutRowForTrackId,
 } from "../lib/feedLayout";
 import { resolveTrackProgress } from "../lib/trackProgress";
@@ -53,7 +54,11 @@ type Props = {
   isTrackDownloading?: (trackId: string) => boolean;
   onTrackOfflineAction?: (track: Track) => void;
   scrollToTrackId?: string | null;
+  scrollToFolder?: string | null;
   onScrolledToTrack?: () => void;
+  onScrolledToFolder?: () => void;
+  feedFolderFilterActive?: boolean;
+  onFilterOnlyFolder?: (folder: string) => void;
   showFolderHeaders?: boolean;
   showFolderNames?: boolean;
   feedLayout?: FeedLayout;
@@ -139,7 +144,11 @@ export function VirtualTrackGrid({
   isTrackDownloading,
   onTrackOfflineAction,
   scrollToTrackId = null,
+  scrollToFolder = null,
   onScrolledToTrack,
+  onScrolledToFolder,
+  feedFolderFilterActive = false,
+  onFilterOnlyFolder,
   showFolderHeaders = false,
   showFolderNames = false,
   feedLayout = "tiles",
@@ -242,6 +251,66 @@ export function VirtualTrackGrid({
     onScrolledToTrack,
   ]);
 
+  useLayoutEffect(() => {
+    if (!scrollToFolder) return;
+    const folder = scrollToFolder;
+    let cancelled = false;
+    const rowIndex = layoutRowForFolderHeader(layoutRows, folder);
+    if (rowIndex < 0) {
+      const first = tracks.find((t) => t.folder === folder);
+      if (first) {
+        const trackRow = layoutRowForTrackId(layoutRows, first.id);
+        if (trackRow >= 0) {
+          virtualizerRef.current.scrollToIndex(trackRow, {
+            align: "start",
+            behavior: "smooth",
+          });
+        }
+      }
+      onScrolledToFolder?.();
+      return;
+    }
+
+    const finish = () => {
+      if (!cancelled) onScrolledToFolder?.();
+    };
+
+    const run = (attempt: number) => {
+      if (cancelled) return;
+      if (useVirtual) {
+        virtualizerRef.current.scrollToIndex(rowIndex, {
+          align: "start",
+          behavior: attempt === 0 ? "auto" : "smooth",
+        });
+      } else {
+        const el = document.querySelector(
+          `[data-folder-header="${CSS.escape(folder)}"]`,
+        );
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "start" });
+          finish();
+          return;
+        }
+      }
+      if (attempt < 4) {
+        window.setTimeout(() => run(attempt + 1), 80);
+      } else {
+        finish();
+      }
+    };
+
+    run(0);
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    scrollToFolder,
+    tracks,
+    layoutRows,
+    useVirtual,
+    onScrolledToFolder,
+  ]);
+
   const renderCard = (track: Track) => {
     const isActive = track.id === activeTrackId;
     return (
@@ -314,10 +383,17 @@ export function VirtualTrackGrid({
               key={group.folder}
               className="track-feed__section"
             >
+              <div data-folder-header={group.folder}>
               <CatalogFolderHeading
                 folder={group.folder}
                 offlineActions={
                   renderFolderOffline?.(group.folder) ?? undefined
+                }
+                filterActive={feedFolderFilterActive}
+                onFilterOnly={
+                  onFilterOnlyFolder
+                    ? () => onFilterOnlyFolder(group.folder)
+                    : undefined
                 }
                 onShare={
                   onShareFolder
@@ -325,6 +401,7 @@ export function VirtualTrackGrid({
                     : undefined
                 }
               />
+              </div>
               <div
                 className={
                   isRows ? "cards cards--section cards--rows" : "cards cards--section"
@@ -374,10 +451,17 @@ export function VirtualTrackGrid({
               }}
             >
               {layoutRow.kind === "header" ? (
+                <div data-folder-header={layoutRow.folder}>
                 <CatalogFolderHeading
                   folder={layoutRow.folder}
                   offlineActions={
                     renderFolderOffline?.(layoutRow.folder) ?? undefined
+                  }
+                  filterActive={feedFolderFilterActive}
+                  onFilterOnly={
+                    onFilterOnlyFolder
+                      ? () => onFilterOnlyFolder(layoutRow.folder)
+                      : undefined
                   }
                   onShare={
                     onShareFolder
@@ -385,6 +469,7 @@ export function VirtualTrackGrid({
                       : undefined
                   }
                 />
+                </div>
               ) : (
                 renderRow(layoutRow.tracks, "cards-row")
               )}

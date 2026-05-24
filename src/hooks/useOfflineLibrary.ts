@@ -3,6 +3,7 @@ import type { Catalog, Track } from "../types/catalog";
 import { isStubTrack } from "../lib/diskDownload";
 import {
   downloadFolderOffline,
+  downloadSelectionOffline,
   downloadTrackOffline,
   removeFolderOffline,
   removeTrackOffline,
@@ -19,7 +20,8 @@ import { ymGoal } from "../lib/metrika";
 
 export type OfflineFolderJob = OfflineDownloadProgress & {
   status: "downloading";
-  scope: "folder";
+  scope: "folder" | "selection";
+  folders?: string[];
 };
 
 export type OfflineTrackJob = {
@@ -97,8 +99,54 @@ export function useOfflineLibrary(catalog: Catalog) {
   );
 
   const isFolderDownloading = useCallback(
-    (folder: string) => job?.scope === "folder" && job.folder === folder,
+    (folder: string) =>
+      (job?.scope === "folder" && job.folder === folder) ||
+      (job?.scope === "selection" && job.folders?.includes(folder)) === true,
     [job],
+  );
+
+  const isSelectionDownloading = job?.scope === "selection";
+
+  const downloadSelection = useCallback(
+    async (folders: string[]) => {
+      if (!folders.length) return;
+      abortRef.current?.abort();
+      const ctrl = new AbortController();
+      abortRef.current = ctrl;
+      const tracks = catalog.tracks.filter((t) => folders.includes(t.folder));
+      setJob({
+        folder: folders.length === 1 ? folders[0]! : `Выборка (${folders.length})`,
+        done: 0,
+        total: tracks.length,
+        status: "downloading",
+        scope: "selection",
+        folders,
+      });
+      try {
+        await downloadSelectionOffline({
+          folders,
+          tracks: catalog.tracks,
+          signal: ctrl.signal,
+          onProgress: (p) =>
+            setJob({
+              ...p,
+              status: "downloading",
+              scope: "selection",
+              folders,
+            }),
+        });
+        ymGoal("offline_selection_saved", { folders: folders.length });
+        bump();
+        refreshStorage();
+      } catch (e) {
+        if (e instanceof DOMException && e.name === "AbortError") return;
+        throw e;
+      } finally {
+        setJob(null);
+        abortRef.current = null;
+      }
+    },
+    [catalog.tracks, bump, refreshStorage],
   );
 
   const downloadFolder = useCallback(
@@ -209,6 +257,8 @@ export function useOfflineLibrary(catalog: Catalog) {
     isFolderDownloading,
     folderProgress,
     downloadFolder,
+    downloadSelection,
+    isSelectionDownloading,
     downloadTrack,
     cancelDownload,
     removeFolder,

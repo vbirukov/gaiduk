@@ -17,6 +17,8 @@
 | `track_embed_copy` | Скопировать код iframe для встраивания |
 | `offline_folder_saved` | Серия скачана для офлайн |
 | `offline_folder_removed` | Офлайн-копия серии удалена |
+| `offline_track_saved` | Трек скачан для офлайн |
+| `offline_track_removed` | Офлайн-копия трека удалена |
 | `catalog_share` | Поделиться каталогом |
 | `album_share` | Поделиться альбомом (папкой) |
 

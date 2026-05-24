@@ -24,7 +24,7 @@ import type { FeedListenFilter, LibraryView, UserState } from "../types/user";
 
 type Filters = {
   view: LibraryView;
-  selectedFolder: string | null;
+  feedFolderFilter: string[];
   selectedPlaylist: string | null;
   feedListenFilter: FeedListenFilter;
   /** Ref на текущий трек — при включении shuffle ставится первым в очереди */
@@ -133,8 +133,9 @@ export function useCatalog(user: UserState, filters: Filters) {
 
   const filteredTracks = useMemo(() => {
     let list: Track[] = [...catalog.tracks];
-    if (filters.selectedFolder) {
-      list = list.filter((t) => t.folder === filters.selectedFolder);
+    if (filters.feedFolderFilter.length > 0) {
+      const allowed = new Set(filters.feedFolderFilter);
+      list = list.filter((t) => allowed.has(t.folder));
     }
     if (filters.view === "liked") {
       list = list.filter((t) => user.likes[t.id]);
@@ -161,7 +162,7 @@ export function useCatalog(user: UserState, filters: Filters) {
   }, [
     catalog.tracks,
     filters.feedListenFilter,
-    filters.selectedFolder,
+    filters.feedFolderFilter,
     filters.selectedPlaylist,
     filters.view,
     progressOf,
@@ -259,23 +260,29 @@ export function useCatalog(user: UserState, filters: Filters) {
     );
   }, [catalog.tracks, progressOf, trackMap, user.playlists]);
 
-  const sectionTitle = filters.selectedFolder
-    ? filters.selectedFolder
-    : filters.view === "resume"
-      ? "Продолжить прослушивание"
-      : filters.view === "liked"
-          ? "Лайки"
-          : filters.view === "playlist"
-            ? `Плейлист: ${user.playlists.find((p) => p.id === filters.selectedPlaylist)?.name ?? ""}`
-            : "Каталог";
+  const sectionTitle =
+    filters.feedFolderFilter.length === 1
+      ? filters.feedFolderFilter[0]!
+      : filters.feedFolderFilter.length > 1
+        ? `Выборка · ${filters.feedFolderFilter.length} серий`
+        : filters.view === "resume"
+          ? "Продолжить прослушивание"
+          : filters.view === "liked"
+            ? "Лайки"
+            : filters.view === "playlist"
+              ? `Плейлист: ${user.playlists.find((p) => p.id === filters.selectedPlaylist)?.name ?? ""}`
+              : "Каталог";
 
-  const sectionSub = filters.selectedFolder
-    ? "Все треки выбранной серии."
-    : useServerMedia()
-      ? "Каталог и аудио с сервера."
-      : catalog.loaded
-        ? "Живой индекс публичной папки Яндекс.Диска."
-        : "Идет fallback-режим до полной индексации каталога.";
+  const sectionSub =
+    filters.feedFolderFilter.length === 1
+      ? "Все треки выбранной серии."
+      : filters.feedFolderFilter.length > 1
+        ? `${filteredTracks.length} сказок в выборке.`
+        : useServerMedia()
+          ? "Каталог и аудио с сервера."
+          : catalog.loaded
+            ? "Живой индекс публичной папки Яндекс.Диска."
+            : "Идет fallback-режим до полной индексации каталога.";
 
   const nextTrackId = useCallback(
     (currentTrackId: string | null) => {

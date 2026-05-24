@@ -15,11 +15,13 @@ type Props = {
   catalog: Catalog;
   user: UserState;
   view: LibraryView;
-  selectedFolder: string | null;
+  feedFolderFilter: string[];
+  focusedFolder: string | null;
   selectedPlaylist: string | null;
   resumeCount: number;
   onSelectView: (view: LibraryView) => void;
-  onSelectFolder: (folder: string) => void;
+  onScrollToFolder: (folder: string) => void;
+  onAddFolderToSelection: (folder: string) => void;
   onSelectPlaylist: (playlistId: string) => void;
   onOpenPlaylistModal: () => void;
   onDeletePlaylist: (playlistId: string) => void;
@@ -36,11 +38,13 @@ export function Sidebar({
   catalog,
   user,
   view,
-  selectedFolder,
+  feedFolderFilter,
+  focusedFolder,
   selectedPlaylist,
   resumeCount,
   onSelectView,
-  onSelectFolder,
+  onScrollToFolder,
+  onAddFolderToSelection,
   onSelectPlaylist,
   onOpenPlaylistModal,
   onDeletePlaylist,
@@ -53,6 +57,12 @@ export function Sidebar({
     resumeCount > 0 ? (["resume", `Продолжить · ${resumeCount}`] as const) : null,
     likeCount > 0 ? (["liked", `Лайки · ${likeCount}`] as const) : null,
   ].filter((item): item is readonly ["resume" | "liked", string] => item != null);
+
+  const selectionActive = feedFolderFilter.length > 0;
+  const selectionSet = useMemo(
+    () => new Set(feedFolderFilter),
+    [feedFolderFilter],
+  );
 
   const folderTrackCounts = useMemo(() => {
     const counts = new Map<string, number>();
@@ -117,11 +127,15 @@ export function Sidebar({
         <section className="side-section">
           <h2>Коллекция</h2>
           <div className="side-list">
-            {catalog.folders.map((folder) => (
+            {catalog.folders.map((folder) => {
+              const inSelection = selectionSet.has(folder);
+              const isActive =
+                focusedFolder === folder || inSelection;
+              return (
               <div
                 key={folder}
                 className={
-                  selectedFolder === folder
+                  isActive
                     ? "nav-item nav-item--folder is-active"
                     : "nav-item nav-item--folder"
                 }
@@ -129,14 +143,25 @@ export function Sidebar({
                 <button
                   type="button"
                   className="nav-folder-card__open"
-                  onClick={() => onSelectFolder(folder)}
+                  onClick={() => onScrollToFolder(folder)}
                 >
                   <span className="nav-item__label">{folder}</span>
                   <span className="nav-sublabel">
                     {folderTrackCounts.get(folder) ?? 0} сказок
+                    {inSelection ? " · в выборке" : ""}
                   </span>
                 </button>
-                {renderFolderOffline?.(folder)}
+                {selectionActive && !inSelection ? (
+                  <button
+                    type="button"
+                    className="nav-item__share nav-item__share--stacked nav-item__add-selection"
+                    onClick={() => onAddFolderToSelection(folder)}
+                  >
+                    <Icon name="list-plus" size={15} aria-hidden />
+                    <span>В выборку</span>
+                  </button>
+                ) : null}
+                {!selectionActive ? renderFolderOffline?.(folder) : null}
                 <button
                   type="button"
                   className="nav-item__share nav-item__share--stacked"
@@ -147,7 +172,8 @@ export function Sidebar({
                   <span>Поделиться</span>
                 </button>
               </div>
-            ))}
+            );
+            })}
           </div>
         </section>
         <section className="side-section">

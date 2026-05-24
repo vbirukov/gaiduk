@@ -32,6 +32,7 @@ import { registerAppSW } from "./pwa/register";
 import type { LibraryView } from "./types/user";
 import { useOfflineLibrary } from "./hooks/useOfflineLibrary";
 import { FolderOfflineControl } from "./components/FolderOfflineControl";
+import { SelectionOfflineControl } from "./components/SelectionOfflineControl";
 import { formatStorageBytes } from "./lib/formatStorage";
 
 export function App() {
@@ -49,7 +50,9 @@ export function App() {
   } = useUserState();
 
   const [view, setView] = useState<LibraryView>("all");
-  const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
+  const [feedFolderFilter, setFeedFolderFilter] = useState<string[]>([]);
+  const [scrollToFolder, setScrollToFolder] = useState<string | null>(null);
+  const [focusedFolder, setFocusedFolder] = useState<string | null>(null);
   const [selectedPlaylist, setSelectedPlaylist] = useState<string | null>(null);
   const { skin, setSkin, isJaipur, isRastamanLight } = useAppTheme();
 
@@ -81,7 +84,7 @@ export function App() {
     sectionSub,
   } = useCatalog(user, {
     view,
-    selectedFolder,
+    feedFolderFilter,
     selectedPlaylist,
     feedListenFilter: user.feedListenFilter,
     leadTrackIdRef,
@@ -151,23 +154,6 @@ export function App() {
     [offline, pushToast],
   );
 
-  const renderFolderOfflineInline = useCallback(
-    (folder: string) => (
-      <FolderOfflineControl
-        folder={folder}
-        layout="inline"
-        isOffline={offline.isFolderOffline(folder)}
-        isDownloading={offline.isFolderDownloading(folder)}
-        progress={offline.folderProgress(folder)}
-        job={offline.job?.scope === "folder" ? offline.job : null}
-        onDownload={() => runDownloadFolder(folder)}
-        onCancel={offline.cancelDownload}
-        onRemove={() => runRemoveFolderOffline(folder)}
-      />
-    ),
-    [offline, runDownloadFolder, runRemoveFolderOffline],
-  );
-
   const offlineSidebarSummary = useMemo(() => {
     if (!offline.offlineFolders.length && !offline.storageBytes) return null;
     return (
@@ -223,10 +209,14 @@ export function App() {
 
   useEffect(() => {
     ymHit(
-      libraryScreenPath(view, selectedFolder, selectedPlaylist),
+      libraryScreenPath(
+        view,
+        feedFolderFilter.length === 1 ? feedFolderFilter[0]! : null,
+        selectedPlaylist,
+      ),
       sectionTitle,
     );
-  }, [view, selectedFolder, selectedPlaylist, sectionTitle]);
+  }, [view, feedFolderFilter, selectedPlaylist, sectionTitle]);
 
   useEffect(() => {
     if (navOpen) ymGoal("nav_open");
@@ -265,7 +255,9 @@ export function App() {
         return;
       }
       setView("all");
-      setSelectedFolder(entry.folder);
+      setFeedFolderFilter([entry.folder]);
+      setFocusedFolder(entry.folder);
+      setScrollToFolder(entry.folder);
       setSelectedPlaylist(null);
       const trackCount = catalog.tracks.filter(
         (t) => t.folder === entry.folder,
@@ -275,7 +267,7 @@ export function App() {
     }
 
     setView("all");
-    setSelectedFolder(null);
+    setFeedFolderFilter([]);
     setSelectedPlaylist(null);
     applyCatalogOgMeta({
       trackCount: catalog.tracks.length,
@@ -318,16 +310,78 @@ export function App() {
 
   const closeNav = () => setNavOpen(false);
 
-  const handleSelectFolder = useCallback((folder: string) => {
+  const handleScrollToFolder = useCallback((folder: string) => {
     setView("all");
-    setSelectedFolder(folder);
     setSelectedPlaylist(null);
+    setFocusedFolder(folder);
+    setScrollToFolder(folder);
     closeNav();
   }, []);
 
-  const handleClearFolder = useCallback(() => {
-    setSelectedFolder(null);
+  const handleFilterOnlyFolder = useCallback((folder: string) => {
+    setView("all");
+    setSelectedPlaylist(null);
+    setFeedFolderFilter([folder]);
+    setFocusedFolder(folder);
+    ymGoal("feed_filter_folder", { folder });
   }, []);
+
+  const handleAddFolderToSelection = useCallback((folder: string) => {
+    setView("all");
+    setSelectedPlaylist(null);
+    setFeedFolderFilter((prev) =>
+      prev.includes(folder) ? prev : [...prev, folder],
+    );
+    setFocusedFolder(folder);
+    setScrollToFolder(folder);
+    ymGoal("feed_filter_add_folder", { folder });
+  }, []);
+
+  const handleClearFeedFilter = useCallback(() => {
+    setFeedFolderFilter([]);
+    ymGoal("feed_filter_clear");
+  }, []);
+
+  const handleScrolledToFolder = useCallback(() => {
+    setScrollToFolder(null);
+  }, []);
+
+  const runDownloadSelection = useCallback(() => {
+    void offline
+      .downloadSelection(feedFolderFilter)
+      .then(() => pushToast("Выборка скачана для офлайн"))
+      .catch((e) => {
+        pushToast(
+          e instanceof Error ? e.message : "Не удалось скачать выборку",
+        );
+      });
+  }, [feedFolderFilter, offline.downloadSelection, pushToast]);
+
+  const renderSelectionOffline = useMemo(() => {
+    if (!feedFolderFilter.length) return null;
+    return (
+      <SelectionOfflineControl
+        label={sectionTitle}
+        trackCount={tracks.length}
+        isDownloading={Boolean(offline.isSelectionDownloading)}
+        job={
+          offline.job?.scope === "selection" || offline.job?.scope === "folder"
+            ? offline.job
+            : null
+        }
+        onDownload={runDownloadSelection}
+        onCancel={offline.cancelDownload}
+      />
+    );
+  }, [
+    feedFolderFilter.length,
+    offline.cancelDownload,
+    offline.isSelectionDownloading,
+    offline.job,
+    runDownloadSelection,
+    sectionTitle,
+    tracks.length,
+  ]);
 
   const handleShareFolder = useCallback(
     (folder: string) => {
@@ -385,23 +439,25 @@ export function App() {
           catalog={catalog}
           user={user}
           view={view}
-          selectedFolder={selectedFolder}
+          feedFolderFilter={feedFolderFilter}
+          focusedFolder={focusedFolder}
           selectedPlaylist={selectedPlaylist}
           resumeCount={resumeCount}
           onSelectView={(id) => {
             setView(id);
-            setSelectedFolder(null);
+            setFeedFolderFilter([]);
             setSelectedPlaylist(null);
             if (id === "resume") {
               setUser((prev) => ({ ...prev, feedListenFilter: "in-progress" }));
             }
             closeNav();
           }}
-          onSelectFolder={handleSelectFolder}
+          onScrollToFolder={handleScrollToFolder}
+          onAddFolderToSelection={handleAddFolderToSelection}
           onSelectPlaylist={(id) => {
             setView("playlist");
             setSelectedPlaylist(id);
-            setSelectedFolder(null);
+            setFeedFolderFilter([]);
             closeNav();
           }}
           onOpenPlaylistModal={() => setShowPlaylistModal(true)}
@@ -463,7 +519,11 @@ export function App() {
             user={user}
             tracks={tracks}
             view={view}
-            selectedFolder={selectedFolder}
+            feedFolderFilter={feedFolderFilter}
+            scrollToFolder={scrollToFolder}
+            onScrolledToFolder={handleScrolledToFolder}
+            onClearFeedFilter={handleClearFeedFilter}
+            onFilterOnlyFolder={handleFilterOnlyFolder}
             selectedPlaylist={selectedPlaylist}
             resumeTrack={resumeTrack}
             catalogLoading={catalogLoading}
@@ -484,15 +544,10 @@ export function App() {
             onFeedListenFilterChange={(feedListenFilter) =>
               setUser((prev) => ({ ...prev, feedListenFilter }))
             }
-            onSelectFolder={handleSelectFolder}
-            onClearFolder={handleClearFolder}
+            onSelectFolder={handleScrollToFolder}
             onShareFolder={handleShareFolder}
-            renderFolderOffline={renderFolderOfflineInline}
-            renderSelectedFolderOffline={
-              selectedFolder
-                ? renderFolderOfflineInline(selectedFolder)
-                : undefined
-            }
+            renderFolderOffline={renderFolderOffline}
+            renderSelectionOffline={renderSelectionOffline}
             isTrackOffline={offline.isTrackOffline}
             isTrackDownloading={offline.isTrackDownloading}
             onTrackOfflineAction={handleTrackOfflineAction}

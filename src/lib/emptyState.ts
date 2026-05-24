@@ -3,7 +3,7 @@ import type { FeedListenFilter, LibraryView } from "../types/user";
 
 type Args = {
   view: LibraryView;
-  selectedFolder: string | null;
+  feedFolderFilter: string[];
   selectedPlaylist: string | null;
   playlistName: string;
   feedListenFilter: FeedListenFilter;
@@ -11,7 +11,7 @@ type Args = {
 
 export function emptyStateCopy({
   view,
-  selectedFolder,
+  feedFolderFilter,
   selectedPlaylist,
   playlistName,
   feedListenFilter,
@@ -27,10 +27,16 @@ export function emptyStateCopy({
       hint: "Смените фильтр или откройте другой раздел каталога.",
     };
   }
-  if (selectedFolder) {
+  if (feedFolderFilter.length === 1) {
     return {
       title: "В этой серии пусто",
-      hint: `В разделе «${selectedFolder}» пока нет треков или они не попали в индекс.`,
+      hint: `В разделе «${feedFolderFilter[0]}» пока нет треков или они не попали в индекс.`,
+    };
+  }
+  if (feedFolderFilter.length > 1) {
+    return {
+      title: "В выборке пусто",
+      hint: "Нет треков по выбранным сериям с текущим фильтром прослушивания.",
     };
   }
   if (view === "resume") {

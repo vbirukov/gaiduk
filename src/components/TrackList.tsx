@@ -35,7 +35,11 @@ type Props = {
   user: UserState;
   tracks: Track[];
   view: LibraryView;
-  selectedFolder: string | null;
+  feedFolderFilter: string[];
+  scrollToFolder: string | null;
+  onScrolledToFolder: () => void;
+  onClearFeedFilter: () => void;
+  onFilterOnlyFolder: (folder: string) => void;
   selectedPlaylist: string | null;
   resumeTrack: Track | null;
   catalogLoading: boolean;
@@ -50,13 +54,12 @@ type Props = {
   onToggleLike: TrackCardProps["onToggleLike"];
   onAddToPlaylist: TrackCardProps["onAddToPlaylist"];
   onSelectFolder: TrackCardProps["onSelectFolder"];
-  onClearFolder?: () => void;
   onOpenNav: () => void;
   onFeedLayoutChange: (layout: FeedLayout) => void;
   onFeedListenFilterChange: (filter: FeedListenFilter) => void;
   onShareFolder?: (folder: string) => void;
   renderFolderOffline?: (folder: string) => ReactNode;
-  renderSelectedFolderOffline?: ReactNode;
+  renderSelectionOffline?: ReactNode;
   isTrackOffline?: (trackId: string) => boolean;
   isTrackDownloading?: (trackId: string) => boolean;
   onTrackOfflineAction?: (track: Track) => void;
@@ -70,7 +73,11 @@ export function TrackList({
   user,
   tracks,
   view,
-  selectedFolder,
+  feedFolderFilter,
+  scrollToFolder,
+  onScrolledToFolder,
+  onClearFeedFilter,
+  onFilterOnlyFolder,
   selectedPlaylist,
   resumeTrack,
   catalogLoading,
@@ -85,13 +92,12 @@ export function TrackList({
   onToggleLike,
   onAddToPlaylist,
   onSelectFolder,
-  onClearFolder,
   onOpenNav,
   onFeedLayoutChange,
   onFeedListenFilterChange,
   onShareFolder,
   renderFolderOffline,
-  renderSelectedFolderOffline,
+  renderSelectionOffline,
   isTrackOffline,
   isTrackDownloading,
   onTrackOfflineAction,
@@ -153,6 +159,7 @@ export function TrackList({
   }, []);
   const [scrollToTrackId, setScrollToTrackId] = useState<string | null>(null);
   const clearScrollToTrack = useCallback(() => setScrollToTrackId(null), []);
+  const clearScrollToFolder = onScrolledToFolder;
   const handleContinue = useCallback(
     (track: Track) => {
       onPlayTrack(track);
@@ -170,19 +177,20 @@ export function TrackList({
 
   const empty = emptyStateCopy({
     view,
-    selectedFolder,
+    feedFolderFilter,
     selectedPlaylist,
     playlistName,
     feedListenFilter: user.feedListenFilter,
   });
 
+  const feedFilterActive = feedFolderFilter.length > 0;
   const showListenFilter = view !== "resume";
 
   const showContinueBanner =
-    Boolean(resumeTrack) && view === "all" && !selectedFolder;
+    Boolean(resumeTrack) && view === "all" && !feedFilterActive;
 
-  const showFolderHeaders = !selectedFolder && !user.shuffle;
-  const showFolderNames = user.shuffle && !selectedFolder;
+  const showFolderHeaders = feedFilterActive || !user.shuffle;
+  const showFolderNames = user.shuffle && !feedFilterActive;
 
   return (
     <section className="library-feed">
@@ -234,35 +242,33 @@ export function TrackList({
       ) : null}
       <div
         className={
-          selectedFolder ? "feed-toolbar feed-toolbar--folder" : "feed-toolbar"
+          feedFilterActive ? "feed-toolbar feed-toolbar--folder" : "feed-toolbar"
         }
       >
-        {selectedFolder ? (
+        {feedFilterActive ? (
           <div className="feed-toolbar__lead">
             <div className="feed-toolbar__heading">
-              <h2 className="feed-toolbar__title">{selectedFolder}</h2>
-              {onClearFolder ? (
-                <button
-                  type="button"
-                  className="ghost feed-toolbar__reset"
-                  onClick={onClearFolder}
-                >
-                  Сбросить
-                </button>
-              ) : null}
+              <h2 className="feed-toolbar__title">{sectionTitle}</h2>
+              <button
+                type="button"
+                className="ghost feed-toolbar__reset"
+                onClick={onClearFeedFilter}
+              >
+                Сбросить фильтр
+              </button>
             </div>
             <p className="feed-toolbar__sub mini-text">{sectionSub}</p>
           </div>
         ) : null}
         <div className="feed-toolbar__actions">
-          {selectedFolder && renderSelectedFolderOffline ? (
-            <div className="feed-toolbar__offline">{renderSelectedFolderOffline}</div>
+          {feedFilterActive && renderSelectionOffline ? (
+            <div className="feed-toolbar__offline">{renderSelectionOffline}</div>
           ) : null}
-          {selectedFolder && onShareFolder ? (
+          {feedFilterActive && feedFolderFilter.length === 1 && onShareFolder ? (
             <button
               type="button"
               className="ghost feed-toolbar__share"
-              onClick={() => onShareFolder(selectedFolder)}
+              onClick={() => onShareFolder(feedFolderFilter[0]!)}
             >
               <Icon name="share" size={18} aria-hidden />
               <span>Поделиться альбомом</span>
@@ -288,14 +294,18 @@ export function TrackList({
           onToggleLike={onToggleLike}
           onAddToPlaylist={onAddToPlaylist}
           scrollToTrackId={scrollToTrackId}
+          scrollToFolder={scrollToFolder}
           onScrolledToTrack={clearScrollToTrack}
+          onScrolledToFolder={clearScrollToFolder}
           showFolderHeaders={showFolderHeaders}
           showFolderNames={showFolderNames}
           feedLayout={user.feedLayout ?? "tiles"}
           nextTrackId={nextTrackId}
           onSelectFolder={onSelectFolder}
           onShareFolder={onShareFolder}
-          renderFolderOffline={renderFolderOffline}
+          renderFolderOffline={feedFilterActive ? undefined : renderFolderOffline}
+          feedFolderFilterActive={feedFilterActive}
+          onFilterOnlyFolder={onFilterOnlyFolder}
           isTrackOffline={isTrackOffline}
           isTrackDownloading={isTrackDownloading}
           onTrackOfflineAction={onTrackOfflineAction}
@@ -321,14 +331,18 @@ export function TrackList({
           onToggleLike={onToggleLike}
           onAddToPlaylist={onAddToPlaylist}
           scrollToTrackId={scrollToTrackId}
+          scrollToFolder={scrollToFolder}
           onScrolledToTrack={clearScrollToTrack}
+          onScrolledToFolder={clearScrollToFolder}
           showFolderHeaders={showFolderHeaders}
           showFolderNames={showFolderNames}
           feedLayout={user.feedLayout ?? "tiles"}
           nextTrackId={nextTrackId}
           onSelectFolder={onSelectFolder}
           onShareFolder={onShareFolder}
-          renderFolderOffline={renderFolderOffline}
+          renderFolderOffline={feedFilterActive ? undefined : renderFolderOffline}
+          feedFolderFilterActive={feedFilterActive}
+          onFilterOnlyFolder={onFilterOnlyFolder}
           isTrackOffline={isTrackOffline}
           isTrackDownloading={isTrackDownloading}
           onTrackOfflineAction={onTrackOfflineAction}

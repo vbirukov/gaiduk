@@ -102,6 +102,41 @@ export async function removeTrackOffline(trackId: string): Promise<void> {
   unregisterOfflineTrack(trackId);
 }
 
+export async function downloadSelectionOffline(opts: {
+  folders: string[];
+  tracks: Track[];
+  signal?: AbortSignal;
+  onProgress?: (p: OfflineDownloadProgress) => void;
+}): Promise<void> {
+  const { folders, tracks, signal, onProgress } = opts;
+  const folderSet = new Set(folders);
+  const list = tracks.filter(
+    (t) => folderSet.has(t.folder) && !isStubTrack(t),
+  );
+  const total = list.length;
+  if (!total) return;
+
+  let done = 0;
+  const report = (folder: string, currentTitle?: string) => {
+    onProgress?.({ folder, done, total, currentTitle });
+  };
+
+  report(folders[0] ?? "Выборка");
+
+  for (const track of list) {
+    if (signal?.aborted) throw new DOMException("aborted", "AbortError");
+    report(track.folder, track.title);
+    await downloadTrackOffline(track, signal);
+    done += 1;
+    report(track.folder, track.title);
+  }
+
+  for (const folder of folders) {
+    const ids = list.filter((t) => t.folder === folder).map((t) => t.id);
+    if (ids.length) setOfflineFolder(folder, ids);
+  }
+}
+
 export async function removeFolderOffline(folder: string): Promise<void> {
   const ids = getOfflineTrackIdsInFolder(folder);
   const urls: string[] = [];

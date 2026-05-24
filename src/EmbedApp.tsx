@@ -11,7 +11,7 @@ import { sharePageUrl, resolveSiteOrigin } from "./lib/shareOg";
 
 const catalogFilters = {
   view: "all" as const,
-  selectedFolder: null,
+  feedFolderFilter: [],
   selectedPlaylist: null,
   feedListenFilter: "all" as const,
 };
