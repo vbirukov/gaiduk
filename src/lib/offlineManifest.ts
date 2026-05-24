@@ -1,25 +1,45 @@
 const KEY = "gayduk-offline-manifest-v1";
 
-export type OfflineFolderEntry = {
-  trackIds: string[];
+export type OfflineTrackEntry = {
+  folder: string;
   updatedAt: string;
 };
 
 export type OfflineManifest = {
-  folders: Record<string, OfflineFolderEntry>;
+  tracks: Record<string, OfflineTrackEntry>;
 };
+
+function empty(): OfflineManifest {
+  return { tracks: {} };
+}
+
+function migrate(parsed: unknown): OfflineManifest {
+  if (!parsed || typeof parsed !== "object") return empty();
+  const o = parsed as Record<string, unknown>;
+  if (o.tracks && typeof o.tracks === "object" && !Array.isArray(o.tracks)) {
+    return { tracks: o.tracks as OfflineManifest["tracks"] };
+  }
+  const legacy = o.folders as
+    | Record<string, { trackIds?: string[]; updatedAt?: string }>
+    | undefined;
+  if (!legacy || typeof legacy !== "object") return empty();
+  const tracks: OfflineManifest["tracks"] = {};
+  for (const [folder, entry] of Object.entries(legacy)) {
+    const at = entry?.updatedAt ?? new Date().toISOString();
+    for (const id of entry?.trackIds ?? []) {
+      tracks[id] = { folder, updatedAt: at };
+    }
+  }
+  return { tracks };
+}
 
 function read(): OfflineManifest {
   try {
     const raw = localStorage.getItem(KEY);
-    if (!raw) return { folders: {} };
-    const parsed = JSON.parse(raw) as OfflineManifest;
-    if (!parsed?.folders || typeof parsed.folders !== "object") {
-      return { folders: {} };
-    }
-    return parsed;
+    if (!raw) return empty();
+    return migrate(JSON.parse(raw));
   } catch {
-    return { folders: {} };
+    return empty();
   }
 }
 
@@ -32,31 +52,62 @@ export function getOfflineManifest(): OfflineManifest {
 }
 
 export function getOfflineTrackIdSet(): Set<string> {
-  const ids = new Set<string>();
-  for (const entry of Object.values(read().folders)) {
-    for (const id of entry.trackIds) ids.add(id);
-  }
-  return ids;
+  return new Set(Object.keys(read().tracks));
 }
 
-export function getOfflineFolderEntry(
-  folder: string,
-): OfflineFolderEntry | null {
-  return read().folders[folder] ?? null;
+export function getOfflineTrackEntry(trackId: string): OfflineTrackEntry | null {
+  return read().tracks[trackId] ?? null;
+}
+
+export function registerOfflineTrack(trackId: string, folder: string) {
+  const m = read();
+  m.tracks[trackId] = { folder, updatedAt: new Date().toISOString() };
+  write(m);
+}
+
+export function unregisterOfflineTrack(trackId: string) {
+  const m = read();
+  delete m.tracks[trackId];
+  write(m);
+}
+
+export function getOfflineTrackIdsInFolder(folder: string): string[] {
+  return Object.entries(read().tracks)
+    .filter(([, e]) => e.folder === folder)
+    .map(([id]) => id);
+}
+
+/** @deprecated — для совместимости */
+export function getOfflineFolderEntry(folder: string) {
+  const ids = getOfflineTrackIdsInFolder(folder);
+  if (!ids.length) return null;
+  const updatedAt = ids
+    .map((id) => read().tracks[id]?.updatedAt)
+    .filter(Boolean)
+    .sort()
+    .at(-1);
+  return { trackIds: ids, updatedAt: updatedAt ?? new Date().toISOString() };
 }
 
 export function setOfflineFolder(folder: string, trackIds: string[]) {
   const m = read();
-  m.folders[folder] = {
-    trackIds: [...trackIds],
-    updatedAt: new Date().toISOString(),
-  };
+  const at = new Date().toISOString();
+  for (const id of Object.keys(m.tracks)) {
+    if (m.tracks[id]?.folder === folder && !trackIds.includes(id)) {
+      delete m.tracks[id];
+    }
+  }
+  for (const id of trackIds) {
+    m.tracks[id] = { folder, updatedAt: at };
+  }
   write(m);
 }
 
 export function removeOfflineFolder(folder: string) {
   const m = read();
-  delete m.folders[folder];
+  for (const id of Object.keys(m.tracks)) {
+    if (m.tracks[id]?.folder === folder) delete m.tracks[id];
+  }
   write(m);
 }
 
@@ -64,20 +115,17 @@ export function isFolderMarkedOffline(
   folder: string,
   expectedTrackIds: string[],
 ): boolean {
-  const entry = getOfflineFolderEntry(folder);
-  if (!entry || entry.trackIds.length !== expectedTrackIds.length) return false;
-  const want = new Set(expectedTrackIds);
-  return entry.trackIds.every((id) => want.has(id));
+  if (!expectedTrackIds.length) return false;
+  const have = getOfflineTrackIdSet();
+  return expectedTrackIds.every((id) => have.has(id));
 }
 
 export function offlineFolderProgress(
   folder: string,
   expectedTrackIds: string[],
 ): { downloaded: number; total: number } {
-  const entry = getOfflineFolderEntry(folder);
+  const have = new Set(getOfflineTrackIdsInFolder(folder));
   const total = expectedTrackIds.length;
-  if (!entry) return { downloaded: 0, total };
-  const have = new Set(entry.trackIds);
   const downloaded = expectedTrackIds.filter((id) => have.has(id)).length;
   return { downloaded, total };
 }

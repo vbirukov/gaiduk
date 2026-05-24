@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { Catalog } from "../types/catalog";
+import type { Catalog, Track } from "../types/catalog";
 import { isStubTrack } from "../lib/diskDownload";
 import {
   downloadFolderOffline,
+  downloadTrackOffline,
   removeFolderOffline,
+  removeTrackOffline,
   type OfflineDownloadProgress,
 } from "../lib/offlineDownload";
 import { getOfflineStorageBytes } from "../lib/offlineDb";
@@ -15,9 +17,20 @@ import {
 } from "../lib/offlineManifest";
 import { ymGoal } from "../lib/metrika";
 
-export type OfflineJob = OfflineDownloadProgress & {
+export type OfflineFolderJob = OfflineDownloadProgress & {
   status: "downloading";
+  scope: "folder";
 };
+
+export type OfflineTrackJob = {
+  status: "downloading";
+  scope: "track";
+  trackId: string;
+  title: string;
+  folder: string;
+};
+
+export type OfflineJob = OfflineFolderJob | OfflineTrackJob;
 
 export function useOfflineLibrary(catalog: Catalog) {
   const [revision, setRevision] = useState(0);
@@ -40,10 +53,13 @@ export function useOfflineLibrary(catalog: Catalog) {
     [revision],
   );
 
-  const offlineFolders = useMemo(
-    () => Object.keys(getOfflineManifest().folders),
-    [revision],
-  );
+  const offlineFolders = useMemo(() => {
+    const folders = new Set<string>();
+    for (const entry of Object.values(getOfflineManifest().tracks)) {
+      folders.add(entry.folder);
+    }
+    return [...folders];
+  }, [revision]);
 
   const folderTrackIds = useCallback(
     (folder: string) =>
@@ -69,20 +85,43 @@ export function useOfflineLibrary(catalog: Catalog) {
     [folderTrackIds, revision],
   );
 
+  const isTrackOffline = useCallback(
+    (trackId: string) => offlineTrackIds.has(trackId),
+    [offlineTrackIds],
+  );
+
+  const isTrackDownloading = useCallback(
+    (trackId: string) =>
+      job?.scope === "track" && job.trackId === trackId,
+    [job],
+  );
+
+  const isFolderDownloading = useCallback(
+    (folder: string) => job?.scope === "folder" && job.folder === folder,
+    [job],
+  );
+
   const downloadFolder = useCallback(
     async (folder: string) => {
-      if (job?.folder === folder) return;
+      if (job?.scope === "folder" && job.folder === folder) return;
       abortRef.current?.abort();
       const ctrl = new AbortController();
       abortRef.current = ctrl;
       const tracks = catalog.tracks.filter((t) => t.folder === folder);
-      setJob({ folder, done: 0, total: tracks.length, status: "downloading" });
+      setJob({
+        folder,
+        done: 0,
+        total: tracks.length,
+        status: "downloading",
+        scope: "folder",
+      });
       try {
         await downloadFolderOffline({
           folder,
           tracks,
           signal: ctrl.signal,
-          onProgress: (p) => setJob({ ...p, status: "downloading" }),
+          onProgress: (p) =>
+            setJob({ ...p, status: "downloading", scope: "folder" }),
         });
         ymGoal("offline_folder_saved", {
           folder,
@@ -98,7 +137,37 @@ export function useOfflineLibrary(catalog: Catalog) {
         abortRef.current = null;
       }
     },
-    [catalog.tracks, job?.folder, bump, refreshStorage],
+    [catalog.tracks, job, bump, refreshStorage],
+  );
+
+  const downloadTrack = useCallback(
+    async (track: Track) => {
+      if (isStubTrack(track) || isTrackOffline(track.id)) return;
+      if (job?.scope === "track" && job.trackId === track.id) return;
+      abortRef.current?.abort();
+      const ctrl = new AbortController();
+      abortRef.current = ctrl;
+      setJob({
+        status: "downloading",
+        scope: "track",
+        trackId: track.id,
+        title: track.title,
+        folder: track.folder,
+      });
+      try {
+        await downloadTrackOffline(track, ctrl.signal);
+        ymGoal("offline_track_saved", { track_id: track.id });
+        bump();
+        refreshStorage();
+      } catch (e) {
+        if (e instanceof DOMException && e.name === "AbortError") return;
+        throw e;
+      } finally {
+        setJob(null);
+        abortRef.current = null;
+      }
+    },
+    [isTrackOffline, job, bump, refreshStorage],
   );
 
   const cancelDownload = useCallback(() => {
@@ -118,9 +187,15 @@ export function useOfflineLibrary(catalog: Catalog) {
     [cancelDownload, bump, refreshStorage],
   );
 
-  const isTrackOffline = useCallback(
-    (trackId: string) => offlineTrackIds.has(trackId),
-    [offlineTrackIds],
+  const removeTrack = useCallback(
+    async (trackId: string) => {
+      if (job?.scope === "track" && job.trackId === trackId) cancelDownload();
+      await removeTrackOffline(trackId);
+      ymGoal("offline_track_removed", { track_id: trackId });
+      bump();
+      refreshStorage();
+    },
+    [cancelDownload, job, bump, refreshStorage],
   );
 
   return {
@@ -130,9 +205,13 @@ export function useOfflineLibrary(catalog: Catalog) {
     job,
     isFolderOffline,
     isTrackOffline,
+    isTrackDownloading,
+    isFolderDownloading,
     folderProgress,
     downloadFolder,
+    downloadTrack,
     cancelDownload,
     removeFolder,
+    removeTrack,
   };
 }

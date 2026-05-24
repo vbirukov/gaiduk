@@ -49,6 +49,9 @@ type Props = {
   onSelectFolder?: TrackCardProps["onSelectFolder"];
   onShareFolder?: (folder: string) => void;
   renderFolderOffline?: (folder: string) => ReactNode;
+  isTrackOffline?: (trackId: string) => boolean;
+  isTrackDownloading?: (trackId: string) => boolean;
+  onTrackOfflineAction?: (track: Track) => void;
   scrollToTrackId?: string | null;
   onScrolledToTrack?: () => void;
   showFolderHeaders?: boolean;
@@ -132,6 +135,9 @@ export function VirtualTrackGrid({
   onSelectFolder,
   onShareFolder,
   renderFolderOffline,
+  isTrackOffline,
+  isTrackDownloading,
+  onTrackOfflineAction,
   scrollToTrackId = null,
   onScrolledToTrack,
   showFolderHeaders = false,
@@ -259,6 +265,9 @@ export function VirtualTrackGrid({
         onToggleLike={onToggleLike}
         onAddToPlaylist={onAddToPlaylist}
         onSelectFolder={onSelectFolder}
+        isOffline={isTrackOffline?.(track.id)}
+        isOfflineDownloading={isTrackDownloading?.(track.id)}
+        onOfflineAction={onTrackOfflineAction}
       />
     );
   };

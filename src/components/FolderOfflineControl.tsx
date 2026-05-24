@@ -1,5 +1,7 @@
 import { Icon } from "./icons/Icon";
-import type { OfflineJob } from "../hooks/useOfflineLibrary";
+import type { OfflineFolderJob } from "../hooks/useOfflineLibrary";
+
+type OfflineJob = OfflineFolderJob | null;
 
 type Props = {
   folder: string;
@@ -34,7 +36,7 @@ export function FolderOfflineControl({
       ? "folder-offline folder-offline--inline ghost"
       : "folder-offline folder-offline--stacked nav-item__share--stacked";
 
-  if (isDownloading && job?.folder === folder) {
+  if (isDownloading && job?.scope === "folder" && job.folder === folder) {
     return (
       <button
         type="button"

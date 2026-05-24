@@ -22,6 +22,9 @@ export type TrackCardProps = {
   onToggleLike: (id: string) => void;
   onAddToPlaylist: (playlistId: string, trackId: string) => void;
   onSelectFolder?: (folder: string) => void;
+  isOffline?: boolean;
+  isOfflineDownloading?: boolean;
+  onOfflineAction?: (track: Track) => void;
 };
 
 function CardFolderLink({
@@ -65,6 +68,9 @@ function TrackCardInner({
   onToggleLike,
   onAddToPlaylist,
   onSelectFolder,
+  isOffline = false,
+  isOfflineDownloading = false,
+  onOfflineAction,
 }: TrackCardProps) {
   const status = listenStatus(progress);
   const [mobileTapPlay, setMobileTapPlay] = useState(
@@ -83,12 +89,16 @@ function TrackCardInner({
 
   const isRow = layout === "rows";
 
+  const stub = isStubTrack(track);
+  const showOffline = Boolean(onOfflineAction) && !stub;
+
   const cardClass = [
     "card",
     isRow && "card--row",
     `card-status-${status}`,
     isActive && "is-active",
     isActive && isPlaying && "is-playing",
+    isOffline && "is-offline",
   ]
     .filter(Boolean)
     .join(" ");
@@ -139,7 +149,16 @@ function TrackCardInner({
     return null;
   };
 
-  const playLabel = isStubTrack(track)
+  const offlinePill = isOffline ? (
+    <span
+      className="pill pill--offline"
+      title="Скачано · доступно без сети"
+    >
+      Офлайн
+    </span>
+  ) : null;
+
+  const playLabel = stub
     ? "Подготовлено"
     : isActive && isPlaying
       ? "Пауза"
@@ -170,6 +189,37 @@ function TrackCardInner({
     <div className="card-actions row-actions wrap">
       {isRow ? progressBadge : null}
       <div className="card-social row-actions">
+        {showOffline ? (
+          <button
+            type="button"
+            className={`ghost round card-offline-btn${isOffline ? " is-saved" : ""}`}
+            disabled={isOfflineDownloading}
+            onClick={(e) => {
+              e.stopPropagation();
+              onOfflineAction?.(track);
+            }}
+            aria-label={
+              isOfflineDownloading
+                ? "Скачивание…"
+                : isOffline
+                  ? "Удалить офлайн-копию"
+                  : "Скачать для офлайн"
+            }
+            title={
+              isOfflineDownloading
+                ? "Скачивание…"
+                : isOffline
+                  ? "На устройстве · нажми, чтобы удалить"
+                  : "Скачать на устройство"
+            }
+          >
+            {isOfflineDownloading ? (
+              <Icon name="loader" size={20} className="icon-spin" />
+            ) : (
+              <Icon name={isOffline ? "check" : "download"} size={20} />
+            )}
+          </button>
+        ) : null}
         <button
           type="button"
           className={`ghost round${liked ? " active" : ""}`}
@@ -209,6 +259,7 @@ function TrackCardInner({
         <div className="card-title-line">
           <h4 className="card-title">{track.title}</h4>
           {statusBadge}
+          {offlinePill}
           {folderAfterTitle ? (
             <CardFolderLink
               folder={track.folder}
@@ -228,6 +279,7 @@ function TrackCardInner({
               />
             ) : null}
             {statusBadge}
+            {offlinePill}
           </div>
           <h4 className="card-title">{track.title}</h4>
         </>
@@ -280,12 +332,15 @@ export const TrackCard = memo(TrackCardInner, (prev, next) => {
   if (prev.isActive !== next.isActive) return false;
   if (prev.isPlaying !== next.isPlaying) return false;
   if (prev.liked !== next.liked) return false;
+  if (prev.isOffline !== next.isOffline) return false;
+  if (prev.isOfflineDownloading !== next.isOfflineDownloading) return false;
   if (!progressEqual(prev.progress, next.progress)) return false;
   if (prev.playlistButtons !== next.playlistButtons) return false;
   return (
     prev.onPlayTrack === next.onPlayTrack &&
     prev.onToggleLike === next.onToggleLike &&
     prev.onAddToPlaylist === next.onAddToPlaylist &&
-    prev.onSelectFolder === next.onSelectFolder
+    prev.onSelectFolder === next.onSelectFolder &&
+    prev.onOfflineAction === next.onOfflineAction
   );
 });

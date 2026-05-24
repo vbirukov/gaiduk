@@ -3,9 +3,11 @@ import { fetchDiskDownloadHref, isStubTrack, playbackSrc } from "./diskDownload"
 import { mediaUrlForPath, useServerMedia } from "./mediaUrl";
 import { deleteOfflineTracks, getOfflineTrack, putOfflineTrack } from "./offlineDb";
 import {
-  getOfflineFolderEntry,
+  getOfflineTrackIdsInFolder,
+  registerOfflineTrack,
   removeOfflineFolder,
   setOfflineFolder,
+  unregisterOfflineTrack,
 } from "./offlineManifest";
 import { cacheAudioFetchUrl, deleteCachedAudioUrls } from "./offlineSwCache";
 
@@ -29,6 +31,37 @@ export async function resolveTrackFetchUrl(track: Track): Promise<string> {
   return playbackSrc(href);
 }
 
+async function fetchTrackBlob(
+  track: Track,
+  signal?: AbortSignal,
+): Promise<{ blob: Blob; fetchUrl: string }> {
+  const fetchUrl = await resolveTrackFetchUrl(track);
+  if (signal?.aborted) throw new DOMException("aborted", "AbortError");
+  const res = await fetch(fetchUrl, { signal });
+  if (!res.ok) throw new Error(`audio ${res.status}: ${track.title}`);
+  await cacheAudioFetchUrl(fetchUrl, res);
+  const blob = await res.blob();
+  if (!blob.size) throw new Error(`empty: ${track.title}`);
+  return { blob, fetchUrl };
+}
+
+export async function downloadTrackOffline(
+  track: Track,
+  signal?: AbortSignal,
+): Promise<void> {
+  if (isStubTrack(track)) throw new Error("stub");
+  const { blob, fetchUrl } = await fetchTrackBlob(track, signal);
+  await putOfflineTrack({
+    trackId: track.id,
+    folder: track.folder,
+    blob,
+    playbackUrl: fetchUrl,
+    savedAt: new Date().toISOString(),
+    bytes: blob.size,
+  });
+  registerOfflineTrack(track.id, track.folder);
+}
+
 export async function downloadFolderOffline(opts: {
   folder: string;
   tracks: Track[];
@@ -41,7 +74,6 @@ export async function downloadFolderOffline(opts: {
   if (!total) return;
 
   const savedIds: string[] = [];
-  const cachedUrls: string[] = [];
 
   const report = (done: number, currentTitle?: string) => {
     onProgress?.({ folder, done, total, currentTitle });
@@ -53,30 +85,8 @@ export async function downloadFolderOffline(opts: {
     if (signal?.aborted) throw new DOMException("aborted", "AbortError");
     const track = list[i]!;
     report(i, track.title);
-
-    const fetchUrl = await resolveTrackFetchUrl(track);
-    if (signal?.aborted) throw new DOMException("aborted", "AbortError");
-
-    const res = await fetch(fetchUrl, { signal });
-    if (!res.ok) throw new Error(`audio ${res.status}: ${track.title}`);
-
-    await cacheAudioFetchUrl(fetchUrl, res);
-    cachedUrls.push(fetchUrl);
-
-    const blob = await res.blob();
-    if (!blob.size) throw new Error(`empty: ${track.title}`);
-
-    await putOfflineTrack({
-      trackId: track.id,
-      folder,
-      blob,
-      playbackUrl: fetchUrl,
-      savedAt: new Date().toISOString(),
-      bytes: blob.size,
-    });
-
+    await downloadTrackOffline(track, signal);
     savedIds.push(track.id);
-    setOfflineFolder(folder, savedIds);
     report(i + 1, track.title);
   }
 
@@ -84,15 +94,20 @@ export async function downloadFolderOffline(opts: {
   report(total);
 }
 
+export async function removeTrackOffline(trackId: string): Promise<void> {
+  const row = await getOfflineTrack(trackId);
+  const urls = row?.playbackUrl ? [row.playbackUrl] : [];
+  await deleteOfflineTracks([trackId]);
+  await deleteCachedAudioUrls(urls);
+  unregisterOfflineTrack(trackId);
+}
+
 export async function removeFolderOffline(folder: string): Promise<void> {
-  const entry = getOfflineFolderEntry(folder);
-  const ids = entry?.trackIds ?? [];
+  const ids = getOfflineTrackIdsInFolder(folder);
   const urls: string[] = [];
-  if (entry) {
-    for (const id of ids) {
-      const row = await getOfflineTrack(id);
-      if (row?.playbackUrl) urls.push(row.playbackUrl);
-    }
+  for (const id of ids) {
+    const row = await getOfflineTrack(id);
+    if (row?.playbackUrl) urls.push(row.playbackUrl);
   }
   await deleteOfflineTracks(ids);
   await deleteCachedAudioUrls(urls);

@@ -57,6 +57,9 @@ type Props = {
   onShareFolder?: (folder: string) => void;
   renderFolderOffline?: (folder: string) => ReactNode;
   renderSelectedFolderOffline?: ReactNode;
+  isTrackOffline?: (trackId: string) => boolean;
+  isTrackDownloading?: (trackId: string) => boolean;
+  onTrackOfflineAction?: (track: Track) => void;
   nextTrackId: string | null;
   isJaipur: boolean;
   isRastamanLight: boolean;
@@ -89,6 +92,9 @@ export function TrackList({
   onShareFolder,
   renderFolderOffline,
   renderSelectedFolderOffline,
+  isTrackOffline,
+  isTrackDownloading,
+  onTrackOfflineAction,
   nextTrackId,
   isJaipur,
   isRastamanLight,
@@ -290,6 +296,9 @@ export function TrackList({
           onSelectFolder={onSelectFolder}
           onShareFolder={onShareFolder}
           renderFolderOffline={renderFolderOffline}
+          isTrackOffline={isTrackOffline}
+          isTrackDownloading={isTrackDownloading}
+          onTrackOfflineAction={onTrackOfflineAction}
         />
       ) : tracks.length === 0 ? (
         <section className="cards">
@@ -320,6 +329,9 @@ export function TrackList({
           onSelectFolder={onSelectFolder}
           onShareFolder={onShareFolder}
           renderFolderOffline={renderFolderOffline}
+          isTrackOffline={isTrackOffline}
+          isTrackDownloading={isTrackDownloading}
+          onTrackOfflineAction={onTrackOfflineAction}
         />
       )}
       </div>

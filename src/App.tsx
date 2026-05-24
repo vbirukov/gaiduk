@@ -120,9 +120,9 @@ export function App() {
         folder={folder}
         layout="stacked"
         isOffline={offline.isFolderOffline(folder)}
-        isDownloading={offline.job?.folder === folder}
+        isDownloading={offline.isFolderDownloading(folder)}
         progress={offline.folderProgress(folder)}
-        job={offline.job}
+        job={offline.job?.scope === "folder" ? offline.job : null}
         onDownload={() => runDownloadFolder(folder)}
         onCancel={offline.cancelDownload}
         onRemove={() => runRemoveFolderOffline(folder)}
@@ -131,15 +131,35 @@ export function App() {
     [offline, runDownloadFolder, runRemoveFolderOffline],
   );
 
+  const handleTrackOfflineAction = useCallback(
+    (track: Track) => {
+      if (offline.isTrackOffline(track.id)) {
+        void offline.removeTrack(track.id).then(() => {
+          pushToast(`«${track.title}» удалена с устройства`);
+        });
+        return;
+      }
+      void offline
+        .downloadTrack(track)
+        .then(() => pushToast(`«${track.title}» доступна офлайн`))
+        .catch((e) => {
+          pushToast(
+            e instanceof Error ? e.message : "Не удалось скачать сказку",
+          );
+        });
+    },
+    [offline, pushToast],
+  );
+
   const renderFolderOfflineInline = useCallback(
     (folder: string) => (
       <FolderOfflineControl
         folder={folder}
         layout="inline"
         isOffline={offline.isFolderOffline(folder)}
-        isDownloading={offline.job?.folder === folder}
+        isDownloading={offline.isFolderDownloading(folder)}
         progress={offline.folderProgress(folder)}
-        job={offline.job}
+        job={offline.job?.scope === "folder" ? offline.job : null}
         onDownload={() => runDownloadFolder(folder)}
         onCancel={offline.cancelDownload}
         onRemove={() => runRemoveFolderOffline(folder)}
@@ -473,6 +493,9 @@ export function App() {
                 ? renderFolderOfflineInline(selectedFolder)
                 : undefined
             }
+            isTrackOffline={offline.isTrackOffline}
+            isTrackDownloading={offline.isTrackDownloading}
+            onTrackOfflineAction={handleTrackOfflineAction}
             nextTrackId={nextTrackId(player.currentTrackId)}
           />
         </main>
