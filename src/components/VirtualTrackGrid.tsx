@@ -4,6 +4,7 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type ReactNode,
   type RefObject,
 } from "react";
 import {
@@ -47,6 +48,7 @@ type Props = {
   onAddToPlaylist: TrackCardProps["onAddToPlaylist"];
   onSelectFolder?: TrackCardProps["onSelectFolder"];
   onShareFolder?: (folder: string) => void;
+  renderFolderOffline?: (folder: string) => ReactNode;
   scrollToTrackId?: string | null;
   onScrolledToTrack?: () => void;
   showFolderHeaders?: boolean;
@@ -129,6 +131,7 @@ export function VirtualTrackGrid({
   onAddToPlaylist,
   onSelectFolder,
   onShareFolder,
+  renderFolderOffline,
   scrollToTrackId = null,
   onScrolledToTrack,
   showFolderHeaders = false,
@@ -304,6 +307,9 @@ export function VirtualTrackGrid({
             >
               <CatalogFolderHeading
                 folder={group.folder}
+                offlineActions={
+                  renderFolderOffline?.(group.folder) ?? undefined
+                }
                 onShare={
                   onShareFolder
                     ? () => onShareFolder(group.folder)
@@ -361,6 +367,9 @@ export function VirtualTrackGrid({
               {layoutRow.kind === "header" ? (
                 <CatalogFolderHeading
                   folder={layoutRow.folder}
+                  offlineActions={
+                    renderFolderOffline?.(layoutRow.folder) ?? undefined
+                  }
                   onShare={
                     onShareFolder
                       ? () => onShareFolder(layoutRow.folder)

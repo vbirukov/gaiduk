@@ -1,4 +1,6 @@
 import { playbackSrc } from "./diskDownload";
+import { getOfflineTrack } from "./offlineDb";
+import { getOfflineTrackIdSet } from "./offlineManifest";
 
 const blobUrlByTrackId = new Map<string, string>();
 const inflightByTrackId = new Map<string, Promise<string>>();
@@ -10,16 +12,38 @@ function touchCache(trackId: string) {
   const i = cacheOrder.indexOf(trackId);
   if (i >= 0) cacheOrder.splice(i, 1);
   cacheOrder.push(trackId);
+  const pinned = getOfflineTrackIdSet();
   while (cacheOrder.length > MAX_CACHED_TRACKS) {
-    const evict = cacheOrder.shift();
+    const evict = cacheOrder.find((id) => !pinned.has(id));
     if (!evict) break;
+    const idx = cacheOrder.indexOf(evict);
+    if (idx >= 0) cacheOrder.splice(idx, 1);
     abortByTrackId.get(evict)?.abort();
     abortByTrackId.delete(evict);
     inflightByTrackId.delete(evict);
     const url = blobUrlByTrackId.get(evict);
     if (url) URL.revokeObjectURL(url);
     blobUrlByTrackId.delete(evict);
+    continue;
   }
+}
+
+/** Постоянный офлайн-кэш (IndexedDB) → blob URL. */
+export async function resolveOfflinePlaybackUrl(
+  trackId: string,
+): Promise<string | null> {
+  const mem = blobUrlByTrackId.get(trackId);
+  if (mem) return mem;
+  const row = await getOfflineTrack(trackId);
+  if (!row?.blob?.size) return null;
+  const objectUrl = URL.createObjectURL(row.blob);
+  blobUrlByTrackId.set(trackId, objectUrl);
+  touchCache(trackId);
+  return objectUrl;
+}
+
+export function isOfflinePinnedTrack(trackId: string): boolean {
+  return getOfflineTrackIdSet().has(trackId);
 }
 
 /** Сбросить фоновые загрузки blob (не трогает уже готовый кэш). */

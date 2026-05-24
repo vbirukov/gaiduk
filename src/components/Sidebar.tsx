@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, type ReactNode } from "react";
 import type { AppSkin } from "../themes";
 import { BrandLogo } from "./BrandLogo";
 import { Icon } from "./icons/Icon";
@@ -24,6 +24,8 @@ type Props = {
   onOpenPlaylistModal: () => void;
   onDeletePlaylist: (playlistId: string) => void;
   onShareFolder: (folder: string) => void;
+  renderFolderOffline?: (folder: string) => ReactNode;
+  offlineSummary?: ReactNode;
 };
 
 export function Sidebar({
@@ -43,6 +45,8 @@ export function Sidebar({
   onOpenPlaylistModal,
   onDeletePlaylist,
   onShareFolder,
+  renderFolderOffline,
+  offlineSummary,
 }: Props) {
   const likeCount = Object.keys(user.likes).length;
   const extraViews = [
@@ -104,6 +108,12 @@ export function Sidebar({
             </button>
           ))}
         </section>
+        {offlineSummary ? (
+          <section className="side-section">
+            <h2>Офлайн</h2>
+            {offlineSummary}
+          </section>
+        ) : null}
         <section className="side-section">
           <h2>Коллекция</h2>
           <div className="side-list">
@@ -126,6 +136,7 @@ export function Sidebar({
                     {folderTrackCounts.get(folder) ?? 0} сказок
                   </span>
                 </button>
+                {renderFolderOffline?.(folder)}
                 <button
                   type="button"
                   className="nav-item__share nav-item__share--stacked"

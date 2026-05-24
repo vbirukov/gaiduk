@@ -16,6 +16,7 @@ import {
   getCachedPlaybackUrl,
   peekCachedPlaybackUrl,
   prefetchPlayback,
+  resolveOfflinePlaybackUrl,
   streamPlaybackUrl,
 } from "../lib/audioCache";
 import { fetchDiskDownloadHref, isStubTrack } from "../lib/diskDownload";
@@ -264,10 +265,12 @@ export function useAudioPlayer({
   }, [currentTrackId, currentTrack?.url]);
 
   const assignPlaybackSource = useCallback(
-    (audio: HTMLAudioElement, trackId: string, href: string) => {
+    async (audio: HTMLAudioElement, trackId: string, href: string) => {
       activePlaybackTrackRef.current = trackId;
+      const offline = await resolveOfflinePlaybackUrl(trackId);
       const cached = peekCachedPlaybackUrl(trackId);
       const url =
+        offline ??
         cached ??
         (href && !isYandexDiskDownloadUrl(href)
           ? href
@@ -344,7 +347,7 @@ export function useAudioPlayer({
           void getCachedPlaybackUrl(track.id, url).catch(() => {});
         }
 
-        assignPlaybackSource(audio, track.id, url);
+        await assignPlaybackSource(audio, track.id, url);
         playbackIntentRef.current = true;
         await waitForLoadedMetadata(audio);
         if (stale()) return;

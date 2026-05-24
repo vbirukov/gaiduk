@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAppTheme } from "./hooks/useAppTheme";
 import type { Track } from "./types/catalog";
 import { MainHeader } from "./components/MainHeader";
@@ -30,6 +30,9 @@ import { clearAppEntryParams, parseAppEntryParams } from "./lib/shareNavigation"
 import { preloadThemeImages } from "./lib/preloadThemeAssets";
 import { registerAppSW } from "./pwa/register";
 import type { LibraryView } from "./types/user";
+import { useOfflineLibrary } from "./hooks/useOfflineLibrary";
+import { FolderOfflineControl } from "./components/FolderOfflineControl";
+import { formatStorageBytes } from "./lib/formatStorage";
 
 export function App() {
   const { toasts, push: pushToast, dismiss: dismissToast } = useToasts();
@@ -85,6 +88,87 @@ export function App() {
   });
 
   const entryLinkHandled = useRef(false);
+
+  const offline = useOfflineLibrary(catalog);
+
+  const runDownloadFolder = useCallback(
+    (folder: string) => {
+      void offline
+        .downloadFolder(folder)
+        .then(() => pushToast(`«${folder}» доступна офлайн`))
+        .catch((e) => {
+          pushToast(
+            e instanceof Error ? e.message : "Не удалось скачать серию",
+          );
+        });
+    },
+    [offline.downloadFolder, pushToast],
+  );
+
+  const runRemoveFolderOffline = useCallback(
+    (folder: string) => {
+      void offline.removeFolder(folder).catch(() => {
+        pushToast("Не удалось удалить офлайн-копию");
+      });
+    },
+    [offline.removeFolder, pushToast],
+  );
+
+  const renderFolderOffline = useCallback(
+    (folder: string) => (
+      <FolderOfflineControl
+        folder={folder}
+        layout="stacked"
+        isOffline={offline.isFolderOffline(folder)}
+        isDownloading={offline.job?.folder === folder}
+        progress={offline.folderProgress(folder)}
+        job={offline.job}
+        onDownload={() => runDownloadFolder(folder)}
+        onCancel={offline.cancelDownload}
+        onRemove={() => runRemoveFolderOffline(folder)}
+      />
+    ),
+    [offline, runDownloadFolder, runRemoveFolderOffline],
+  );
+
+  const renderFolderOfflineInline = useCallback(
+    (folder: string) => (
+      <FolderOfflineControl
+        folder={folder}
+        layout="inline"
+        isOffline={offline.isFolderOffline(folder)}
+        isDownloading={offline.job?.folder === folder}
+        progress={offline.folderProgress(folder)}
+        job={offline.job}
+        onDownload={() => runDownloadFolder(folder)}
+        onCancel={offline.cancelDownload}
+        onRemove={() => runRemoveFolderOffline(folder)}
+      />
+    ),
+    [offline, runDownloadFolder, runRemoveFolderOffline],
+  );
+
+  const offlineSidebarSummary = useMemo(() => {
+    if (!offline.offlineFolders.length && !offline.storageBytes) return null;
+    return (
+      <>
+        <p className="side-offline-summary">
+          {offline.offlineFolders.length
+            ? `${offline.offlineFolders.length} серий · `
+            : ""}
+          {formatStorageBytes(offline.storageBytes)} на устройстве
+        </p>
+        <div className="side-offline-list">
+          {offline.offlineFolders.map((folder) => (
+            <div key={folder} className="side-offline-item">
+              <span className="side-offline-item__label">{folder}</span>
+              {renderFolderOffline(folder)}
+            </div>
+          ))}
+        </div>
+      </>
+    );
+  }, [offline.offlineFolders, offline.storageBytes, renderFolderOffline]);
 
   const player = useAudioPlayer({
     catalog,
@@ -309,6 +393,8 @@ export function App() {
             }
           }}
           onShareFolder={handleShareFolder}
+          renderFolderOffline={renderFolderOffline}
+          offlineSummary={offlineSidebarSummary}
         />
         <main className="main">
           {swNeedRefresh ? (
@@ -381,6 +467,12 @@ export function App() {
             onSelectFolder={handleSelectFolder}
             onClearFolder={handleClearFolder}
             onShareFolder={handleShareFolder}
+            renderFolderOffline={renderFolderOfflineInline}
+            renderSelectedFolderOffline={
+              selectedFolder
+                ? renderFolderOfflineInline(selectedFolder)
+                : undefined
+            }
             nextTrackId={nextTrackId(player.currentTrackId)}
           />
         </main>

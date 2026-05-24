@@ -15,6 +15,8 @@
 | `like_toggle` | Лайк вкл/выкл (liked: 0/1) |
 | `track_share` | Поделиться сказкой (Web Share) |
 | `track_embed_copy` | Скопировать код iframe для встраивания |
+| `offline_folder_saved` | Серия скачана для офлайн |
+| `offline_folder_removed` | Офлайн-копия серии удалена |
 | `catalog_share` | Поделиться каталогом |
 | `album_share` | Поделиться альбомом (папкой) |
 

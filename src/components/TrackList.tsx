@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { SPLASH_SEEN_KEY } from "../config";
 import { useHeroCollapsed } from "../hooks/useHeroCollapsed";
 import { emptyStateCopy } from "../lib/emptyState";
@@ -48,6 +55,8 @@ type Props = {
   onFeedLayoutChange: (layout: FeedLayout) => void;
   onFeedListenFilterChange: (filter: FeedListenFilter) => void;
   onShareFolder?: (folder: string) => void;
+  renderFolderOffline?: (folder: string) => ReactNode;
+  renderSelectedFolderOffline?: ReactNode;
   nextTrackId: string | null;
   isJaipur: boolean;
   isRastamanLight: boolean;
@@ -78,6 +87,8 @@ export function TrackList({
   onFeedLayoutChange,
   onFeedListenFilterChange,
   onShareFolder,
+  renderFolderOffline,
+  renderSelectedFolderOffline,
   nextTrackId,
   isJaipur,
   isRastamanLight,
@@ -238,6 +249,9 @@ export function TrackList({
           </div>
         ) : null}
         <div className="feed-toolbar__actions">
+          {selectedFolder && renderSelectedFolderOffline ? (
+            <div className="feed-toolbar__offline">{renderSelectedFolderOffline}</div>
+          ) : null}
           {selectedFolder && onShareFolder ? (
             <button
               type="button"
@@ -275,6 +289,7 @@ export function TrackList({
           nextTrackId={nextTrackId}
           onSelectFolder={onSelectFolder}
           onShareFolder={onShareFolder}
+          renderFolderOffline={renderFolderOffline}
         />
       ) : tracks.length === 0 ? (
         <section className="cards">
@@ -304,6 +319,7 @@ export function TrackList({
           nextTrackId={nextTrackId}
           onSelectFolder={onSelectFolder}
           onShareFolder={onShareFolder}
+          renderFolderOffline={renderFolderOffline}
         />
       )}
       </div>
