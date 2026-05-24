@@ -15,6 +15,8 @@ type Props = {
   onNext: () => void;
   onShare?: () => void;
   shareDisabled?: boolean;
+  onEmbedCopy?: () => void;
+  embedDisabled?: boolean;
   onCollapsePlayer?: () => void;
   showCollapsePlayer?: boolean;
   size?: "md" | "lg";
@@ -33,6 +35,8 @@ export function PlayerTransport({
   onNext,
   onShare,
   shareDisabled = false,
+  onEmbedCopy,
+  embedDisabled = false,
   onCollapsePlayer,
   showCollapsePlayer = false,
   size = "md",
@@ -93,6 +97,18 @@ export function PlayerTransport({
           title="Поделиться ссылкой"
         >
           <Icon name="share" size={icon} />
+        </IconButton>
+      ) : null}
+      {onEmbedCopy ? (
+        <IconButton
+          className="btn-embed"
+          size={btnSize}
+          disabled={embedDisabled}
+          onClick={onEmbedCopy}
+          aria-label="Скопировать код встраивания"
+          title="Код iframe для VK и сайтов"
+        >
+          <Icon name="code" size={icon} />
         </IconButton>
       ) : null}
       {showCollapsePlayer && onCollapsePlayer ? (

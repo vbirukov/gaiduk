@@ -5,7 +5,7 @@ import type { UserState } from "../types/user";
 import { Icon } from "./icons/Icon";
 import { IconButton } from "./IconButton";
 import { ymGoal } from "../lib/metrika";
-import { shareTrack } from "../lib/shareTrack";
+import { copyTrackEmbedCode, shareTrack } from "../lib/shareTrack";
 import { NowPlayingSheet } from "./NowPlayingSheet";
 import { PlayerTimeline } from "./PlayerTimeline";
 import { PlayerTransport } from "./PlayerTransport";
@@ -82,15 +82,32 @@ export function PlayerBar({
   const liked = currentTrackId ? isLiked(currentTrackId) : false;
   const showCollapse = Boolean(currentTrackId) && !barCollapsed;
 
+  const currentPositionSec = () => {
+    const pos = audioRef.current?.currentTime;
+    return Number.isFinite(pos) ? pos : undefined;
+  };
+
   const handleShare = () => {
     if (!currentTrack) return;
-    const pos = audioRef.current?.currentTime;
     void shareTrack({
       track: currentTrack,
-      positionSec: Number.isFinite(pos) ? pos : undefined,
+      positionSec: currentPositionSec(),
     }).then((r) => {
       if (r === "copied") onShareToast("Ссылка скопирована");
       if (r === "shared") ymGoal("track_share", { track_id: currentTrack.id });
+    });
+  };
+
+  const handleEmbedCopy = () => {
+    if (!currentTrack) return;
+    void copyTrackEmbedCode({
+      track: currentTrack,
+      positionSec: currentPositionSec(),
+    }).then((r) => {
+      if (r === "copied") {
+        onShareToast("Код iframe скопирован");
+        ymGoal("track_embed_copy", { track_id: currentTrack.id });
+      }
     });
   };
 
@@ -168,6 +185,8 @@ export function PlayerBar({
                   onNext={onNext}
                   onShare={handleShare}
                   shareDisabled={!currentTrack}
+                  onEmbedCopy={handleEmbedCopy}
+                  embedDisabled={!currentTrack}
                   showCollapsePlayer={showCollapse}
                   onCollapsePlayer={() => setBarCollapsed(true)}
                 />
@@ -257,6 +276,10 @@ export function PlayerBar({
             onNext={onNext}
             onTogglePlay={onTogglePlay}
             onSeek={onSeek}
+            onShare={handleShare}
+            shareDisabled={!currentTrack}
+            onEmbedCopy={handleEmbedCopy}
+            embedDisabled={!currentTrack}
           />
         </>
       ) : null}

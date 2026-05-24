@@ -40,8 +40,12 @@ export function embedPageUrl(
   return url.href;
 }
 
-export function embedIframeHtml(trackId: string, origin?: string): string {
-  const src = embedPageUrl(trackId, origin).replace(/"/g, "&quot;");
+export function embedIframeHtml(
+  trackId: string,
+  origin?: string,
+  startAtSec?: number,
+): string {
+  const src = embedPageUrl(trackId, origin, startAtSec).replace(/"/g, "&quot;");
   return `<iframe src="${src}" width="${EMBED_WIDTH}" height="${EMBED_HEIGHT}" frameborder="0" scrolling="no" allow="autoplay; encrypted-media" style="border:0;border-radius:16px;overflow:hidden;max-width:100%;"></iframe>`;
 }
 

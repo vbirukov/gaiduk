@@ -26,6 +26,10 @@ type Props = {
   onNext: () => void;
   onTogglePlay: () => void;
   onSeek: (value: number) => void;
+  onShare?: () => void;
+  shareDisabled?: boolean;
+  onEmbedCopy?: () => void;
+  embedDisabled?: boolean;
 };
 
 export function NowPlayingSheet({
@@ -47,6 +51,10 @@ export function NowPlayingSheet({
   onNext,
   onTogglePlay,
   onSeek,
+  onShare,
+  shareDisabled = false,
+  onEmbedCopy,
+  embedDisabled = false,
 }: Props) {
   useEffect(() => {
     if (!open) return;
@@ -105,6 +113,10 @@ export function NowPlayingSheet({
           onPrev={onPrev}
           onTogglePlay={onTogglePlay}
           onNext={onNext}
+          onShare={onShare}
+          shareDisabled={shareDisabled}
+          onEmbedCopy={onEmbedCopy}
+          embedDisabled={embedDisabled}
           size="lg"
         />
         <div className="now-playing-actions row-actions">

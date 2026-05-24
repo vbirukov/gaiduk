@@ -20,6 +20,7 @@ export type IconName =
   | "star-outline"
   | "wake"
   | "share"
+  | "code"
   | "music"
   | "check"
   | "chevron-up"
@@ -139,6 +140,12 @@ const paths: Record<IconName, ReactNode> = {
       <path d="M12 3v10" />
       <path d="M7 8l5-5 5 5" />
       <path d="M5 13H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-1" />
+    </>
+  ),
+  code: (
+    <>
+      <path d="M16 18 22 12 16 6" />
+      <path d="M8 6 2 12 8 18" />
     </>
   ),
   music: (

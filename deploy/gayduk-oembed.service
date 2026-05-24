@@ -1,0 +1,19 @@
+[Unit]
+Description=Haiduk oEmbed API (VK embed)
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/gayduk-oembed
+Environment=OEMBED_PORT=8789
+Environment=HOST=127.0.0.1
+Environment=MEDIA_ROOT=/var/media
+Environment=VITE_SITE_ORIGIN=https://xn--80afepl7c.xn--p1ai
+ExecStart=/usr/bin/node /opt/gayduk-oembed/oembed-server.mjs
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

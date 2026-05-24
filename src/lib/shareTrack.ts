@@ -48,8 +48,15 @@ export function clearTrackShareParams() {
   );
 }
 
-export async function copyTrackEmbedCode(track: Track): Promise<ShareLinkResult> {
-  const html = embedIframeHtml(track.id);
+export async function copyTrackEmbedCode(opts: {
+  track: Track;
+  positionSec?: number;
+}): Promise<ShareLinkResult> {
+  const pos =
+    opts.positionSec != null && Number.isFinite(opts.positionSec)
+      ? opts.positionSec
+      : undefined;
+  const html = embedIframeHtml(opts.track.id, undefined, pos);
   try {
     await navigator.clipboard.writeText(html);
     return "copied";

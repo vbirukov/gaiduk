@@ -65,6 +65,8 @@ const host = cfg.DEPLOY_HOST?.trim();
 const webRoot = (cfg.DEPLOY_WEB_ROOT || "/var/www/gayduk").replace(/\/$/, "");
 const proxyDir = cfg.DEPLOY_PROXY_DIR?.trim();
 const proxyService = cfg.DEPLOY_PROXY_SERVICE?.trim();
+const oembedDir = (cfg.DEPLOY_OEMBED_DIR || "/opt/gayduk-oembed").trim();
+const oembedService = (cfg.DEPLOY_OEMBED_SERVICE || "gayduk-oembed").trim();
 const preferRsync = cfg.DEPLOY_RSYNC !== "0";
 const args = new Set(process.argv.slice(2));
 const skipBuild = args.has("--skip-build");
@@ -125,6 +127,27 @@ if (!webOnly && proxyDir) {
   if (proxyService) {
     ssh(host, `sudo systemctl restart ${proxyService}`);
   }
+}
+
+if (!webOnly) {
+  const stagingDir = "~/deploy-staging/oembed";
+  ssh(host, `mkdir -p ${stagingDir}/scripts`);
+  run("scp oembed-server", "scp", [
+    join(root, "oembed-server.mjs"),
+    `${host}:${stagingDir}/oembed-server.mjs`,
+  ]);
+  run("scp oembed-core", "scp", [
+    join(root, "scripts/oembed-core.mjs"),
+    `${host}:${stagingDir}/scripts/oembed-core.mjs`,
+  ]);
+  ssh(
+    host,
+    `sudo mkdir -p ${oembedDir}/scripts && sudo install -m 644 -o root -g root ${stagingDir}/oembed-server.mjs ${oembedDir}/oembed-server.mjs && sudo install -m 644 -o root -g root ${stagingDir}/scripts/oembed-core.mjs ${oembedDir}/scripts/oembed-core.mjs`,
+  );
+  ssh(
+    host,
+    `systemctl is-active --quiet ${oembedService} 2>/dev/null && sudo systemctl restart ${oembedService} || true`,
+  );
 }
 
 console.error("\n✓ deploy ok");
