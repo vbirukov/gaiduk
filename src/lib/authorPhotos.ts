@@ -1,19 +1,25 @@
-const authorPhotoModules = import.meta.glob(
-  "../public/gaiduk/*.{jpg,jpeg,webp,png,JPG,JPEG,WEBP,PNG}",
-  { eager: true },
-);
+/** Файлы в public/gaiduk — glob по public в Vite не работает. */
+const AUTHOR_PHOTO_FILES = [
+  "gaiduk1.jpg",
+  "gaiduk2.jpg",
+  "gaiduk3.jpg",
+  "gaiduk4.jpg",
+  "gaiduk5.jpg",
+  "gaiduk6.jpg",
+  "gaiduk7.jpg",
+  "gaiduk8.jpg",
+] as const;
 
-function publicAuthorPhotoPath(globKey: string): string {
-  const name = globKey.split("/").pop() ?? globKey;
-  return `/gaiduk/${name}`;
+function authorPhotoUrl(file: string): string {
+  const base = import.meta.env.BASE_URL;
+  const root = base.endsWith("/") ? base : `${base}/`;
+  return `${root}gaiduk/${file}`;
 }
 
-/** Список синхронизирован с файлами в public/gaiduk (пересборка при добавлении/удалении). */
-export const AUTHOR_PHOTOS: readonly string[] = Object.keys(authorPhotoModules)
-  .map(publicAuthorPhotoPath)
-  .sort((a, b) =>
-    a.localeCompare(b, "ru", { numeric: true, sensitivity: "base" }),
-  );
+/** Пути к фото автора (public/gaiduk). */
+export const AUTHOR_PHOTOS: readonly string[] = AUTHOR_PHOTO_FILES.map(
+  authorPhotoUrl,
+);
 
 export const AUTHOR_SLIDE_MS = 5200;
 
