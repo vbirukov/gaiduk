@@ -1,6 +1,6 @@
 # Регулярный sync `/var/media`
 
-Скрипт `scripts/sync-disk-media.mjs` инкрементальный: существующие mp3 с верным размером пропускает, в конце атомарно обновляет `catalog.json`.
+Скрипт `scripts/sync-disk-media.mjs` инкрементальный: пропускает mp3, если совпадают **размер**, **`modified`** и **`resource_id`** (id) с прошлым `catalog.json`. Замена файла на Диске с тем же именем подтягивается при смене любого из этих полей. В конце атомарно обновляет `catalog.json`.
 
 ## Установка на VPS (один раз)
 
@@ -47,6 +47,18 @@ sudo systemctl restart gayduk-media-sync.timer
 sudo systemctl start gayduk-media-sync.service
 sudo tail -f /var/log/gayduk/media-sync.log
 ```
+
+В логе: `[HH:MM:SS] dl start 131/368: /путь/file.mp3 (12.3 MB)` — качает; каждые 30 с `dl … 45s:` — ещё качает; `dl done` — готово. Между `progress` может быть пауза — идёт большой файл (CONCURRENCY=3 параллельно).
+
+Жив ли процесс:
+
+```bash
+systemctl status gayduk-media-sync.service
+pgrep -af sync-disk-media
+ls -lh /var/media/**/*.part 2>/dev/null   # частичная загрузка
+```
+
+Подробный лог каждого skip: `--verbose` (только для ручного node, не в timer по умолчанию).
 
 Параллельный запуск блокируется `flock` (второй сразу завершится без работы).
 

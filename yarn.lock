@@ -212,7 +212,7 @@
   "resolved" "https://registry.npmjs.org/@rolldown/pluginutils/-/pluginutils-1.0.0-beta.27.tgz"
   "version" "1.0.0-beta.27"
 
-"@tanstack/react-virtual@^3.13.24":
+"@tanstack/react-virtual@^3.13.0", "@tanstack/react-virtual@^3.13.24":
   "integrity" "sha512-aIJvz5OSkhNIhZIpYivrxrPTKYsjW9Uzy+sP/mx0S3sev2HyvPb7xmjbYvokzEpfgYHy/HjzJ2zFAETuUfgCpg=="
   "resolved" "https://registry.npmjs.org/@tanstack/react-virtual/-/react-virtual-3.13.24.tgz"
   "version" "3.13.24"
@@ -275,6 +275,11 @@
   "version" "19.2.14"
   dependencies:
     "csstype" "^3.2.2"
+
+"@vbonline/player@^0.1.0":
+  "integrity" "sha512-fBvsclFOTJ21jsmjkBFGLoVT2x4BNnBcUbHT/hBzQg7XS8eLj0Q/i0HVaAKrfz0j4OGlJcYYQKBDy9i20opGXg=="
+  "resolved" "https://registry.npmjs.org/@vbonline/player/-/player-0.1.0.tgz"
+  "version" "0.1.0"
 
 "@vitejs/plugin-react@^4.3.4":
   "integrity" "sha512-gUu9hwfWvvEDBBmgtAowQCojwZmJ5mcLn3aufeCsitijs3+f2NsrPtlAWIR6OPiqljl96GVCUbLe0HyqIpVaoA=="

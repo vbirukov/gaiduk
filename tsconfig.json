@@ -9,7 +9,23 @@
     "noEmit": true,
     "skipLibCheck": true,
     "isolatedModules": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "baseUrl": "."
   },
-  "include": ["main.tsx", "src", "vite.config.ts"]
+  "include": [
+    "main.tsx",
+    "embed.tsx",
+    "src/App.tsx",
+    "src/app/**/*",
+    "src/data/**/*",
+    "src/vite-env.d.ts",
+    "src/components/MainHeader.tsx",
+    "src/components/LibraryHero.tsx",
+    "src/components/AuthorPhotoSlideshow.tsx",
+    "src/components/BrandLogo.tsx",
+    "src/hooks/useAuthorPhotoSlideshow.ts",
+    "src/hooks/useFeedGridDesktop.ts",
+    "src/lib/authorPhotos.ts",
+    "vite.config.ts"
+  ]
 }
