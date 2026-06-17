@@ -59,6 +59,14 @@ function mediaDevPlugin(): Plugin {
 
 export default defineConfig({
   base: "./",
+  resolve: {
+    alias: {
+      "@vbonline/player/src": path.resolve(
+        rootDir,
+        "node_modules/@vbonline/player/src",
+      ),
+    },
+  },
   plugins: [react(), mediaDevPlugin(), oembedDevPlugin()],
   build: {
     rollupOptions: {

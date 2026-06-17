@@ -1,0 +1,108 @@
+import { useCallback, useRef } from "react";
+import type { PlayerHeroSlotProps } from "@vbonline/player";
+import { useFeedGridDesktop } from "../hooks/useFeedGridDesktop";
+import { AUTHOR_SUPPORT_URL, AUTHOR_VK_URL } from "../app/branding";
+import { AuthorPhotoSlideshow } from "./AuthorPhotoSlideshow";
+
+export function LibraryHero({
+  catalog,
+  collapsed,
+  onCollapse,
+  onExpand,
+}: PlayerHeroSlotProps) {
+  const isDesktop = useFeedGridDesktop();
+  const isCompact = collapsed && !isDesktop;
+  const mainRef = useRef<HTMLDivElement>(null);
+
+  const scrollMainIntoView = useCallback(() => {
+    const el = mainRef.current;
+    if (!el) return;
+    const instant = window.matchMedia("(prefers-reduced-motion: reduce)")
+      .matches;
+    el.scrollIntoView({
+      behavior: instant ? "auto" : "smooth",
+      block: "start",
+    });
+  }, []);
+
+  const handleToggle = useCallback(() => {
+    if (isDesktop) return;
+    if (collapsed) {
+      onExpand();
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => scrollMainIntoView());
+      });
+    } else {
+      onCollapse();
+    }
+  }, [collapsed, isDesktop, onCollapse, onExpand, scrollMainIntoView]);
+
+  return (
+    <section className={isCompact ? "hero hero--compact" : "hero"}>
+      <div className="hero-main" ref={mainRef}>
+        <div className="hero-head">
+          <div className="hero-expandable" aria-hidden={isCompact}>
+            <div className="hero-expandable-inner">
+              <p className="hero-author-bio">
+                Дмитрий Гайдук — автор и рассказчик, который умеет превращать
+                сказку в живое, душевное и очень человеческое пространство. В
+                его историях чувствуется любовь к свободе, юмору, странствиям и
+                мудрости народной речи. Он пишет так, будто ведёт неспешный,
+                доверительный разговор у костра: легко, ярко, с иронией и
+                теплом. Его сказки запоминаются особой интонацией — немного
+                озорной, немного волшебной, но всегда искренней и близкой
+                читателю.
+              </p>
+            </div>
+          </div>
+          {!isDesktop ? (
+            <button
+              type="button"
+              className="hero-toggle"
+              onClick={handleToggle}
+            >
+              {collapsed ? "Об авторе" : "Свернуть"}
+            </button>
+          ) : null}
+        </div>
+        {isCompact ? (
+          <p className="hero-compact-stats mini-text">
+            {catalog.tracks.length} треков
+          </p>
+        ) : null}
+      </div>
+      <div className="hero-side">
+        <div className="hero-author-block">
+          <p className="hero-catalog-label">Каталог аудиосказок</p>
+          <AuthorPhotoSlideshow />
+          <div className="hero-author-actions">
+            <a
+              className="hero-author-link"
+              href={AUTHOR_VK_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Дмитрий Гайдук
+            </a>
+            <a
+              className="chip hero-author-cta"
+              href={AUTHOR_VK_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Концерты
+            </a>
+            <a
+              className="chip hero-author-cta"
+              href={AUTHOR_SUPPORT_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Поддержать автора
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
