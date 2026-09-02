@@ -70,13 +70,25 @@ async function fetchDownloadHref(filePath, attempt = 0) {
   return href;
 }
 
+/**
+ * Определяет секцию по имени папки.
+ * Удаляет годовые диапазоны («1995 - 1997») из имени секции,
+ * чтобы все выпуски одной серии группировались вместе.
+ */
+function resolveSection(folderName) {
+  return folderName.replace(/\s*\d{4}\s*[-–—]\s*\d{4}\s*$/, "").trim();
+}
+
 async function buildCatalog() {
   const root = await fetchJson(
     `${API_ROOT}?public_key=${encodeURIComponent(PUBLIC_KEY)}&limit=200`,
   );
   const folders = (root._embedded?.items ?? []).filter((i) => i.type === "dir");
   const tracks = [];
+  const sectionSet = new Set();
   for (const folder of folders) {
+    const section = resolveSection(String(folder.name));
+    sectionSet.add(section);
     try {
       const folderData = await fetchJson(
         `${API_ROOT}?public_key=${encodeURIComponent(PUBLIC_KEY)}&path=${encodeURIComponent(String(folder.path))}&limit=500`,
@@ -97,6 +109,7 @@ async function buildCatalog() {
           size: item.size,
           modified: item.modified,
           mimeType: item.mime_type,
+          section,
         });
       }
     } catch (e) {
@@ -105,6 +118,7 @@ async function buildCatalog() {
   }
   return {
     sourceTitle: root.name || "СКАЗКИ АУДИО",
+    sections: [...sectionSet].sort((a, b) => a.localeCompare(b, "ru")),
     folders: folders.map((f) => String(f.name)),
     tracks,
   };
