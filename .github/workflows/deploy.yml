@@ -108,6 +108,20 @@ jobs:
             dist/ \
             "$DEPLOY_HOST:$root/"
 
+      - name: Deploy admin panel
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_WEB_ROOT: ${{ vars.DEPLOY_WEB_ROOT || '/var/www/gayduk' }}
+        run: |
+          set -euo pipefail
+          root="${DEPLOY_WEB_ROOT:-/var/www/gayduk}"
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes \
+            "$DEPLOY_HOST" "mkdir -p $root/admin"
+          rsync -avz \
+            -e "ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes" \
+            admin/ \
+            "$DEPLOY_HOST:$root/admin/"
+
       - name: Deploy audio-proxy
         if: steps.changes.outputs.proxy == 'true'
         env:
