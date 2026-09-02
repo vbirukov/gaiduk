@@ -19,6 +19,21 @@ const API_ROOT = "https://cloud-api.yandex.net/v1/disk/public/resources";
 const AUDIO_EXT = [".mp3", ".m4a", ".ogg", ".wav"];
 const CONCURRENCY = 3;
 
+// Mail.ru Cloud источники. Каждый: weblink публичной папки → локальная папка.
+// 09 22 MINUTW 1 и 2 переехали на Mail.ru Cloud.
+const MAILRU_API = "https://cloud.mail.ru/api/v2"; // v2 для листинга
+const MAILRU_DISPATCHER = "https://cloud.mail.ru/api/v3"; // v3 для dispatcher
+const MAILRU_SOURCES = [
+  {
+    weblink: "4Jzg/HoVQdUYMj",
+    folder: "09 22 MINUTW 1",
+  },
+  {
+    weblink: "vDPx/8XEnr6thX",
+    folder: "09 22 MINUTW 2",
+  },
+];
+
 const args = new Set(process.argv.slice(2));
 const dryRun = args.has("--dry-run");
 const verbose = args.has("--verbose");
@@ -79,6 +94,74 @@ function resolveSection(folderName) {
   return folderName.replace(/\s*\d{4}\s*[-–—]\s*\d{4}\s*$/, "").trim();
 }
 
+/** Листинг публичной папки Mail.ru Cloud → массив файлов. */
+async function listMailruFolder(source) {
+  const url = `${MAILRU_API}/folder?weblink=${encodeURIComponent(source.weblink)}`;
+  const res = await fetch(url, {
+    headers: { "User-Agent": "Mozilla/5.0", Referer: "https://cloud.mail.ru/" },
+  });
+  if (!res.ok) throw new Error(`mailru folder ${res.status} ${source.weblink}`);
+  const data = await res.json();
+  const items = data.body?.list ?? [];
+  // Реальный weblink папки (может отличаться от входного token)
+  const folderWeblink = String(data.body?.weblink || source.weblink);
+  return { folderWeblink, items };
+}
+
+/** Прямая ссылка на скачивание файла с Mail.ru Cloud. */
+async function mailruDownloadHref(fileWeblink, attempt = 0) {
+  const dispUrl = `${MAILRU_DISPATCHER}/dispatcher?weblink=${encodeURIComponent(fileWeblink)}`;
+  const res = await fetch(dispUrl, {
+    headers: { "User-Agent": "Mozilla/5.0", Referer: "https://cloud.mail.ru/" },
+  });
+  if (res.status === 429 && attempt < 6) {
+    await sleep(Math.min(12_000, 600 * 2 ** attempt));
+    return mailruDownloadHref(fileWeblink, attempt + 1);
+  }
+  if (!res.ok) throw new Error(`mailru dispatcher ${res.status}`);
+  const data = await res.json();
+  const base = data.body?.weblink_view?.[0]?.url;
+  if (!base) throw new Error(`empty weblink_view ${fileWeblink}`);
+  // weblink_view.url заканчивается на "/", добавляем полный weblink файла
+  return `${base}${fileWeblink}`;
+}
+
+/** Собирает треки с Mail.ru Cloud («09 22 MINUTW 1» и «2»). */
+async function buildMailruCatalog() {
+  const tracks = [];
+  for (const source of MAILRU_SOURCES) {
+    try {
+      const { folderWeblink, items } = await listMailruFolder(source);
+      for (const item of items) {
+        const lower = String(item.name || "").toLowerCase();
+        const isAudio =
+          item.kind === "file" &&
+          AUDIO_EXT.some((ext) => lower.endsWith(ext));
+        if (!isAudio) continue;
+        const fileWeblink = String(item.weblink || `${folderWeblink}/${item.name}`);
+        const localPath = `/${source.folder}/${item.name}`;
+        tracks.push({
+          id: `mailru:${item.hash || fileWeblink}`,
+          title: String(item.name).replace(/\.[^.]+$/, ""),
+          fileName: String(item.name),
+          folder: source.folder,
+          folderPath: `/${source.folder}`,
+          path: localPath,
+          size: item.size,
+          modified: item.mtime ? new Date(item.mtime * 1000).toISOString() : null,
+          mimeType: "audio/mpeg",
+          section: resolveSection(source.folder),
+          source: "mailru",
+          mailruWeblink: fileWeblink,
+        });
+      }
+    } catch (e) {
+      console.warn("mailru folder skip:", source.weblink, e.message);
+    }
+  }
+  return tracks;
+}
+
 async function buildCatalog() {
   const root = await fetchJson(
     `${API_ROOT}?public_key=${encodeURIComponent(PUBLIC_KEY)}&limit=200`,
@@ -110,16 +193,31 @@ async function buildCatalog() {
           modified: item.modified,
           mimeType: item.mime_type,
           section,
+          source: "yandex",
         });
       }
     } catch (e) {
       console.warn("folder skip:", folder.path, e.message);
     }
   }
+
+  // Добавляем треки из Mail.ru Cloud («09 22 MINUTW 1» и «2»).
+  const mailruTracks = await buildMailruCatalog();
+  const mailruFolders = [...new Set(mailruTracks.map((t) => t.folder))];
+  for (const t of mailruTracks) {
+    sectionSet.add(t.section);
+    tracks.push(t);
+  }
+
+  const allFolders = [
+    ...folders.map((f) => String(f.name)),
+    ...mailruFolders,
+  ];
+
   return {
     sourceTitle: root.name || "СКАЗКИ АУДИО",
     sections: [...sectionSet].sort((a, b) => a.localeCompare(b, "ru")),
-    folders: folders.map((f) => String(f.name)),
+    folders: allFolders,
     tracks,
   };
 }
@@ -190,8 +288,13 @@ async function downloadFile(track, prevByPath, ctx) {
     `dl start ${ctx.pos}/${ctx.total}: ${track.path} (${formatMb(track.size)})`,
   );
   await mkdir(path.dirname(dest), { recursive: true });
-  const href = await fetchDownloadHref(track.path);
-  const res = await fetch(href);
+  const href =
+    track.source === "mailru"
+      ? await mailruDownloadHref(track.mailruWeblink)
+      : await fetchDownloadHref(track.path);
+  const res = await fetch(href, {
+    headers: track.source === "mailru" ? { "User-Agent": "Mozilla/5.0" } : {},
+  });
   if (!res.ok) throw new Error(`GET ${res.status} ${track.path}`);
   const tmp = `${dest}.part`;
   const heartbeat = setInterval(() => {
