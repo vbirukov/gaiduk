@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && node scripts/generate-share-og.mjs",
+    "postinstall": "node scripts/apply-patches.mjs",
+    "build": "node scripts/apply-patches.mjs && vite build && node scripts/generate-share-og.mjs",
     "share-og": "node scripts/generate-share-og.mjs",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
