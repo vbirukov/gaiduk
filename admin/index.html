@@ -193,9 +193,9 @@
     async function loadAll() {
       try {
         const [catalog, syncStatus, visits] = await Promise.all([
-          fetchJSON('/api/catalog/stats'),
-          fetchJSON('/api/sync/status'),
-          fetchJSON('/api/stats/visits?days=30'),
+          fetchJSON('/catalog/stats'),
+          fetchJSON('/sync/status'),
+          fetchJSON('/stats/visits?days=30'),
         ]);
         renderDashboard(catalog, syncStatus, visits);
         renderFolders(catalog);
@@ -270,7 +270,7 @@
 
     async function refreshLog() {
       try {
-        const data = await fetchJSON('/api/sync/log?lines=60');
+        const data = await fetchJSON('/sync/log?lines=60');
         const pre = document.getElementById('logContent');
         if (data.lines) {
           pre.textContent = data.lines.join('\n');
@@ -287,7 +287,7 @@
       btn.disabled = true;
       btn.textContent = 'Запуск...';
       try {
-        const res = await fetch(API + '/api/sync/run', { method: 'POST' });
+        const res = await fetch(API + '/sync/run', { method: 'POST' });
         const data = await res.json();
         if (data.ok) {
           btn.textContent = '✓ Запущено';
