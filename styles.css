@@ -1069,20 +1069,42 @@ html.has-player.player-bar-collapsed {
 [data-skin="jaipur"] .hero-author-link {
   font-weight: 600;
 }
-.hero-author-ctas {
+.hero-author-block {
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.hero-catalog-label {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 500;
+  line-height: 1.1;
+  margin: 0 0 0.75rem;
+  max-width: none;
+  color: var(--text);
+}
+.hero-author-ctas,
+.hero-author-actions {
+  display: flex;
+  flex-direction: column;
   flex-wrap: wrap;
-  gap: var(--space-2) var(--space-3);
-  justify-content: center;
+  gap: 0.4rem;
   align-items: center;
   width: 100%;
   max-width: 100%;
 }
 .hero-author-cta {
-  min-height: 40px;
-  padding: 0.55rem 1.1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  height: 64px;
+  min-height: 64px;
+  padding: 0 1.7rem;
+  line-height: 1;
   border-radius: 999px;
-  font-size: var(--text-sm);
+  font-size: var(--text-lg);
   font-weight: 500;
   text-decoration: none;
   color: var(--text);
@@ -1474,48 +1496,7 @@ html.has-player.player-bar-collapsed {
   font-size: var(--text-lg);
 }
 .section-head--catalog {
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  gap: var(--space-2);
-}
-.section-head-catalog-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-}
-.section-head-catalog-share {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  flex-shrink: 0;
-  min-height: 40px;
-  padding: 0.4rem 0.85rem;
-  border-radius: 999px;
-  font-size: var(--text-sm);
-  font-weight: 600;
-}
-.section-head-catalog-btn {
-  min-height: 44px;
-  padding: 0.65rem 1.75rem;
-  border-radius: 999px;
-  font-family: var(--font-display);
-  font-size: var(--text-base);
-  font-weight: 600;
-  letter-spacing: 0.02em;
-}
-.section-head--catalog p {
-  margin: 0;
-  max-width: min(42ch, 100%);
-  font-size: var(--text-xs);
-  color: var(--text-muted);
-}
-@media (min-width: 721px) {
-  .section-head--catalog {
-    display: none;
-  }
+  display: none;
 }
 .feed-listen-filter {
   display: flex;
@@ -3270,3 +3251,112 @@ input[type="range"]::-webkit-slider-thumb {
   background: color-mix(in oklab, var(--primary) 10%, var(--surface));
   font-size: var(--text-sm);
 }
+
+/* ============================================================
+   Folder cards (view папок в каталоге)
+   ------------------------------------------------------------
+   layout.css движка задаёт .folder-card c жёстким белым фоном
+   `var(--aol-white, #fff)`. Переопределяем под наши темы —
+   фон из --surface + обводка --border, чтобы карточки папок
+   соответствовали остальному каталогу (как .card у треков).
+   ============================================================ */
+.folder-card {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.folder-card:hover {
+  border-color: oklch(from var(--primary) l c h / 0.5);
+  box-shadow: var(--shadow-sm);
+}
+.folder-card::before {
+  content: "";
+  flex: 0 0 22px;
+  width: 22px;
+  height: 22px;
+  background-color: currentColor;
+  opacity: 0.72;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+.folder-card:has(.folder-card__glyph)::before {
+  display: none;
+}
+.folder-card__open {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: auto;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.folder-card__glyph {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  opacity: 0.72;
+}
+.folder-card__title {
+  margin: 0;
+  min-width: 0;
+  flex: 0 1 auto;
+  line-height: 22px;
+  color: var(--text);
+}
+.folder-card__meta {
+  margin: 0;
+  flex: 0 0 auto;
+  line-height: 22px;
+  color: oklch(from var(--text) l c h / 0.65);
+}
+.folder-card__actions {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-left: auto;
+  width: auto;
+}
+.folder-card__actions .ghost,
+.folder-card__actions .chip,
+.folder-card__actions .folder-offline,
+.folder-card__actions .folder-offline--stacked,
+.folder-card__actions .folder-card__share {
+  display: grid;
+  place-items: center;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 999px;
+  background: transparent;
+  border-color: oklch(from var(--text) l c h / 0.14);
+  color: var(--text);
+}
+.folder-card__actions span,
+.folder-card__actions .folder-offline-badge {
+  display: none;
+}
+.folder-card__actions .folder-offline-pair {
+  display: contents;
+}
+

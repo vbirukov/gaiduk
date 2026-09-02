@@ -1,7 +1,7 @@
 import { useCallback, useRef } from "react";
-import type { PlayerHeroSlotProps } from "@vbonline/player";
+import type { PlayerHeroSlotProps } from "@vbirukov/player";
 import { useFeedGridDesktop } from "../hooks/useFeedGridDesktop";
-import { AUTHOR_SUPPORT_URL, AUTHOR_VK_URL } from "../app/branding";
+import { AUTHOR_VK_URL } from "../app/branding";
 import { AuthorPhotoSlideshow } from "./AuthorPhotoSlideshow";
 
 export function LibraryHero({
@@ -73,7 +73,7 @@ export function LibraryHero({
       </div>
       <div className="hero-side">
         <div className="hero-author-block">
-          <p className="hero-catalog-label">Каталог аудиосказок</p>
+          <h2 className="hero-catalog-label">Каталог аудиосказок</h2>
           <AuthorPhotoSlideshow />
           <div className="hero-author-actions">
             <a
@@ -91,14 +91,6 @@ export function LibraryHero({
               rel="noopener noreferrer"
             >
               Концерты
-            </a>
-            <a
-              className="chip hero-author-cta"
-              href={AUTHOR_SUPPORT_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Поддержать автора
             </a>
           </div>
         </div>
