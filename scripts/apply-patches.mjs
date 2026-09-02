@@ -2,7 +2,7 @@
  * Применяет патчи к node_modules после npm install.
  * Аналог patch-package, но без внешних зависимостей.
  */
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -99,7 +99,6 @@ function applyPatch(filePath, patchPath) {
   }
 
   if (applied) {
-    const { writeFileSync } = await import("node:fs");
     writeFileSync(absFile, result, "utf8");
   }
 }
