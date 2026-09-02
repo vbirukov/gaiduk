@@ -3260,7 +3260,8 @@ input[type="range"]::-webkit-slider-thumb {
    фон из --surface + обводка --border, чтобы карточки папок
    соответствовали остальному каталогу (как .card у треков).
    ============================================================ */
-.folder-card {
+.folder-card,
+.cards--folders > .folder-card {
   display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
