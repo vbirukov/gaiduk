@@ -14,6 +14,10 @@ concurrency:
   group: deploy-production
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  packages: read
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -42,11 +46,14 @@ jobs:
         with:
           node-version: "22"
           cache: npm
+          registry-url: https://npm.pkg.github.com
+          scope: "@vbirukov"
 
       - name: Install
         env:
-          # GitHub Packages: аутентификация для @vbirukov (read:packages)
-          NPM_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN || secrets.GITHUB_TOKEN }}
+          # GitHub Packages: @vbirukov/player (read:packages)
+          # Для пакета в другом репо — секрет NPM_AUTH_TOKEN (PAT), иначе GITHUB_TOKEN
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN || secrets.GITHUB_TOKEN }}
         run: npm ci
 
       - name: Build
