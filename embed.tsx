@@ -1,9 +1,13 @@
+import "./src/player/setup"; // ← первым: конфиг плеера до рендера
+import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { EmbedApp, setPlayerConfig } from "@vbonline/player";
-import { haidukPlayerConfig } from "./src/app/haidukConfig";
+import { EmbedApp } from "@vbirukov/player";
 import "./styles-embed.css";
 import "./styles.css";
 import "./styles-motion.css";
 
-setPlayerConfig(haidukPlayerConfig);
-createRoot(document.getElementById("root")!).render(<EmbedApp />);
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <EmbedApp />
+  </StrictMode>,
+);

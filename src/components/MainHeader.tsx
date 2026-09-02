@@ -1,7 +1,12 @@
-import type { PlayerHeaderSlotProps } from "@vbonline/player";
-import { IconButtonIcon } from "@vbonline/player/src/components/IconButton";
-import { ThemeSwitcher } from "@vbonline/player/src/components/ThemeSwitcher";
+import type { PlayerHeaderSlotProps, AppSkin } from "@vbirukov/player";
+import { SleepTimerMenu } from "./SleepTimerMenu";
 
+/**
+ * Хост-хедер плеера.
+ * Использует только публичный слот PlayerHeaderSlotProps — БЕЗ импорта
+ * внутренних компонентов движка (IconButtonIcon/ThemeSwitcher), которых
+ * нет в публичном API @vbirukov/player@0.4.4.
+ */
 export function MainHeader({
   onOpenNav,
   installPrompt,
@@ -13,15 +18,38 @@ export function MainHeader({
 }: PlayerHeaderSlotProps) {
   return (
     <header className="topbar">
-      <IconButtonIcon
+      <button
+        type="button"
         className="menu-toggle"
-        icon="menu"
-        iconSize={22}
         onClick={onOpenNav}
         aria-label="Открыть меню"
-      />
+      >
+        <svg
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          aria-hidden="true"
+        >
+          <path d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
       <div className="toolbar topbar-toolbar">
-        <ThemeSwitcher skin={skin} onSkinChange={onSkinChange} />
+        <select
+          className="skin-switcher"
+          value={skin}
+          onChange={(e) => onSkinChange(e.target.value as AppSkin)}
+          aria-label="Тема оформления"
+        >
+          <option value="rastaman">Раста тёмная</option>
+          <option value="rastaman-light">Раста светлая</option>
+          <option value="jaipur">Джайпур</option>
+          <option value="moon-dub">Лунная даб-библиотека</option>
+        </select>
+        <SleepTimerMenu />
         {installPrompt ? (
           <button type="button" className="ghost" onClick={onInstall}>
             Установить

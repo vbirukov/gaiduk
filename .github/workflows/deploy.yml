@@ -44,6 +44,9 @@ jobs:
           cache: npm
 
       - name: Install
+        env:
+          # GitHub Packages: аутентификация для @vbirukov (read:packages)
+          NPM_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN || secrets.GITHUB_TOKEN }}
         run: npm ci
 
       - name: Build

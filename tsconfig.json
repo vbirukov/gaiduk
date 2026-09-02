@@ -10,20 +10,24 @@
     "skipLibCheck": true,
     "isolatedModules": true,
     "resolveJsonModule": true,
-    "baseUrl": "."
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
   },
   "include": [
     "main.tsx",
     "embed.tsx",
     "src/App.tsx",
+    "src/player/**/*",
     "src/app/**/*",
+    "src/components/**/*",
+    "src/hooks/**/*",
+    "src/lib/**/*",
     "src/data/**/*",
+    "src/types/catalog.ts",
     "src/vite-env.d.ts",
-    "src/components/MainHeader.tsx",
-    "src/components/LibraryHero.tsx",
-    "src/components/AuthorPhotoSlideshow.tsx",
-    "src/hooks/useFeedGridDesktop.ts",
-    "src/lib/authorPhotos.ts",
     "vite.config.ts"
-  ]
+  ],
+  "exclude": ["node_modules", "dist"]
 }

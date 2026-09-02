@@ -1,6 +1,9 @@
 # dependencies
 node_modules/
 
+# локальный npm-cache внутри рабочей папки (не коммитить)
+.npm-cache/
+
 # build
 dist/
 

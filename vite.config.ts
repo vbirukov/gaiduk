@@ -47,6 +47,8 @@ function mediaDevPlugin(): Plugin {
           ".m4a": "audio/mp4",
           ".ogg": "audio/ogg",
           ".wav": "audio/wav",
+          ".mp4": "video/mp4",
+          ".webm": "video/webm",
           ".json": "application/json",
         };
         res.setHeader("Content-Type", types[ext] ?? "application/octet-stream");
@@ -61,11 +63,22 @@ export default defineConfig({
   base: "./",
   resolve: {
     alias: {
-      "@vbonline/player/src": path.resolve(
-        rootDir,
-        "node_modules/@vbonline/player/src",
-      ),
+      "@": path.resolve(rootDir, "src"),
     },
+    // Единый React во всём графе — иначе «Invalid hook call»
+    // из-за дублированного react/react-dom (движок + хост).
+    dedupe: ["react", "react-dom"],
+  },
+  optimizeDeps: {
+    // Пакет публикует исходники .ts — явно включаем для предобработки.
+    // NB: dev-сервер падает на внутреннем `?worker`-импорте пакета
+    // (src/lib/catalogWorker.ts) — «No matching export ...?worker».
+    // Это баг @vbirukov/player@0.4.4 (см. PLAYER_TS_ERRORS.md), production
+    // build при этом проходит.
+    include: ["@vbirukov/player", "@tanstack/react-virtual"],
+  },
+  ssr: {
+    noExternal: ["@vbirukov/player"],
   },
   plugins: [react(), mediaDevPlugin(), oembedDevPlugin()],
   build: {

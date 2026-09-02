@@ -1,0 +1,165 @@
+/* ==========================================================================
+   Sleep Timer
+   Управление таймером сна в шапке плеера.
+   Стили подключаются к дизайн-системе через CSS custom properties
+   (--surface, --text, --primary, --space-3 и т.д. из styles.css).
+   ========================================================================== */
+
+/* Кнопка-триггер (иконка луны) */
+.sleep-timer {
+  position: relative;
+  display: inline-flex;
+}
+
+.sleep-timer__trigger {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 5px;
+  background: var(--surface);
+  border: 1px solid oklch(from var(--text) l c h / 0.1);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sleep-timer__trigger:hover {
+  background: color-mix(in oklab, var(--primary) 12%, var(--surface));
+}
+
+.sleep-timer__trigger:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Активное состояние (иконка подсвечена) */
+.sleep-timer__trigger.is-active {
+  background: color-mix(in oklab, var(--primary) 16%, var(--surface));
+  box-shadow: var(--glow-primary);
+  border-color: color-mix(in oklab, var(--primary) 40%, transparent);
+}
+
+/* Состояние fade (мигание, чтобы привлечь внимание) */
+.sleep-timer__trigger.is-fading {
+  animation: sleep-timer-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes sleep-timer-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* Бейдж оставшегося времени */
+.sleep-timer__badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 22px;
+  padding: 1px 4px;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.6;
+  text-align: center;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--text-inverse);
+  font-variant-numeric: tabular-nums;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Выпадающее меню */
+.sleep-timer__menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 60;
+  min-width: 180px;
+  padding: 6px;
+  background: var(--surface);
+  border: 1px solid oklch(from var(--text) l c h / 0.12);
+  border-radius: 14px;
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  animation: sleep-timer-menu-in 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes sleep-timer-menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Пункт меню */
+.sleep-timer__menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 40px;
+  padding: 0.5rem 0.75rem;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text);
+  font-size: 0.95rem;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s ease;
+}
+
+.sleep-timer__menu-item:hover {
+  background: color-mix(in oklab, var(--primary) 12%, var(--surface));
+}
+
+.sleep-timer__menu-item:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+
+/* Выбранная опция */
+.sleep-timer__menu-item.is-selected {
+  background: color-mix(in oklab, var(--primary) 20%, var(--surface));
+  font-weight: 600;
+}
+
+/* Пункт «Отменить» */
+.sleep-timer__menu-item.is-cancel {
+  color: oklch(from var(--text) l c h / 0.9);
+}
+
+.sleep-timer__menu-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  font-size: 12px;
+  line-height: 1;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--primary) 15%, var(--surface));
+}
+
+/* Режим скрытия шапки на малых экранах — таймер скрываем вместе с шапкой */
+@media (max-width: 640px) {
+  .sleep-timer__menu {
+    right: auto;
+    left: 0;
+  }
+}

@@ -3,6 +3,7 @@ import type { Catalog } from "../types/catalog";
 export const fallbackCatalog: Catalog = {
   sourceTitle: "СКАЗКИ АУДИО",
   loaded: false,
+  sections: [],
   folders: [
     "01 RASTAMANSKIE SKAZKI 1995 - 1997",
     "01 RASTAMANSKIE SKAZKI 1997 - 1999",
@@ -25,6 +26,7 @@ export const fallbackCatalog: Catalog = {
       folderPath: "/",
       path: "/demo1",
       url: "",
+      kind: "audio",
     },
     {
       id: "stub-2",
@@ -34,6 +36,7 @@ export const fallbackCatalog: Catalog = {
       folderPath: "/",
       path: "/demo2",
       url: "",
+      kind: "audio",
     },
     {
       id: "stub-3",
@@ -43,6 +46,7 @@ export const fallbackCatalog: Catalog = {
       folderPath: "/",
       path: "/demo3",
       url: "",
+      kind: "audio",
     },
   ],
 };

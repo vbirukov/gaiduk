@@ -1,11 +1,15 @@
 import {
   DEFAULT_THEME_OPTIONS,
   type PlayerConfig,
-} from "@vbonline/player";
+} from "@vbirukov/player";
 import { fallbackCatalog } from "../data/fallbackCatalog";
 
 export const haidukPlayerConfig: PlayerConfig = {
-  appName: "gayduk",
+  branding: {
+    appTitle: "Haiduk",
+    siteName: "Haiduk — аудиосказки Дмитрия Гайдука",
+    siteDescription: "Аудиосказки и сказочные записи Дмитрия Гайдука.",
+  },
   storage: {
     user: "gayduk-react-player-v1",
     catalogCache: "gayduk-catalog-cache-v1",
@@ -23,6 +27,8 @@ export const haidukPlayerConfig: PlayerConfig = {
     offline: true,
     pwa: true,
     share: true,
+    video: true,
+    text: true,
   },
   getFallbackCatalog: () => fallbackCatalog,
   themeOptions: DEFAULT_THEME_OPTIONS,
