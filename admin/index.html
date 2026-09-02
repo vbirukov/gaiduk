@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Haiduk — Админка</title>
+  <style>
+    :root {
+      --bg: #0f0f0f;
+      --surface: #1a1a1a;
+      --border: #2a2a2a;
+      --text: #e0e0e0;
+      --text-muted: #888;
+      --accent: #4ade80;
+      --accent-dim: #166534;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+      --radius: 8px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 24px;
+      line-height: 1.5;
+    }
+    .container { max-width: 1100px; margin: 0 auto; }
+    h1 { font-size: 1.5rem; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+    h1 .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
+    h2 { font-size: 1.1rem; margin-bottom: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 32px; }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+    .card .value { font-size: 2rem; font-weight: 700; }
+    .card .label { font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; }
+    .card .sub { font-size: 0.8rem; color: var(--text-muted); margin-top: 8px; }
+    .card.accent { border-color: var(--accent-dim); }
+    .card.warn { border-color: var(--warn); }
+    .log-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 32px;
+    }
+    .log-panel pre {
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+      font-size: 0.8rem;
+      max-height: 400px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+      color: #aaa;
+      line-height: 1.6;
+    }
+    .log-panel .log-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    button {
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 16px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    button:hover { opacity: 0.85; }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+    button.outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .folder-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 8px;
+      margin-bottom: 32px;
+    }
+    .folder-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+    }
+    .folder-item.empty { border-color: var(--danger); opacity: 0.6; }
+    .folder-item .count { font-weight: 600; color: var(--accent); }
+    .folder-item.empty .count { color: var(--danger); }
+    .chart-bar {
+      display: flex;
+      align-items: flex-end;
+      gap: 4px;
+      height: 120px;
+      margin-top: 12px;
+    }
+    .chart-bar .bar {
+      flex: 1;
+      background: var(--accent);
+      border-radius: 4px 4px 0 0;
+      min-width: 8px;
+      position: relative;
+      transition: height 0.3s;
+    }
+    .chart-bar .bar:hover { background: #6ee7b7; }
+    .chart-labels {
+      display: flex;
+      gap: 4px;
+      margin-top: 6px;
+      font-size: 0.65rem;
+      color: var(--text-muted);
+    }
+    .chart-labels span { flex: 1; text-align: center; overflow: hidden; text-overflow: ellipsis; }
+    .status-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .status-badge.active { background: var(--accent-dim); color: var(--accent); }
+    .status-badge.failed { background: #7f1d1d; color: var(--danger); }
+    .status-badge.inactive { background: #1e293b; color: var(--text-muted); }
+    .tabs { display: flex; gap: 4px; margin-bottom: 16px; }
+    .tabs button {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+    .tabs button.active { background: var(--surface); color: var(--text); border-color: var(--accent); }
+    @media (max-width: 600px) {
+      body { padding: 12px; }
+      .grid { grid-template-columns: 1fr; }
+      .folder-list { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1><span class="dot"></span> Haiduk Admin</h1>
+
+    <!-- Дашборд -->
+    <div class="grid" id="dashboard"></div>
+
+    <!-- График посещений -->
+    <div class="card" style="margin-bottom:32px">
+      <h2>Посещения за 30 дней</h2>
+      <div class="chart-bar" id="visitsChart"></div>
+      <div class="chart-labels" id="visitsLabels"></div>
+    </div>
+
+    <!-- Папки -->
+    <h2>Папки каталога</h2>
+    <div class="folder-list" id="folders"></div>
+
+    <!-- Лог синхронизации -->
+    <div class="log-panel">
+      <div class="log-header">
+        <h2 style="margin:0">Лог синхронизации</h2>
+        <div style="display:flex;gap:8px">
+          <button id="btnSync" onclick="triggerSync()">▶ Запустить синхронизацию</button>
+          <button class="outline" onclick="refreshLog()">↻ Обновить</button>
+        </div>
+      </div>
+      <pre id="logContent">Загрузка...</pre>
+    </div>
+  </div>
+
+  <script>
+    const API = '/admin/api';
+
+    async function fetchJSON(path) {
+      const res = await fetch(API + path);
+      if (!res.ok) throw new Error(res.status);
+      return res.json();
+    }
+
+    async function loadAll() {
+      try {
+        const [catalog, syncStatus, visits] = await Promise.all([
+          fetchJSON('/api/catalog/stats'),
+          fetchJSON('/api/sync/status'),
+          fetchJSON('/api/stats/visits?days=30'),
+        ]);
+        renderDashboard(catalog, syncStatus, visits);
+        renderFolders(catalog);
+        renderVisitsChart(visits);
+        refreshLog();
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function renderDashboard(cat, sync, visits) {
+      const statusClass = sync.active === 'active' ? 'active' : sync.active === 'failed' ? 'failed' : 'inactive';
+      const statusText = sync.active === 'active' ? 'Активен' : sync.active === 'failed' ? 'Ошибка' : sync.active || '—';
+
+      document.getElementById('dashboard').innerHTML = `
+        <div class="card accent">
+          <div class="value">${cat.totalTracks || '—'}</div>
+          <div class="label">Треков</div>
+          <div class="sub">${cat.totalFolders || 0} папок, ${cat.totalSections || 0} разделов</div>
+        </div>
+        <div class="card">
+          <div class="value">${cat.totalSizeMB || '—'} MB</div>
+          <div class="label">Общий размер</div>
+          <div class="sub">catalog.json: ${cat.lastModified ? new Date(cat.lastModified).toLocaleString('ru') : '—'}</div>
+        </div>
+        <div class="card">
+          <div class="value">${visits.total || 0}</div>
+          <div class="label">Посещений за 30 дней</div>
+          <div class="sub">${visits.uniqueIps || 0} уникальных</div>
+        </div>
+        <div class="card">
+          <div class="value"><span class="status-badge ${statusClass}">${statusText}</span></div>
+          <div class="label">Синхронизация</div>
+          <div class="sub">${sync.lastTrigger ? 'Последний запуск: ' + new Date(parseInt(sync.lastTrigger) / 1000).toLocaleString('ru') : ''}</div>
+        </div>
+      `;
+    }
+
+    function renderFolders(cat) {
+      if (!cat.folders) return;
+      const html = cat.folders
+        .sort((a, b) => a.name.localeCompare(b.name, 'ru'))
+        .map(f => {
+          const empty = f.trackCount === 0;
+          return `<div class="folder-item${empty ? ' empty' : ''}">
+            <span>${esc(f.name)}</span>
+            <span class="count">${f.trackCount} треков</span>
+          </div>`;
+        })
+        .join('');
+      document.getElementById('folders').innerHTML = html;
+    }
+
+    function renderVisitsChart(visits) {
+      if (!visits.byDay || !visits.byDay.length) {
+        document.getElementById('visitsChart').innerHTML = '<span style="color:var(--text-muted);font-size:0.85rem">Нет данных</span>';
+        return;
+      }
+      const max = Math.max(...visits.byDay.map(d => d.c), 1);
+      const bars = visits.byDay.map(d => {
+        const pct = Math.round((d.c / max) * 100);
+        const day = d.day.slice(5); // MM-DD
+        return `<div class="bar" style="height:${pct}%" title="${d.day}: ${d.c}"></div>`;
+      }).join('');
+      const labels = visits.byDay.map(d => {
+        const day = d.day.slice(5);
+        return `<span>${day}</span>`;
+      }).join('');
+      document.getElementById('visitsChart').innerHTML = bars;
+      document.getElementById('visitsLabels').innerHTML = labels;
+    }
+
+    async function refreshLog() {
+      try {
+        const data = await fetchJSON('/api/sync/log?lines=60');
+        const pre = document.getElementById('logContent');
+        if (data.lines) {
+          pre.textContent = data.lines.join('\n');
+        } else {
+          pre.textContent = data.error || 'Нет данных';
+        }
+      } catch (e) {
+        document.getElementById('logContent').textContent = 'Ошибка загрузки';
+      }
+    }
+
+    async function triggerSync() {
+      const btn = document.getElementById('btnSync');
+      btn.disabled = true;
+      btn.textContent = 'Запуск...';
+      try {
+        const res = await fetch(API + '/api/sync/run', { method: 'POST' });
+        const data = await res.json();
+        if (data.ok) {
+          btn.textContent = '✓ Запущено';
+          setTimeout(refreshLog, 2000);
+        } else {
+          btn.textContent = '✗ Ошибка';
+          alert(data.error || data.hint || 'Не удалось запустить');
+        }
+      } catch (e) {
+        btn.textContent = '✗ Ошибка';
+      }
+      setTimeout(() => { btn.disabled = false; btn.textContent = '▶ Запустить синхронизацию'; }, 5000);
+    }
+
+    function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+    loadAll();
+    // Автообновление лога
+    setInterval(refreshLog, 15000);
+  </script>
+</body>
+</html>

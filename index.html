@@ -97,6 +97,18 @@
         });
       })();
     </script>
+    <!-- Haiduk admin: счётчик посещений -->
+    <script>
+      (function() {
+        try {
+          fetch('/admin/api/stats/visit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ path: location.pathname || '/' }),
+          }).catch(function() {});
+        } catch(e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

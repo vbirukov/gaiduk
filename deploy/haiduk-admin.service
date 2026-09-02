@@ -1,0 +1,19 @@
+[Unit]
+Description=Haiduk admin API server
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/opt/haiduk-admin
+ExecStart=/usr/bin/node /opt/haiduk-admin/admin-server.mjs
+Restart=on-failure
+RestartSec=5
+Environment=NODE_ENV=production
+Environment=ADMIN_PORT=8790
+Environment=MEDIA_ROOT=/var/media
+Environment=SYNC_LOG=/var/log/gayduk/media-sync.log
+Environment=DB_PATH=/var/lib/haiduk-admin/visits.db
+
+[Install]
+WantedBy=multi-user.target
