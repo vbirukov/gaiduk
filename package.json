@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:prod-media": "vite --mode prod-media",
     "build": "vite build && node scripts/generate-share-og.mjs",
     "share-og": "node scripts/generate-share-og.mjs",
     "preview": "vite preview",
@@ -21,7 +22,7 @@
   "dependencies": {
     "@radix-ui/react-slot": "^1.1.1",
     "@tanstack/react-virtual": "^3.13.24",
-    "@vbirukov/player": "^0.4.12",
+    "@vbirukov/player": "^0.4.14",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "react": "^18.3.1",
