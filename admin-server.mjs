@@ -183,7 +183,9 @@ async function catalogStats() {
     for (const t of cat.tracks || []) {
       byFolder[t.folder] = (byFolder[t.folder] || 0) + 1;
     }
-    const folders = (cat.folders || []).map((f) => ({
+    // Дедупликация: старые catalog.json могли содержать дубли папок
+    // (например, «09 22 MINUTW 1/2» из Яндекс-листинга и Mail.ru).
+    const folders = [...new Set(cat.folders || [])].map((f) => ({
       name: f,
       trackCount: byFolder[f] || 0,
     }));
@@ -192,7 +194,7 @@ async function catalogStats() {
     return {
       sourceTitle: cat.sourceTitle,
       totalTracks: cat.tracks?.length || 0,
-      totalFolders: cat.folders?.length || 0,
+      totalFolders: folders.length,
       totalSections: cat.sections?.length || 0,
       totalSizeBytes: totalSize,
       totalSizeMB: (totalSize / 1024 / 1024).toFixed(1),

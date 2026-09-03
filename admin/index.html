@@ -197,6 +197,15 @@
           fetchJSON('/sync/status'),
           fetchJSON('/stats/visits?days=30'),
         ]);
+        // Дедупликация папок по имени: старые catalog.json содержали
+        // «09 22 MINUTW 1/2» дважды (Яндекс-листинг корня + Mail.ru).
+        const seen = new Set();
+        catalog.folders = (catalog.folders || []).filter(f => {
+          if (seen.has(f.name)) return false;
+          seen.add(f.name);
+          return true;
+        });
+        if (catalog.totalFolders !== undefined) catalog.totalFolders = catalog.folders.length;
         renderDashboard(catalog, syncStatus, visits);
         renderFolders(catalog);
         renderVisitsChart(visits);

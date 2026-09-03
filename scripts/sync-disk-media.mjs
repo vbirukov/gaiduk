@@ -209,9 +209,12 @@ async function buildCatalog() {
     tracks.push(t);
   }
 
+  // Единый список папок без дублей: Яндекс-листинг корня всё ещё возвращает
+  // «09 22 MINUTW 1/2» (внутри осталась заглушка «Треки переехали!.doc»),
+  // а те же имена приходят из Mail.ru — дедупликация, чтобы папка с треками
+  // из новых источников встречалась в каталоге ровно один раз.
   const allFolders = [
-    ...folders.map((f) => String(f.name)),
-    ...mailruFolders,
+    ...new Set([...folders.map((f) => String(f.name)), ...mailruFolders]),
   ];
 
   return {
