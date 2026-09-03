@@ -1,0 +1,66 @@
+name: Bump player
+
+# Кнопка: проверяет свежую версию @vbirukov/player в GitHub Packages.
+# Если новее — обновляет package.json/lock, пушит и сразу вызывает Deploy
+# (пуш из workflow не триггерит deploy.yml — защита GitHub от рекурсии,
+# поэтому деплой вызывается напрямую как reusable workflow).
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bump-player
+  cancel-in-progress: true
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    outputs:
+      bumped: ${{ steps.bump.outputs.bumped }}
+      latest: ${{ steps.ver.outputs.latest }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          registry-url: https://npm.pkg.github.com
+          scope: "@vbirukov"
+
+      - name: Resolve versions
+        id: ver
+        env:
+          # GitHub Packages: @vbirukov/player (read:packages).
+          # Тот же fallback, что и в deploy.yml — работает то, что настроено там.
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          CURRENT=$(node -p "require('./package.json').dependencies['@vbirukov/player'].replace(/^[^0-9]+/, '')")
+          LATEST=$(npm view @vbirukov/player version)
+          echo "current=$CURRENT latest=$LATEST"
+          echo "current=$CURRENT" >> "$GITHUB_OUTPUT"
+          echo "latest=$LATEST" >> "$GITHUB_OUTPUT"
+
+      - name: Bump dependency
+        id: bump
+        if: steps.ver.outputs.current != steps.ver.outputs.latest
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          npm install "@vbirukov/player@${{ steps.ver.outputs.latest }}" --save
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add package.json package-lock.json
+          git commit -m "chore: bump @vbirukov/player to ${{ steps.ver.outputs.latest }}"
+          git push
+          echo "bumped=true" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    needs: bump
+    if: needs.bump.outputs.bumped == 'true'
+    uses: ./.github/workflows/deploy.yml
+    permissions:
+      contents: read
+      packages: read
