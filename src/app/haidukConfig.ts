@@ -12,8 +12,8 @@ export const haidukPlayerConfig: PlayerConfig = {
   },
   storage: {
     user: "gayduk-react-player-v1",
-    catalogCache: "gayduk-catalog-cache-v2",
-    catalogRefresh: "gayduk-catalog-refresh-v2",
+    catalogCache: "gayduk-catalog-cache-v3",
+    catalogRefresh: "gayduk-catalog-refresh-v3",
     skin: "gayduk-skin-v1",
     appearance: "gayduk-appearance-v1",
     heroCollapsed: "gayduk-hero-collapsed-v1",

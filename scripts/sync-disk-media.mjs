@@ -7,6 +7,25 @@
  *
  * Пропуск файла: локальный mp3 + совпадение size, modified и id с прошлым catalog.json.
  * Замена на Диске с тем же именем → перекачает при смене size, modified или resource_id.
+ *
+ * Коллекции (необязательно): файл ${MEDIA_ROOT}/collections.json (или env
+ * COLLECTIONS_FILE). Позволяет объединять физические папки в разделы-коллекции
+ * с чистыми названиями (без номеров-префиксов) и подписями карточек:
+ *
+ *   {
+ *     "version": 1,
+ *     "stripNumbers": true,
+ *     "collections": [
+ *       { "id": "01 RASTAMANSKIE SKAZKI",
+ *         "title": "RASTAMANSKIE SKAZKI",
+ *         "folders": [
+ *           { "name": "01 RASTAMANSKIE SKAZKI 1995 - 1997", "label": "1995 - 1997" },
+ *           { "name": "01 RASTAMANSKIE SKAZKI 1997 - 1999", "label": "1997 - 1999" }
+ *         ] }
+ *     ]
+ *   }
+ *
+ * Без файла поведение прежнее: раздел = имя папки без годовых диапазонов.
  */
 import { createWriteStream } from "node:fs";
 import { mkdir, readFile, writeFile, rename, stat } from "node:fs/promises";
@@ -94,6 +113,49 @@ function resolveSection(folderName) {
   return folderName.replace(/\s*\d{4}\s*[-–—]\s*\d{4}\s*$/, "").trim();
 }
 
+/** Убирает номер-префикс («01 », «09 ») из начала названия. */
+function stripNumberPrefix(name) {
+  return String(name).replace(/^\s*\d{1,3}\s+/, "").trim();
+}
+
+/**
+ * Отображаемая подпись папки, когда её явно не задали в коллекции:
+ * снимаем номер-префикс и, если папка начинается с названия раздела
+ * («RASTAMANSKIE SKAZKI 1995 - 1997»), оставляем хвост («1995 - 1997»).
+ */
+function autoFolderLabel(folderName, sectionId) {
+  let label = stripNumberPrefix(folderName);
+  const sectionClean = stripNumberPrefix(String(sectionId));
+  if (sectionClean && label.startsWith(sectionClean)) {
+    const rest = label.slice(sectionClean.length).trim();
+    if (rest) label = rest;
+  }
+  return label;
+}
+
+const COLLECTIONS_FILE =
+  process.env.COLLECTIONS_FILE ||
+  path.join(rootDir, "collections.json");
+
+/** Читает конфиг коллекций; нет файла → null (старое поведение). */
+async function loadCollections() {
+  try {
+    const raw = await readFile(COLLECTIONS_FILE, "utf8");
+    const data = JSON.parse(raw);
+    const list = Array.isArray(data) ? data : data?.collections;
+    if (!Array.isArray(list)) {
+      log(`collections: ${COLLECTIONS_FILE} — нет массива collections, игнорирую`);
+      return null;
+    }
+    return {
+      stripNumbers: data?.stripNumbers !== false,
+      list,
+    };
+  } catch {
+    return null;
+  }
+}
+
 /** Листинг публичной папки Mail.ru Cloud → массив файлов. */
 async function listMailruFolder(source) {
   const url = `${MAILRU_API}/folder?weblink=${encodeURIComponent(source.weblink)}`;
@@ -162,16 +224,141 @@ async function buildMailruCatalog() {
   return tracks;
 }
 
+/**
+ * Планирует секции/метки каталога по конфигу коллекций.
+ *
+ * Возвращает { sections, sectionLabels, folderLabels, folderSection }:
+ *  - sections: упорядоченные id разделов (коллекции в порядке конфига,
+ *    затем «сироты» — папки вне коллекций — в алфавитном порядке);
+ *  - folderSection: физическая папка → id раздела;
+ *  - folderLabels / sectionLabels: отображаемые имена.
+ */
+async function planSections(collectionsCfg) {
+  const strip = collectionsCfg?.stripNumbers !== false;
+  const list = collectionsCfg?.list ?? [];
+
+  // folder → { collection, folderLabel? }
+  const byFolder = new Map();
+  const collectionOrder = [];
+  const collectionSeen = new Set();
+  for (const col of list) {
+    const id = String(col.id ?? col.title ?? "").trim();
+    if (!id || collectionSeen.has(id)) continue;
+    collectionSeen.add(id);
+    collectionOrder.push(id);
+    for (const f of col.folders ?? []) {
+      const folder = String(f.name ?? f.folder ?? "").trim();
+      if (!folder) continue;
+      byFolder.set(folder, { section: id, label: f.label?.trim() || null });
+    }
+  }
+
+  const sectionLabels = {};
+  for (const col of list) {
+    const id = String(col.id ?? col.title ?? "").trim();
+    if (!id) continue;
+    const title = String(col.title ?? col.id ?? "").trim();
+    if (title && title !== id) sectionLabels[id] = title;
+  }
+
+  const folderLabels = {};
+  const folderSection = {};
+  for (const [folder, info] of byFolder) {
+    folderSection[folder] = info.section;
+    if (info.label) folderLabels[folder] = info.label;
+  }
+
+  // Секции из коллекций: только те, где реально есть папки (могут быть
+  // пустые, если папка ещё не появилась на Диске — их не выводим).
+  const used = new Set(
+    [...byFolder.keys()].filter((f) => byFolder.get(f)).map((f) => folderSection[f]),
+  );
+  const sections = collectionOrder.filter((id) => used.has(id));
+
+  return {
+    strip,
+    sections,
+    sectionLabels,
+    folderLabels,
+    folderSection,
+    byFolder,
+    // функция ниже вызывается после сбора треков, чтобы отловить сирот
+    finalizeSections(tracks) {
+      const orphanSections = new Map(); // resolveSection → папки
+      for (const t of tracks) {
+        if (folderSection[t.folder]) continue; // в коллекции
+        const section = resolveSection(t.folder);
+        if (!orphanSections.has(section)) orphanSections.set(section, new Set());
+        orphanSections.get(section).add(t.folder);
+      }
+      const orphanIds = [...orphanSections.keys()].sort((a, b) =>
+        a.localeCompare(b, "ru"),
+      );
+      for (const id of orphanIds) {
+        if (sections.includes(id)) continue;
+        sections.push(id);
+        if (strip) {
+          const clean = stripNumberPrefix(id);
+          if (clean && clean !== id) sectionLabels[id] = clean;
+        }
+      }
+      for (const t of tracks) {
+        if (folderSection[t.folder]) continue;
+        const section = resolveSection(t.folder);
+        t.section = section;
+        if (!folderLabels[t.folder]) {
+          folderLabels[t.folder] = autoFolderLabel(t.folder, section);
+        }
+      }
+      // Треки коллекций получают section = id коллекции.
+      for (const t of tracks) {
+        if (folderSection[t.folder]) t.section = folderSection[t.folder];
+      }
+
+      // Порядок разделов — как на источнике: по номеру-префиксу папок
+      // («01 …» < «09 …» < «99 …»), внутри номера — по имени папки-якоря.
+      const foldersOf = new Map(); // sectionId → Set<папка>
+      for (const t of tracks) {
+        if (!foldersOf.has(t.section)) foldersOf.set(t.section, new Set());
+        foldersOf.get(t.section).add(t.folder);
+      }
+      const anchorOf = (id) =>
+        [...(foldersOf.get(id) ?? [])].sort((a, b) => a.localeCompare(b, "ru"))[0];
+      const sortKey = (id) => {
+        const anchor = anchorOf(id) ?? id;
+        const m = String(anchor).match(/^\s*(\d+)/);
+        return {
+          num: m ? Number(m[1]) : Number.POSITIVE_INFINITY,
+          name: anchor,
+        };
+      };
+      sections.sort((a, b) => {
+        const ka = sortKey(a);
+        const kb = sortKey(b);
+        if (ka.num !== kb.num) return ka.num - kb.num;
+        return ka.name.localeCompare(kb.name, "ru");
+      });
+    },
+  };
+}
+
 async function buildCatalog() {
+  const collectionsCfg = await loadCollections();
+  if (collectionsCfg) {
+    log(`collections: ${COLLECTIONS_FILE} (${collectionsCfg.list.length} шт.)`);
+  } else {
+    log(`collections: нет конфига — обычные разделы`);
+  }
+  const plan = await planSections(collectionsCfg);
+
   const root = await fetchJson(
     `${API_ROOT}?public_key=${encodeURIComponent(PUBLIC_KEY)}&limit=200`,
   );
   const folders = (root._embedded?.items ?? []).filter((i) => i.type === "dir");
   const tracks = [];
-  const sectionSet = new Set();
   for (const folder of folders) {
-    const section = resolveSection(String(folder.name));
-    sectionSet.add(section);
+    const folderName = String(folder.name);
+    const section = plan.folderSection[folderName] ?? resolveSection(folderName);
     try {
       const folderData = await fetchJson(
         `${API_ROOT}?public_key=${encodeURIComponent(PUBLIC_KEY)}&path=${encodeURIComponent(String(folder.path))}&limit=500`,
@@ -186,7 +373,7 @@ async function buildCatalog() {
           id: String(item.resource_id || item.path),
           title: String(item.name).replace(/\.[^.]+$/, ""),
           fileName: String(item.name),
-          folder: String(folder.name),
+          folder: folderName,
           folderPath: String(folder.path),
           path: String(item.path),
           size: item.size,
@@ -205,9 +392,15 @@ async function buildCatalog() {
   const mailruTracks = await buildMailruCatalog();
   const mailruFolders = [...new Set(mailruTracks.map((t) => t.folder))];
   for (const t of mailruTracks) {
-    sectionSet.add(t.section);
+    const folderName = t.folder;
+    if (plan.folderSection[folderName]) {
+      t.section = plan.folderSection[folderName];
+    }
     tracks.push(t);
   }
+
+  // Сироты (папки вне коллекций) и финальная привязка section по трекам.
+  plan.finalizeSections(tracks);
 
   // Единый список папок без дублей: Яндекс-листинг корня всё ещё возвращает
   // «09 22 MINUTW 1/2» (внутри осталась заглушка «Треки переехали!.doc»),
@@ -217,12 +410,19 @@ async function buildCatalog() {
     ...new Set([...folders.map((f) => String(f.name)), ...mailruFolders]),
   ];
 
-  return {
+  const out = {
     sourceTitle: root.name || "СКАЗКИ АУДИО",
-    sections: [...sectionSet].sort((a, b) => a.localeCompare(b, "ru")),
+    sections: plan.sections,
     folders: allFolders,
     tracks,
   };
+  if (Object.keys(plan.sectionLabels).length) {
+    out.sectionLabels = plan.sectionLabels;
+  }
+  if (Object.keys(plan.folderLabels).length) {
+    out.folderLabels = plan.folderLabels;
+  }
+  return out;
 }
 
 function localFilePath(diskPath) {
@@ -367,6 +567,13 @@ async function main() {
   });
 
   const out = { ...catalog, tracks: limit > 0 ? tracks : catalog.tracks };
+  log(`sections: ${out.sections.length} → ${JSON.stringify(out.sections)}`);
+  if (out.sectionLabels && Object.keys(out.sectionLabels).length) {
+    log(`sectionLabels: ${JSON.stringify(out.sectionLabels)}`);
+  }
+  if (out.folderLabels && Object.keys(out.folderLabels).length) {
+    log(`folderLabels: ${JSON.stringify(out.folderLabels)}`);
+  }
   const catalogPath = path.join(rootDir, "catalog.json");
   if (!dryRun) {
     await mkdir(rootDir, { recursive: true });

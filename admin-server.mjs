@@ -5,7 +5,7 @@
  */
 
 import { createServer } from "node:http";
-import { readFile, writeFile, stat, mkdir } from "node:fs/promises";
+import { readFile, writeFile, stat, mkdir, rename } from "node:fs/promises";
 import { createReadStream, existsSync } from "node:fs";
 import { execFile } from "node:child_process";
 import { join, dirname } from "node:path";
@@ -17,6 +17,8 @@ const MEDIA_ROOT = process.env.MEDIA_ROOT || "/var/media";
 const SYNC_LOG = process.env.SYNC_LOG || "/var/log/gayduk/media-sync.log";
 const SYNC_SERVICE = process.env.SYNC_SERVICE || "gayduk-media-sync.service";
 const DATA_DIR = process.env.DATA_DIR || "/var/lib/haiduk-admin";
+const COLLECTIONS_FILE =
+  process.env.COLLECTIONS_FILE || join(MEDIA_ROOT, "collections.json");
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 await mkdir(DATA_DIR, { recursive: true }).catch(() => {});
@@ -208,6 +210,106 @@ async function catalogStats() {
   }
 }
 
+// === Коллекции (collections.json) ===
+function resolveSectionName(folderName) {
+  return String(folderName)
+    .replace(/\s*\d{4}\s*[-–—]\s*\d{4}\s*$/, "")
+    .trim();
+}
+
+function stripNumberPrefix(name) {
+  return String(name).replace(/^\s*\d{1,3}\s+/, "").trim();
+}
+
+async function readCollectionsFile() {
+  try {
+    const raw = await readFile(COLLECTIONS_FILE, "utf8");
+    const data = JSON.parse(raw);
+    return {
+      exists: true,
+      config: Array.isArray(data) ? { collections: data } : data,
+    };
+  } catch {
+    return { exists: false, config: null };
+  }
+}
+
+async function writeCollectionsFile(config) {
+  const payload = Array.isArray(config) ? { collections: config } : config;
+  await mkdir(dirname(COLLECTIONS_FILE), { recursive: true });
+  const tmp = `${COLLECTIONS_FILE}.tmp`;
+  await writeFile(tmp, JSON.stringify(payload, null, 2), "utf8");
+  await rename(tmp, COLLECTIONS_FILE);
+}
+
+/** Собирает доступные физические папки из текущего catalog.json. */
+async function catalogFolderIndex() {
+  const catalogPath = join(MEDIA_ROOT, "catalog.json");
+  try {
+    const cat = JSON.parse(await readFile(catalogPath, "utf8"));
+    const tracks = cat.tracks || [];
+    const byFolder = new Map(); // folder → { section, count }
+    for (const t of tracks) {
+      const f = t.folder;
+      if (!byFolder.has(f)) {
+        byFolder.set(f, {
+          folder: f,
+          section: t.section || resolveSectionName(f),
+          count: 0,
+        });
+      }
+      byFolder.get(f).count += 1;
+    }
+    return {
+      folders: [...byFolder.values()],
+      sections: cat.sections || [],
+      sourceTitle: cat.sourceTitle,
+    };
+  } catch (e) {
+    return { error: e.message, folders: [], sections: [] };
+  }
+}
+
+/** Предзаполнение коллекций из текущего каталога (не сохраняет). */
+async function suggestCollections() {
+  const idx = await catalogFolderIndex();
+  if (idx.error) return { error: idx.error };
+  // Группируем папки по секции текущего каталога (resolveSection уже свёл
+  // растаманские и т.п. в один раздел). Каждая секция → коллекция.
+  const groups = new Map(); // sectionId → { title, folders: [] }
+  for (const f of idx.folders) {
+    const sectionId = f.section;
+    if (!groups.has(sectionId)) {
+      groups.set(sectionId, {
+        title: stripNumberPrefix(sectionId) || sectionId,
+        folders: [],
+      });
+    }
+    groups.get(sectionId).folders.push(f.folder);
+  }
+  const collections = [];
+  for (const [sectionId, g] of groups) {
+    const labelOf = (folder) => {
+      let label = stripNumberPrefix(folder);
+      const clean = stripNumberPrefix(sectionId);
+      if (clean && label.startsWith(clean)) {
+        const rest = label.slice(clean.length).trim();
+        if (rest) label = rest;
+      }
+      return label;
+    };
+    collections.push({
+      id: sectionId,
+      title: g.title || sectionId,
+      folders: g.folders.sort((a, b) => a.localeCompare(b, "ru")).map((folder) => ({
+        name: folder,
+        label: labelOf(folder),
+      })),
+    });
+  }
+  return { collections };
+}
+
 // === Router ===
 const server = createServer(async (req, res) => {
   const url = new URL(req.url, "http://localhost");
@@ -216,7 +318,7 @@ const server = createServer(async (req, res) => {
   if (method === "OPTIONS") {
     res.writeHead(204, {
       "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type",
     });
     res.end();
@@ -224,6 +326,31 @@ const server = createServer(async (req, res) => {
   }
 
   try {
+    if (url.pathname === "/api/collections" && method === "GET") {
+      const [file, idx] = await Promise.all([
+        readCollectionsFile(),
+        catalogFolderIndex(),
+      ]);
+      return json(res, { ...file, catalog: idx });
+    }
+    if (url.pathname === "/api/collections/suggest" && method === "GET") {
+      return json(res, await suggestCollections());
+    }
+    if (url.pathname === "/api/collections" && (method === "PUT" || method === "POST")) {
+      const body = await readBody(req);
+      let config;
+      try {
+        config = JSON.parse(body);
+      } catch {
+        return json(res, { error: "Тело должно быть JSON (collections)" }, 400);
+      }
+      await writeCollectionsFile(config);
+      return json(res, { ok: true, file: COLLECTIONS_FILE });
+    }
+    if (url.pathname === "/api/collections" && method === "DELETE") {
+      await writeCollectionsFile({ collections: [] });
+      return json(res, { ok: true, file: COLLECTIONS_FILE });
+    }
     if (url.pathname === "/api/sync/log" && method === "GET") {
       const lines = parseInt(url.searchParams.get("lines") || "50");
       return json(res, await tailLog(lines));

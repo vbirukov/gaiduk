@@ -168,6 +168,25 @@
     <h2>Папки каталога</h2>
     <div class="folder-list" id="folders"></div>
 
+    <!-- Коллекции -->
+    <div class="card" style="margin-bottom:32px" id="collectionsCard">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px">
+        <h2 style="margin:0">Коллекции (разделы каталога)</h2>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="outline" id="btnCollSuggest" onclick="loadSuggestCollections()">✨ Из каталога</button>
+          <button class="outline" id="btnCollAdd" onclick="addCollection()">＋ Коллекция</button>
+          <button id="btnCollSave" onclick="saveCollections()">💾 Сохранить</button>
+          <button class="outline" id="btnCollReset" onclick="resetCollections()">Сбросить</button>
+        </div>
+      </div>
+      <p class="mini-text" style="margin-bottom:10px;color:var(--text-muted)">
+        Коллекция = раздел в ленте. Папки источников группируются в коллекции; имя раздела и подписи
+        карточек показываются без номеров-префиксов. После сохранения запустите синхронизацию.
+      </p>
+      <div id="collectionsStatus" class="mini-text" style="margin-bottom:8px;color:var(--accent)"></div>
+      <div id="collectionsEditor"><span style="color:var(--text-muted)">Загрузка…</span></div>
+    </div>
+
     <!-- Лог синхронизации -->
     <div class="log-panel">
       <div class="log-header">
@@ -313,7 +332,202 @@
 
     function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
+    // === Коллекции ===
+    let collectionsState = { config: { collections: [] }, allFolders: [], currentSections: [] };
+
+    async function loadCollectionsEditor() {
+      try {
+        const data = await fetchJSON('/collections');
+        collectionsState = {
+          config: data.config && Array.isArray(data.config.collections)
+            ? data.config
+            : { collections: [] },
+          allFolders: (data.catalog?.folders || []).map(f => f.folder || f.name),
+          currentSections: data.catalog?.sections || [],
+        };
+        // Старая форма — массив коллекций как корень файла
+        if (Array.isArray(data.config)) {
+          collectionsState.config = { collections: data.config };
+        }
+        renderCollectionsEditor();
+      } catch (e) {
+        document.getElementById('collectionsEditor').innerHTML =
+          '<span style="color:var(--danger)">Не удалось загрузить коллекции: ' + esc(String(e)) + '</span>';
+      }
+    }
+
+    async function loadSuggestCollections() {
+      setCollStatus('Генерация из каталога…');
+      try {
+        const data = await fetchJSON('/collections/suggest');
+        if (!data.collections) throw new Error('Пустой ответ');
+        collectionsState.config = { collections: data.collections };
+        renderCollectionsEditor();
+        setCollStatus('Предзаполнено из текущего каталога. Проверьте и сохраните.');
+      } catch (e) {
+        setCollStatus('Ошибка генерации: ' + e.message, true);
+      }
+    }
+
+    function addCollection() {
+      const uniq = collectionsState.config.collections.length + 1;
+      collectionsState.config.collections.push({
+        id: 'Коллекция ' + uniq,
+        title: 'Коллекция ' + uniq,
+        folders: [],
+      });
+      renderCollectionsEditor();
+    }
+
+    function moveCollection(idx, delta) {
+      const arr = collectionsState.config.collections;
+      const to = idx + delta;
+      if (to < 0 || to >= arr.length) return;
+      const [item] = arr.splice(idx, 1);
+      arr.splice(to, 0, item);
+      renderCollectionsEditor();
+    }
+
+    function removeCollection(idx) {
+      if (!confirm('Удалить коллекцию?')) return;
+      collectionsState.config.collections.splice(idx, 1);
+      renderCollectionsEditor();
+    }
+
+    function moveFolder(colIdx, folderIdx, delta) {
+      const folders = collectionsState.config.collections[colIdx].folders;
+      const to = folderIdx + delta;
+      if (to < 0 || to >= folders.length) return;
+      const [item] = folders.splice(folderIdx, 1);
+      folders.splice(to, 0, item);
+      renderCollectionsEditor();
+    }
+
+    function removeFolder(colIdx, folderIdx) {
+      collectionsState.config.collections[colIdx].folders.splice(folderIdx, 1);
+      renderCollectionsEditor();
+    }
+
+    function addFolderToCollection(colIdx) {
+      const sel = document.getElementById('newFolder-' + colIdx);
+      if (!sel || !sel.value) return;
+      const name = sel.value;
+      const folders = collectionsState.config.collections[colIdx].folders;
+      if (folders.some(f => f.name === name)) return;
+      folders.push({ name, label: '' });
+      renderCollectionsEditor();
+    }
+
+    function patchCollection(idx, field, value) {
+      collectionsState.config.collections[idx][field] = value;
+    }
+
+    function patchFolder(colIdx, folderIdx, field, value) {
+      collectionsState.config.collections[colIdx].folders[folderIdx][field] = value;
+    }
+
+    async function saveCollections() {
+      try {
+        const res = await fetch(API + '/collections', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(collectionsState.config),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || res.status);
+        setCollStatus('Сохранено: ' + data.file + ' — запустите синхронизацию.');
+      } catch (e) {
+        setCollStatus('Ошибка сохранения: ' + e.message, true);
+      }
+    }
+
+    async function resetCollections() {
+      if (!confirm('Удалить конфиг коллекций (вернуть обычные разделы)?')) return;
+      try {
+        const res = await fetch(API + '/collections', { method: 'DELETE' });
+        await res.json();
+        collectionsState.config = { collections: [] };
+        renderCollectionsEditor();
+        setCollStatus('Конфиг коллекций сброшен.');
+      } catch (e) {
+        setCollStatus('Ошибка сброса: ' + e.message, true);
+      }
+    }
+
+    function setCollStatus(msg, isError) {
+      const el = document.getElementById('collectionsStatus');
+      el.style.color = isError ? 'var(--danger)' : 'var(--accent)';
+      el.textContent = msg;
+    }
+
+    function usedFolders() {
+      const used = new Set();
+      for (const col of collectionsState.config.collections) {
+        for (const f of col.folders || []) used.add(f.name);
+      }
+      return used;
+    }
+
+    function renderCollectionsEditor() {
+      const root = document.getElementById('collectionsEditor');
+      const cols = collectionsState.config.collections || [];
+      if (!cols.length) {
+        root.innerHTML =
+          '<span style="color:var(--text-muted)">Коллекции не заданы — ' +
+          'разделы строятся автоматически из имён папок. Нажмите «✨ Из каталога» или добавьте вручную.</span>';
+        return;
+      }
+      const used = usedFolders();
+      const all = [...collectionsState.allFolders].sort((a, b) => a.localeCompare(b, 'ru'));
+      const html = cols.map((col, ci) => {
+        const folders = col.folders || [];
+        const options = ['<option value="">— добавить папку —</option>']
+          .concat(all
+            .filter(f => !used.has(f) || folders.some(x => x.name === f))
+            .map(f => `<option value="${esc(f)}">${esc(f)}${folders.some(x => x.name === f) ? '' : ''}</option>`))
+          .join('');
+        const folderRows = folders.map((f, fi) => `
+          <div class="collection-row" style="display:flex;gap:6px;align-items:center;margin:4px 0">
+            <button class="outline" title="Выше" onclick="moveFolder(${ci}, ${fi}, -1)">↑</button>
+            <button class="outline" title="Ниже" onclick="moveFolder(${ci}, ${fi}, 1)">↓</button>
+            <span style="min-width:16px">${fi + 1}.</span>
+            <input type="text" value="${esc(f.name)}" readonly
+              style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text-muted);padding:4px 8px"
+              title="Физическая папка (ключ)">
+            <input type="text" placeholder="Подпись карточки" value="${esc(f.label || '')}"
+              onchange="patchFolder(${ci}, ${fi}, 'label', this.value)"
+              style="flex:1;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text);padding:4px 8px">
+            <button class="outline" title="Удалить папку из коллекции" onclick="removeFolder(${ci}, ${fi})">✕</button>
+          </div>`).join('');
+        return `
+          <div class="card" style="margin-bottom:12px;background:var(--bg)">
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+              <button class="outline" onclick="moveCollection(${ci}, -1)" title="Выше">↑</button>
+              <button class="outline" onclick="moveCollection(${ci}, 1)" title="Ниже">↓</button>
+              <input type="text" placeholder="id раздела (ключ)" value="${esc(col.id || '')}"
+                onchange="patchCollection(${ci}, 'id', this.value)"
+                style="width:200px;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text);padding:4px 8px">
+              <input type="text" placeholder="Название в ленте (без номера)" value="${esc(col.title || '')}"
+                onchange="patchCollection(${ci}, 'title', this.value)"
+                style="flex:1;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text);padding:4px 8px">
+              <button class="outline" onclick="removeCollection(${ci})" title="Удалить коллекцию">✕</button>
+            </div>
+            <div style="margin-top:8px">
+              ${folderRows}
+              <div style="display:flex;gap:6px;margin-top:6px">
+                <select id="newFolder-${ci}" style="flex:1;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text);padding:4px 8px">
+                  ${options}
+                </select>
+                <button class="outline" onclick="addFolderToCollection(${ci})">＋ Папка</button>
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+      root.innerHTML = html;
+    }
+
     loadAll();
+    loadCollectionsEditor();
     // Автообновление лога
     setInterval(refreshLog, 15000);
   </script>
