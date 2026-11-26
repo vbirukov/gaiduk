@@ -143,12 +143,36 @@ async function tailLog(lines = 50) {
 }
 
 // === Sync status ===
+// `LastTriggerUSec` есть только у .timer, а systemctl печатает человекочитаемую
+// дату; админка ждёт число микросекунд с эпохи → приводим.
+const SYNC_TRIGGER_UNIT =
+  process.env.SYNC_TRIGGER_UNIT ||
+  (SYNC_SERVICE.endsWith(".service")
+    ? `${SYNC_SERVICE.slice(0, -".service".length)}.timer`
+    : SYNC_SERVICE);
+
+async function lastTriggerUsec() {
+  try {
+    const { stdout } = await execFileAsync("systemctl", [
+      "show",
+      SYNC_TRIGGER_UNIT,
+      "--property=LastTriggerUSec",
+      "--no-pager",
+    ]);
+    const raw = (stdout.trim().split("=")[1] || "").trim();
+    const ms = raw ? Date.parse(raw) : NaN;
+    return Number.isNaN(ms) ? null : String(ms * 1000);
+  } catch {
+    return null;
+  }
+}
+
 async function syncStatus() {
   try {
     const { stdout } = await execFileAsync("systemctl", [
       "show",
       SYNC_SERVICE,
-      "--property=ActiveState,SubState,LastTriggerUSec,ExecMainStatus",
+      "--property=ActiveState,SubState,ExecMainStatus",
       "--no-pager",
     ]);
     const props = {};
@@ -159,7 +183,7 @@ async function syncStatus() {
     return {
       active: props.ActiveState || "unknown",
       substate: props.SubState || "unknown",
-      lastTrigger: props.LastTriggerUSec || null,
+      lastTrigger: await lastTriggerUsec(),
       lastExitCode: props.ExecMainStatus || null,
     };
   } catch (e) {
