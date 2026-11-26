@@ -76,6 +76,15 @@
   box-shadow: inset 0 0 12px color-mix(in oklab, var(--moon-amber) 18%, transparent);
 }
 
+/* Тема перекрывает .chip, поэтому активный фильтр прослушивания
+   подсвечиваем правилом большей специфичности. */
+[data-skin="moon-dub"] .feed-listen-filter__chip.is-active {
+  background: color-mix(in oklab, var(--moon-amber) 14%, var(--moon-surface-2));
+  color: var(--moon-paper);
+  border-color: color-mix(in oklab, var(--moon-amber) 35%, transparent);
+  box-shadow: inset 0 0 12px color-mix(in oklab, var(--moon-amber) 18%, transparent);
+}
+
 [data-skin="moon-dub"] .card-social .ghost.round.active,
 [data-skin="moon-dub"] .icon-button.ghost.active.btn-like {
   background: color-mix(in oklab, var(--moon-amber) 22%, var(--moon-surface-2));

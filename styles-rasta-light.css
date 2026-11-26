@@ -78,6 +78,14 @@
   border-color: var(--rl-green);
 }
 
+/* Тема перекрывает .chip, поэтому активный фильтр прослушивания
+   подсвечиваем правилом большей специфичности. */
+[data-skin="rastaman-light"] .feed-listen-filter__chip.is-active {
+  background: color-mix(in oklab, var(--rl-green) 32%, var(--rl-cloud));
+  border-color: var(--rl-green);
+  color: var(--rl-green-stroke);
+}
+
 [data-skin="rastaman-light"] .card-social .ghost.round.active,
 [data-skin="rastaman-light"] .icon-button.ghost.active.btn-like {
   background: color-mix(in oklab, var(--rl-red) 38%, var(--rl-cloud));
