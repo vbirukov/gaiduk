@@ -6,7 +6,7 @@
 
 import { createServer } from "node:http";
 import { readFile, writeFile, stat, mkdir, rename } from "node:fs/promises";
-import { createReadStream, existsSync } from "node:fs";
+import { createReadStream, existsSync, readFileSync } from "node:fs";
 import { execFile } from "node:child_process";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -21,7 +21,9 @@ const COLLECTIONS_FILE =
   process.env.COLLECTIONS_FILE || join(MEDIA_ROOT, "collections.json");
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-await mkdir(DATA_DIR, { recursive: true }).catch(() => {});
+await mkdir(DATA_DIR, { recursive: true }).catch((e) =>
+  console.error(`admin-server: cannot create ${DATA_DIR}:`, e.message),
+);
 
 // === JSON-based storage ===
 const VISITS_FILE = join(DATA_DIR, "visits.json");
@@ -29,7 +31,7 @@ const VISITS_FILE = join(DATA_DIR, "visits.json");
 function loadVisits() {
   try {
     if (!existsSync(VISITS_FILE)) return [];
-    return JSON.parse(require("fs").readFileSync(VISITS_FILE, "utf8"));
+    return JSON.parse(readFileSync(VISITS_FILE, "utf8"));
   } catch {
     return [];
   }
@@ -41,7 +43,9 @@ function saveVisits(visits) {
   const trimmed = visits.filter((v) => new Date(v.timestamp).getTime() > cutoff);
   // Keep max 100000 records
   const kept = trimmed.slice(-100000);
-  writeFile(VISITS_FILE, JSON.stringify(kept), "utf8").catch(() => {});
+  writeFile(VISITS_FILE, JSON.stringify(kept), "utf8").catch((e) =>
+    console.error("admin-server: visits write failed:", e.message),
+  );
 }
 
 function addVisit(ip, path, ua, ref) {
