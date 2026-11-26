@@ -63,6 +63,8 @@ jobs:
     needs: bump
     if: needs.bump.outputs.bumped == 'true'
     uses: ./.github/workflows/deploy.yml
+    # reusable workflow не получает секреты автоматически — нужно inherit
+    secrets: inherit
     permissions:
       contents: read
       packages: read
